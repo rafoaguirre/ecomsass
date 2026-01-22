@@ -1,12 +1,34 @@
 # EcomSaaS
 
-A modern, scalable e-commerce platform built as a monorepo using TypeScript, Turborepo, and pnpm workspaces.
+A modern, scalable multi-tenant e-commerce platform enabling vendors to create and manage online stores with integrated blockchain features.
 
-> **Note**: This is a portfolio project demonstrating modern full-stack development practices, monorepo architecture, and system design skills. It showcases integration of various technologies including TypeScript, microservices, blockchain, and cloud infrastructure.
+> **Portfolio Project**: This project demonstrates modern full-stack development practices, clean architecture, monorepo organization, and integration of cutting-edge technologies including TypeScript, blockchain (Polygon), and AI-powered features.
+
+> **🤖 AI-Assisted Development**: This project leverages generative AI (GitHub Copilot, Claude) as development tools for code generation and documentation. All AI-generated code is reviewed, refined, tested, and supervised by the developer. Architectural decisions, system design, and implementation strategies are human-driven. This approach demonstrates effective collaboration with modern AI development tools while maintaining code quality and understanding.
+
+> **⚠️ Security Notice**: This is a portfolio/learning project with security features being implemented progressively. It is not yet production-ready. Deep security hardening, compliance measures, and comprehensive penetration testing will be added in later development phases.
+
+## 📚 Documentation
+
+- **[Architecture Overview](docs/ARCHITECTURE.md)** - System design, technology stack, and architectural decisions
+- **[Implementation Plan](docs/IMPLEMENTATION_PLAN.md)** - Detailed phased development roadmap (22-24 weeks)
+- **[Technical Decisions](docs/DECISIONS.md)** - Quick reference for all key technical decisions
+- **[Commit Guide](docs/COMMIT_GUIDE.md)** - Commit message conventions and guidelines
+- **[TypeScript Config Examples](docs/TSCONFIG_EXAMPLES.md)** - Package configuration patterns
+
+## ✨ Key Features
+
+- **Multi-Tenant Stores**: Vendors create branded stores accessible via subdomains
+- **Marketplace**: Central discovery platform for all vendor stores
+- **Multi-Vendor Cart**: Customers shop from multiple stores in one transaction
+- **Stripe Connect**: Automated payment splitting with platform fees
+- **Blockchain Integration**: Crypto payments, fundraising, and rewards system (Polygon)
+- **AI-Powered Management**: MCP server for natural language store configuration
+- **Clean Architecture**: Shared domain and application layers across all services
 
 ## 🏗️ Architecture
 
-This is a monorepo containing multiple applications and shared packages for building a comprehensive e-commerce system with blockchain integration.
+This monorepo contains multiple applications and shared packages following clean architecture principles.
 
 ### Workspace Structure
 
