@@ -12,6 +12,7 @@ dist/
 out/
 .next/
 .turbo/
+*.tsbuildinfo
 
 # Environment variables
 .env
@@ -19,6 +20,9 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Local npm config (if any secrets)
+.npmrc.local
 
 # Logs
 logs/
@@ -48,3 +52,7 @@ Thumbs.db
 *.pid
 *.seed
 *.pid.lock
+
+# Temporary test files (not committed)
+**/test.ts
+**/test.js

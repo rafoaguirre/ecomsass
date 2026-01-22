@@ -2,7 +2,7 @@
   "name": "ecomsaas",
   "version": "1.0.0",
   "description": "Monorepo for an ecommerce sass system powering complex interactions between vendors and customers",
-  "main": "index.js",
+  "type": "module",
   "private": true,
   "scripts": {
     "build": "turbo build",

@@ -86,27 +86,40 @@ pnpm add -D -w <package-name>
 
 - **Build System**: Turborepo for monorepo task orchestration
 - **Package Manager**: pnpm with workspaces
-- **Language**: TypeScript
+- **Language**: TypeScript (with per-package configuration strategy)
 - **Code Quality**: ESLint, Prettier, Husky, lint-staged
 - **Commits**: Conventional Commits with commitlint
+
+### TypeScript Strategy
+
+The root `tsconfig.json` provides minimal base settings. Each package extends it and overrides for its needs:
+
+- **Backend services**: `module: "commonjs"`, `moduleResolution: "node"`
+- **Web applications**: `module: "esnext"`, `moduleResolution: "bundler"`
+- **Mobile apps**: React Native specific configuration
+- **Shared packages**: ESM-based for maximum compatibility
+
+See [docs/TSCONFIG_EXAMPLES.md](docs/TSCONFIG_EXAMPLES.md) for detailed examples.
 
 ## 📝 Contributing
 
 ### Commit Convention
 
-This project uses [Conventional Commits](https://www.conventionalcommits.org/):
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) with **required scopes**:
 
+```bash
+feat(api): add new payment gateway
+fix(web): resolve checkout cart issue
+docs(readme): update API documentation
+chore(deps): upgrade dependencies
 ```
-feat: add new payment gateway
-fix: resolve checkout cart issue
-docs: update API documentation
-chore: upgrade dependencies
-```
+
+**Scopes are required** to help organize changes in this monorepo. See the complete guide: [docs/COMMIT_GUIDE.md](docs/COMMIT_GUIDE.md)
 
 ### Git Hooks
 
 - **pre-commit**: Runs lint-staged (ESLint + Prettier on staged files)
-- **commit-msg**: Validates commit messages follow conventional commits
+- **commit-msg**: Validates commit messages follow conventional commits with scopes
 
 ## 📄 License
 
