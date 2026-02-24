@@ -11,6 +11,10 @@ EcomSaaS is a multi-tenant e-commerce SaaS platform enabling vendors to create o
 - `packages/domain/` — entities, value objects, enums (implemented, builds clean)
 - `packages/contracts/` — DTOs, API protocol types (implemented, builds clean)
 
+**CI:** GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push to main and PRs: build → lint → type-check → test → format check.
+
+**Testing:** Vitest configured in `packages/domain/` with `tsconfig.test.json` for ESLint type-aware linting of test files.
+
 Everything else in the monorepo structure is **planned but not yet created**. Do not generate code that imports from packages that don't exist yet (application, utils, ui, config, validation, infrastructure, backends, clients).
 
 ## Architecture
