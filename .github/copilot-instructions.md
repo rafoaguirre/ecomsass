@@ -111,6 +111,41 @@ Multiple scopes: `feat(domain, contracts): add subscription types`
 
 See `docs/COMMIT_GUIDE.md` for full reference.
 
+## Branches & Pull Requests
+
+### Branch Naming
+
+Format: `<type>/<scope>` or `<type>/issue-<N>/<description>`
+
+Examples:
+
+```
+feat/issue-2-3/shared-domain-contracts
+fix/issue-12/checkout-race-condition
+chore/upgrade-typescript
+```
+
+- Use kebab-case for descriptions.
+- Reference issue numbers when applicable.
+- Tightly coupled issues can share a single branch (e.g. `issue-2-3`).
+
+### Pull Requests
+
+- **Title format:** `<type>(<scope>): <present-tense verb> <description>`
+  - PR titles describe what the PR **implements/does**, in present tense
+  - Example: `feat(domain, contracts): implements shared domain layer and API contracts`
+- **Body:** Summarize scope, architecture decisions, and testing done.
+- **Issue references:** Use `Closes #N` in the PR body to auto-close issues on merge.
+- **Commit references:** Use `Refs #N` in individual commit messages (not `Closes`) — let the PR merge trigger the close.
+
+### Workflow
+
+1. Create issue(s) in the repo with descriptive titles and checklists
+2. Branch from `main` with a descriptive branch name referencing issue(s)
+3. Make focused commits with `Refs #N` linking to the relevant issue
+4. Open PR with `Closes #N` in the body
+5. Merge → issues auto-close
+
 ## Anti-Patterns — Do NOT
 
 - Import from infrastructure or application in domain or contracts.
