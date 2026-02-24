@@ -21,6 +21,12 @@
       "cache": false
     },
     "lint": {
+      "dependsOn": ["^build"],
+      "persistent": false,
+      "cache": false
+    },
+    "type-check": {
+      "dependsOn": ["^build"],
       "persistent": false,
       "cache": false
     },
