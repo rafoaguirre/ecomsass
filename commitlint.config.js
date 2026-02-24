@@ -35,6 +35,7 @@ export default {
         'web3',
 
         // Shared packages
+        'domain',
         'types',
         'utils',
         'shared',

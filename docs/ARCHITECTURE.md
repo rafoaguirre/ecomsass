@@ -203,12 +203,14 @@ This project follows Clean Architecture principles with clear separation between
 
 **Shared Packages:**
 
-- `packages/domain/` - Core entities (User, Order, Product, Store)
-- `packages/application/` - Business use cases
-- `packages/types/` - TypeScript type definitions
-- `packages/utils/` - Pure utility functions
-- `packages/config/` - Shared configuration
-- `packages/ui/` - Shared UI components (React)
+- `packages/domain/` - Core domain layer: entities, value objects, enums (zero dependencies)
+- `packages/contracts/` - API contracts, DTOs, shared protocol types (depends on domain)
+- `packages/application/` - Business use cases _(planned)_
+- `packages/utils/` - Pure utility functions _(planned)_
+- `packages/config/` - Shared configuration _(planned)_
+- `packages/validation/` - Shared validation schemas (Zod) _(planned)_
+- `packages/ui/` - Shared UI components (React) _(planned)_
+- `packages/infrastructure/` - Shared infra utilities _(planned)_
 
 **App-Specific:**
 
@@ -232,14 +234,14 @@ ecomsaas/
 ├── blockchain/
 │   └── contracts/              # Solidity smart contracts
 ├── packages/
-│   ├── domain/                 # Shared domain layer (entities)
-│   ├── application/            # Shared use cases
-│   ├── types/                  # TypeScript types
-│   ├── ui/                     # Shared UI components
-│   ├── utils/                  # Shared utilities
-│   ├── config/                 # Shared configurations
-│   ├── validation/             # Shared validation schemas (Zod)
-│   └── infrastructure/         # Shared infra utilities
+│   ├── domain/                 # Core domain layer (entities, value objects, enums)
+│   ├── contracts/              # API contracts, DTOs, shared protocol types
+│   ├── application/            # Shared use cases (planned)
+│   ├── ui/                     # Shared UI components (planned)
+│   ├── utils/                  # Shared utilities (planned)
+│   ├── config/                 # Shared configurations (planned)
+│   ├── validation/             # Shared validation schemas — Zod (planned)
+│   └── infrastructure/         # Shared infra utilities (planned)
 │       ├── logger/             # Logging utility
 │       ├── secrets/            # Secrets manager wrapper
 │       ├── http/               # HTTP client wrapper
@@ -515,9 +517,10 @@ src/
   - Adapters implement repository interfaces
   - SQL schemas, queries, and ORM code here
 
-- **TypeScript Types** (`packages/types/`): Type definitions
-  - Shared across all layers
-  - Generated from database schema or manually maintained
+- **Contracts** (`packages/contracts/`): DTOs & API protocol types
+  - Shared across application and infrastructure layers
+  - Depends on domain entities (inward-pointing dependency)
+  - Request/response shapes, pagination, error types
 
 ## API Design
 
