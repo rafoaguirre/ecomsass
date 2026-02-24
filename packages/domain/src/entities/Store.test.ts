@@ -1,17 +1,25 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Store } from './Store.js';
-import { StoreType } from '../enums/index.js';
+import type { Store } from './Store';
+import { StoreType } from '../enums';
 
-describe('Store entity', () => {
+describe('Store entity interface', () => {
   it('should satisfy the Store interface shape', () => {
     const store: Store = {
       id: 'store-1',
       vendorProfileId: 'vendor-1',
       name: 'Test Store',
       slug: 'test-store',
-      storeType: StoreType.Restaurant,
+      storeType: StoreType.General,
+      address: {
+        street: '123 Main St',
+        city: 'Toronto',
+        province: 'ON',
+        country: 'CA',
+        postalCode: 'M5V 1A1',
+      },
       isActive: true,
+      metadata: {},
       createdAt: new Date(),
       updatedAt: new Date(),
     };

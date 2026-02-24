@@ -6,6 +6,7 @@ export default defineConfig({
     entities: 'src/entities/index.ts',
     enums: 'src/enums/index.ts',
     'value-objects': 'src/value-objects/index.ts',
+    models: 'src/models/index.ts',
   },
   format: ['esm'],
   dts: true,

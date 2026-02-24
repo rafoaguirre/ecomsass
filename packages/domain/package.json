@@ -21,6 +21,10 @@
     "./value-objects": {
       "types": "./dist/value-objects/index.d.ts",
       "import": "./dist/value-objects/index.js"
+    },
+    "./models": {
+      "types": "./dist/models/index.d.ts",
+      "import": "./dist/models/index.js"
     }
   },
   "files": [
