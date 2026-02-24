@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** Planning Phase  
+> **Status:** In Progress — Phase 0  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -16,32 +16,49 @@ This document outlines the phased implementation plan for the EcomSaaS platform,
 
 ## Phase 0: Foundation (Week 1-2)
 
-### 0.1 Shared Type System
+### 0.1 Shared Type System ✅
 
 **Goal:** Establish TypeScript type definitions shared across all apps
 
+**Status:** Complete — implemented as two packages following Clean Architecture boundary separation.
+
 **Deliverables:**
 
-- [ ] Create `packages/types/`
-- [ ] Define base types: `User`, `Vendor`, `Store`, `Product`, `Order`
-- [ ] Setup package exports
-- [ ] Configure TypeScript project references
+- [x] Create `packages/domain/` — core entities, value objects, enums (zero dependencies)
+- [x] Create `packages/contracts/` — DTOs, API protocol types (depends on domain)
+- [x] Define entity interfaces: UserAccount, VendorProfile, Store, Product, Order, Subscription, Category, Supplier, Invite, Link, Log
+- [x] Define value objects: Money, Address, GeoPoint, Image, Schedule, Quantity
+- [x] Define 20+ business enums: OrderStatus, PaymentMethod, AccountTier, StoreType, etc.
+- [x] Define DTOs: auth, stores, products, orders, subscriptions
+- [x] Define common types: ApiResponse, Pagination, ErrorCode, FilterOptions
+- [x] Setup subpath exports for both packages
+- [x] Configure tsup build (ESM, DTS, sourcemaps)
 
-**Files:**
+**Structure:**
 
 ```
-packages/types/
+packages/domain/
 ├── src/
-│   ├── user.types.ts
-│   ├── vendor.types.ts
-│   ├── store.types.ts
-│   ├── product.types.ts
-│   ├── order.types.ts
-│   ├── common.types.ts
+│   ├── entities/
+│   │   ├── identity/  (UserAccount, VendorProfile)
+│   │   ├── Store.ts, Product.ts, Order.ts, Subscription.ts, ...
+│   │   └── index.ts
+│   ├── value-objects/  (Money, Address, GeoPoint, Image, Schedule, Quantity)
+│   ├── enums/          (20+ business enums)
+│   └── index.ts
+├── package.json
+└── tsconfig.json
+
+packages/contracts/
+├── src/
+│   ├── dtos/           (auth, stores, products, orders, subscriptions)
+│   ├── common/         (ApiResponse, Pagination, ErrorTypes, FilterOptions)
 │   └── index.ts
 ├── package.json
 └── tsconfig.json
 ```
+
+**Decision:** DTOs were separated from domain into `packages/contracts/` to maintain Clean Architecture boundary — domain stays in the innermost ring with zero dependencies, contracts live in the adapter layer with an inward-pointing dependency on domain.
 
 ### 0.2 Shared Domain Layer
 
@@ -49,9 +66,9 @@ packages/types/
 
 **Deliverables:**
 
-- [ ] Create `packages/domain/`
-- [ ] Implement domain entities (User, Store, Product, Order)
-- [ ] Add business validation rules
+- [ ] Add rich domain model classes to existing `packages/domain/` (wrapping current interfaces)
+- [ ] Implement business validation rules in domain classes
+- [ ] Add factory methods and domain operations
 - [ ] Add unit tests (Vitest)
 - [ ] Document domain model
 
@@ -84,7 +101,7 @@ export class Store {
 }
 ```
 
-**Dependencies:** Phase 0.1 (types)
+**Dependencies:** Phase 0.1 (domain interfaces)
 
 ### 0.3 Shared Application Layer
 
@@ -200,7 +217,7 @@ export const storeSchema = z.object({
 export type StoreInput = z.infer<typeof storeSchema>;
 ```
 
-**Dependencies:** Phase 0.1 (types)
+**Dependencies:** Phase 0.1 (domain + contracts)
 
 ### 0.6 Shared UI Component Library
 
@@ -1362,7 +1379,8 @@ Each phase should meet:
 ## Next Steps
 
 1. ✅ Review and approve this implementation plan
-2. Begin Phase 0.1 (Shared Types)
-3. Setup project tracking (GitHub Projects/Issues)
-4. Create branch strategy
-5. Start coding!
+2. ✅ Complete Phase 0.1 (Shared Type System — domain + contracts)
+3. ✅ Setup project tracking (GitHub Projects/Issues)
+4. ✅ Establish branch strategy and commit conventions
+5. Begin Phase 0.2 (Rich Domain Models with business logic)
+6. Begin Phase 0.3 (Application Layer — use cases and repository interfaces)

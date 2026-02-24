@@ -40,44 +40,12 @@ This package follows the Clean Architecture dependency rule:
 
 If you're adding something here, ask: _would this concept exist even if we had no API, no database, and no UI?_ If yes, it belongs here. If not, it likely belongs in `@ecomsaas/contracts` or an outer layer.
 
-## Purpose
-
-This package provides pure TypeScript interfaces and types without business logic. It's designed to be lightweight and framework-agnostic, suitable for use across all applications in the monorepo.
-
-## Structure
-
-- **entities/** - Plain interfaces matching domain entities
-- **value-objects/** - Simple type definitions for value objects
-- **enums/** - Business enums (re-exported from domain layer)
-- **dtos/** - Data Transfer Objects for API contracts
-- **common/** - Shared utilities (API responses, pagination, errors)
-
-## Usage
-
-```typescript
-import type { Store, Product, Order } from '@ecomsaas/domain/entities';
-import type { CreateStoreRequest, StoreResponse } from '@ecomsaas/domain/dtos';
-import { OrderStatus, PaymentMethod } from '@ecomsaas/domain/enums';
-import type { ApiResponse, PaginatedResponse } from '@ecomsaas/domain/common';
-```
-
-## Philosophy
-
-- **Zero dependencies** (except TypeScript)
-- **No business logic** - validation and rules live in `@ecomsaas/domain`
-- **Framework-agnostic** - usable in frontend, backend, and external tools
-- **Plain interfaces** - no classes, decorators, or runtime code
-
-## Architecture
-
-This package serves as the **foundation of the domain layer** with room to grow:
+## Roadmap
 
 **Current (Phase 0.1):**
 
 - Plain TypeScript interfaces (entities, value-objects)
 - Business enums
-- DTOs for API contracts
-- Common utilities
 
 **Future (Phase 0.2+):**
 
@@ -85,13 +53,3 @@ This package serves as the **foundation of the domain layer** with room to grow:
 - Domain services
 - Value object classes with validation
 - Domain events
-
-**Usage Pattern:**
-
-```
-Frontend → @ecomsaas/domain/entities (lightweight)
-                ↓
-       Backend → @ecomsaas/domain/models (with logic)
-```
-
-This structure allows lightweight imports for frontends while providing rich domain behavior for backend services.

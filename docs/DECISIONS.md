@@ -142,14 +142,14 @@ services:
 
 ```
 packages/
-├── domain/              # Core business entities
-├── application/         # Use cases
-├── types/               # TypeScript definitions
-├── ui/                  # React components
-├── utils/               # Pure utilities
-├── config/              # Configurations
-├── validation/          # Zod schemas
-└── infrastructure/
+├── domain/              # Core entities, value objects, enums (zero deps)
+├── contracts/           # DTOs, API protocol types (depends on domain)
+├── application/         # Use cases (planned)
+├── ui/                  # React components (planned)
+├── utils/               # Pure utilities (planned)
+├── config/              # Configurations (planned)
+├── validation/          # Zod schemas (planned)
+└── infrastructure/      # Infra utilities (planned)
     ├── logger/          # Logging
     ├── secrets/         # Secret management
     ├── http/            # HTTP client
@@ -179,5 +179,5 @@ packages/
 
 ---
 
-**Last Updated**: January 22, 2026  
-**Status**: Planning Complete → Ready for Phase 0 Implementation
+**Last Updated**: February 24, 2026  
+**Status**: Phase 0 In Progress — domain + contracts implemented

@@ -36,7 +36,9 @@ This monorepo contains multiple applications and shared packages following clean
 ecomsaas/
 ├── backends/          # Backend services (APIs, microservices)
 ├── clients/           # Frontend applications (web, mobile, admin)
-├── packages/          # Shared TypeScript packages (utilities, types, configs)
+├── packages/          # Shared TypeScript packages
+│   ├── domain/        # Core entities, value objects, enums (implemented)
+│   └── contracts/     # DTOs, API protocol types (implemented)
 ├── blockchain/        # Smart contracts and blockchain integrations
 ├── infra/            # Infrastructure as Code (Terraform, K8s manifests)
 ├── docs/             # Documentation
@@ -116,10 +118,10 @@ pnpm add -D -w <package-name>
 
 The root `tsconfig.json` provides minimal base settings. Each package extends it and overrides for its needs:
 
-- **Backend services**: `module: "commonjs"`, `moduleResolution: "node"`
-- **Web applications**: `module: "esnext"`, `moduleResolution: "bundler"`
-- **Mobile apps**: React Native specific configuration
-- **Shared packages**: ESM-based for maximum compatibility
+- **Shared packages**: `module: "ESNext"`, `moduleResolution: "bundler"` (ESM-only)
+- **Backend services**: Same ESM config with NestJS SWC compiler
+- **Web applications**: `module: "ESNext"`, `moduleResolution: "bundler"` with Next.js
+- **All packages**: Built with tsup (ESM output, DTS generation, sourcemaps)
 
 See [docs/TSCONFIG_EXAMPLES.md](docs/TSCONFIG_EXAMPLES.md) for detailed examples.
 
