@@ -54,8 +54,8 @@ export function validateEmail(email: string, fieldName: string = 'email'): void 
   }
 }
 
-export function validateNonNegative(value: number, fieldName: string): void {
-  if (value < 0) {
+export function validateNonNegative(value: number | bigint, fieldName: string): void {
+  if ((typeof value === 'bigint' && value < 0n) || (typeof value === 'number' && value < 0)) {
     throw new ValidationError(`${fieldName} must not be negative`, {
       field: fieldName,
       constraint: 'nonNegative',

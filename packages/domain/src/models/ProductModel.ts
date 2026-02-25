@@ -130,10 +130,10 @@ export class ProductModel extends AggregateRoot<Product> implements Product {
   private validate(): void {
     validateRequired(this.name, 'Product name');
     validateSlug(this.slug, 'Product');
-    validateNonNegative(this.price.amountInCents, 'Product price');
+    validateNonNegative(this.price.amount, 'Product price');
 
     if (this.compareAtPrice !== undefined) {
-      validateNonNegative(this.compareAtPrice.amountInCents, 'Product price');
+      validateNonNegative(this.compareAtPrice.amount, 'Product price');
     }
   }
 
@@ -172,7 +172,7 @@ export class ProductModel extends AggregateRoot<Product> implements Product {
     if (!this.compareAtPrice) {
       return false;
     }
-    return this.compareAtPrice.amountInCents > this.price.amountInCents;
+    return this.compareAtPrice.amount > this.price.amount;
   }
 
   /** Whether the product has any variants defined. */

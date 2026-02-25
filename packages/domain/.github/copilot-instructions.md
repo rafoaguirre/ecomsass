@@ -15,7 +15,7 @@ This is the **innermost ring** of Clean Architecture — the stable core that ev
 
 - **Core** (`src/core/`): Base DDD building blocks — `Entity`, `AggregateRoot`, `ValueObject`, `Result<T,E>`, `DomainEvent`. All domain models extend these.
 - **Entities** (`src/entities/`): Interfaces representing core business objects — UserAccount, VendorProfile, Store, Product, Order, Subscription, etc.
-- **Value Objects** (`src/value-objects/`): Small immutable types — Money, Address, GeoPoint, Image, Schedule, Quantity. (Interfaces today; will become classes extending `ValueObject<T>` when needed.)
+- **Value Objects** (`src/value-objects/`): Small immutable types — Money, Address, GeoPoint, Image, Schedule, Quantity. Interfaces for data shapes; rich classes (e.g. `MoneyVO`) extend `ValueObject<T>` when arithmetic, formatting, or invariants are needed.
 - **Enums** (`src/enums/`): Business enumerations — OrderStatus, PaymentMethod, AccountTier, StoreType, etc.
 - **Errors** (`src/errors/`): Typed domain error hierarchy — `DomainError` base, `ValidationError`, `InvariantError`, `NotFoundError`, etc. Never throw raw `Error` in domain code.
 - **Models** (`src/models/`): Rich domain model classes wrapping entity interfaces with business logic, validation, and immutable updates. Each model extends `AggregateRoot<T>`.
@@ -91,7 +91,9 @@ updateName(name: string): StoreModel {
 - Use `type` keyword for imports: `import type { Money } from '../value-objects';`
 - Enums are runtime values (not `const enum`), exported from `src/enums/index.ts`.
 - Value object interfaces are prefixed with relevant context, not `I` prefix (e.g. `Money`, not `IMoney`).
-- The `Money` value object uses `amountInCents: number` — never floating point for currency.
+- The `Money` value object uses `amount: bigint` in the smallest currency unit (cents, satoshi, wei). Never use floating point for currency.
+- Use `MoneyVO` for monetary arithmetic, factories, and formatting. Create via `MoneyVO.fromDecimal()`, `MoneyVO.fromSmallestUnit()`, or `MoneyVO.zero()`.
+- `CurrencyCode` supports both fiat (`USD`, `CAD`, `EUR`, `GBP`) and crypto (`BTC`, `USDC`, `MATIC`, `POL`). Each has a defined decimal precision in `MoneyVO.CURRENCY_DECIMALS`.
 
 ## Subpath Exports
 

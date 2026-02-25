@@ -6,7 +6,7 @@ import { ProductAvailability } from '../enums';
 import type { Money } from '../value-objects';
 import type { ProductVariant } from '../entities/Product';
 
-const usd = (cents: number): Money => ({ amountInCents: cents, currency: 'USD' });
+const usd = (cents: number): Money => ({ amount: BigInt(cents), currency: 'USD' });
 
 const validInput: CreateProductInput = {
   id: 'prod-1',
@@ -140,7 +140,7 @@ describe('ProductModel', () => {
         ...validInput,
         price: usd(0),
       });
-      expect(product.price.amountInCents).toBe(0);
+      expect(product.price.amount).toBe(0n);
     });
 
     it('should reject negative compareAtPrice', () => {
