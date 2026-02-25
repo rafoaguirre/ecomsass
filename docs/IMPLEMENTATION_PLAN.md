@@ -14,7 +14,7 @@ This document outlines the phased implementation plan for the EcomSaaS platform,
 4. **Clean Architecture:** Maintain layer separation throughout
 5. **Vertical Slices:** Complete features end-to-end before moving on
 
-## Phase 0: Foundation (Week 1-2)
+## Phase 0: Foundation (Week 1-4)
 
 ### 0.1 Shared Type System ✅
 
@@ -35,37 +35,11 @@ This document outlines the phased implementation plan for the EcomSaaS platform,
 - [x] Setup subpath exports for both packages
 - [x] Configure tsup build (ESM, DTS, sourcemaps)
 
-**Structure:**
-
-```
-packages/domain/
-├── src/
-│   ├── entities/
-│   │   ├── identity/  (UserAccount, VendorProfile)
-│   │   ├── Store.ts, Product.ts, Order.ts, Subscription.ts, ...
-│   │   └── index.ts
-│   ├── value-objects/  (Money, MoneyVO, Address, GeoPoint, Image, Schedule, Quantity)
-│   ├── enums/          (20+ business enums)
-│   └── index.ts
-├── package.json
-└── tsconfig.json
-
-packages/contracts/
-├── src/
-│   ├── dtos/           (auth, stores, products, orders, subscriptions)
-│   ├── common/         (ApiResponse, Pagination, ErrorTypes, FilterOptions)
-│   └── index.ts
-├── package.json
-└── tsconfig.json
-```
-
-**Decision:** DTOs were separated from domain into `packages/contracts/` to maintain Clean Architecture boundary — domain stays in the innermost ring with zero dependencies, contracts live in the adapter layer with an inward-pointing dependency on domain.
-
-### 0.2 Shared Domain Layer
+### 0.2 Shared Domain Layer ✅
 
 **Goal:** Implement core business entities with business logic
 
-**Status:** In progress — core DDD infrastructure, StoreModel, ProductModel, MoneyVO, and OrderModel implemented.
+**Status:** Complete — core DDD infrastructure, StoreModel, ProductModel, MoneyVO, and OrderModel implemented with 217 tests.
 
 **Deliverables:**
 
@@ -77,124 +51,156 @@ packages/contracts/
 - [x] Implement `MoneyVO` — value object with bigint arithmetic, crypto currencies, formatting
 - [x] Implement `OrderModel` — rich domain model with state machine, MoneyVO calculations, guard/transition methods
 - [x] Add unit tests (Vitest) — 217 tests across 5 test files
-- [ ] Add remaining rich domain model classes (SubscriptionModel, etc.)
-- [ ] Document domain model
+
+**Dependencies:** Phase 0.1
+
+### 0.3 Remaining Domain Models
+
+**Goal:** Complete the domain model layer with remaining aggregate roots
+
+**Deliverables:**
+
+- [ ] Implement `SubscriptionModel` — cadence logic, pause/resume/cancel, subscriber cap enforcement
+- [ ] Document domain models (README or JSDoc)
+
+**Dependencies:** Phase 0.2
+
+### 0.4 Application Scaffolding
+
+**Goal:** Scaffold the NestJS API and Next.js frontend apps in their default form — no business logic, just working shells that build, lint, and serve.
+
+**Deliverables:**
+
+- [ ] Scaffold `backends/api/` with NestJS (default project with health check)
+- [ ] Scaffold `clients/storefront/` with Next.js 15 (App Router, Tailwind, default page)
+- [ ] Scaffold `clients/vendor/` with Next.js 15 (App Router, Tailwind, default page)
+- [ ] Wire all apps into Turborepo pipeline (build, lint, type-check, test)
+- [ ] Verify `pnpm build` succeeds for entire monorepo
+- [ ] Add `.gitignore` entries for app build outputs
 
 **Structure:**
 
-```typescript
-// Example: packages/domain/src/entities/Store.ts
-export class Store {
-  constructor(
-    public readonly id: string,
-    public readonly vendorId: string,
-    public slug: string,
-    public name: string
-    // ... other properties
-  ) {
-    this.validate();
-  }
-
-  validate(): void {
-    if (this.slug.length < 3) {
-      throw new Error('Store slug must be at least 3 characters');
-    }
-    // More validation...
-  }
-
-  updateName(newName: string): Store {
-    // Business logic for name updates
-    return new Store(this.id, this.vendorId, this.slug, newName);
-  }
-}
+```
+backends/api/          # NestJS — default scaffold + health endpoint
+clients/storefront/    # Next.js — marketplace/store frontend shell
+clients/vendor/        # Next.js — vendor dashboard frontend shell
 ```
 
-**Dependencies:** Phase 0.1 (domain interfaces)
+**Notes:** These are intentionally bare-bones scaffolds. Business logic, auth, and database are added in later phases. The goal is to have buildable + deployable containers for CI/CD.
 
-### 0.3 Shared Application Layer
+**Dependencies:** Phase 0.1 (monorepo tooling)
+
+### 0.5 CI/CD & Infrastructure Foundation
+
+**Goal:** Establish the deployment pipeline early so every subsequent feature can be validated in a real environment. Dockerize all apps, set up Terraform for a dev environment, and extend GitHub Actions for branch deployments.
+
+**Deliverables:**
+
+- [ ] Create `Dockerfile` for `backends/api/` (multi-stage, production-optimized)
+- [ ] Create `Dockerfile` for `clients/storefront/` (multi-stage, standalone Next.js output)
+- [ ] Create `Dockerfile` for `clients/vendor/` (multi-stage, standalone Next.js output)
+- [ ] Create `docker-compose.yml` for local full-stack development (API + frontends + Redis + MinIO)
+- [ ] Create `.dockerignore` files for each app
+- [ ] Create `infra/terraform/` with basic dev environment:
+  - [ ] Container registry (GCP Artifact Registry or AWS ECR)
+  - [ ] Compute (Cloud Run or ECS for dev)
+  - [ ] Networking basics (VPC, DNS)
+  - [ ] Terraform state backend (GCS bucket or S3)
+  - [ ] Environment-specific tfvars (`environments/dev/`)
+- [ ] Extend GitHub Actions CI pipeline:
+  - [ ] Build Docker images on PR
+  - [ ] Push images to container registry on merge to main
+  - [ ] Branch deployment: deploy preview environment per PR
+  - [ ] Auto-cleanup preview on PR close
+  - [ ] Comment PR with preview URLs
+
+**Structure:**
+
+```
+infra/
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── modules/
+│   │   ├── registry/      # Container registry
+│   │   ├── compute/       # Cloud Run / ECS
+│   │   └── networking/    # VPC, DNS, LB
+│   └── environments/
+│       └── dev/
+│           ├── main.tf
+│           └── terraform.tfvars
+
+docker-compose.yml          # Local development stack
+backends/api/Dockerfile
+clients/storefront/Dockerfile
+clients/vendor/Dockerfile
+```
+
+**Docker Compose (local dev):**
+
+```yaml
+services:
+  api:
+    build: ./backends/api
+    ports: ['3000:3000']
+    env_file: .env.local
+
+  storefront:
+    build: ./clients/storefront
+    ports: ['3001:3000']
+    env_file: .env.local
+
+  vendor:
+    build: ./clients/vendor
+    ports: ['3002:3000']
+    env_file: .env.local
+
+  redis:
+    image: redis:7-alpine
+    ports: ['6379:6379']
+
+  minio:
+    image: minio/minio:latest
+    ports: ['9000:9000', '9001:9001']
+    command: server /data --console-address ':9001'
+```
+
+**Dependencies:** Phase 0.4 (scaffolded apps)
+
+### 0.6 Shared Application Layer
 
 **Goal:** Implement reusable use cases (business orchestration)
 
 **Deliverables:**
 
 - [ ] Create `packages/application/`
-- [ ] Define repository interfaces (ports)
+- [ ] Define repository interfaces (ports): `StoreRepository`, `ProductRepository`, `OrderRepository`
 - [ ] Implement use cases: `GetStore`, `CreateProduct`, `PlaceOrder`
 - [ ] Add unit tests
 - [ ] Document use cases
 
-**Structure:**
-
-```typescript
-// Example: packages/application/src/use-cases/GetStore.ts
-export interface StoreRepository {
-  findBySlug(slug: string): Promise<Store | null>;
-}
-
-export class GetStoreUseCase {
-  constructor(private storeRepo: StoreRepository) {}
-
-  async execute(slug: string): Promise<Store> {
-    const store = await this.storeRepo.findBySlug(slug);
-    if (!store) {
-      throw new Error('Store not found');
-    }
-    return store;
-  }
-}
-```
-
 **Dependencies:** Phase 0.2 (domain)
 
-### 0.4 Shared Infrastructure Utilities
+### 0.7 Shared Infrastructure Utilities
 
 **Goal:** Create reusable infrastructure tools
 
 **Deliverables:**
 
-- [ ] `packages/infrastructure/logger/` - Logging utility (Winston/Pino)
-- [ ] `packages/infrastructure/secrets/` - Secret manager wrapper (environment-aware)
-- [ ] `packages/infrastructure/http/` - HTTP client (with auth, retry, error handling)
-- [ ] `packages/infrastructure/cache/` - Redis caching wrapper
-- [ ] `packages/infrastructure/queue/` - BullMQ queue wrapper (producer & consumer)
-- [ ] `packages/infrastructure/database/` - Supabase migration wrapper
-- [ ] `packages/infrastructure/storage/` - File storage wrapper (MinIO/S3/Supabase)
-- [ ] `packages/infrastructure/tracing/` - Observability setup
+- [ ] `packages/infrastructure/logger/` — Logging utility (Pino)
+- [ ] `packages/infrastructure/secrets/` — Secret manager wrapper (environment-aware)
+- [ ] `packages/infrastructure/http/` — HTTP client (with auth, retry, error handling)
+- [ ] `packages/infrastructure/cache/` — Redis caching wrapper
+- [ ] `packages/infrastructure/queue/` — BullMQ queue wrapper (producer & consumer)
+- [ ] `packages/infrastructure/database/` — Supabase migration wrapper
+- [ ] `packages/infrastructure/storage/` — File storage wrapper (MinIO/S3/Supabase)
+- [ ] `packages/infrastructure/tracing/` — Observability setup
 - [ ] Add tests and documentation
 
-**Logger Example:**
+**Dependencies:** None (independent of other sub-phases)
 
-```typescript
-// packages/infrastructure/logger/src/index.ts
-export interface Logger {
-  info(message: string, meta?: any): void;
-  error(message: string, error?: Error, meta?: any): void;
-  warn(message: string, meta?: any): void;
-  debug(message: string, meta?: any): void;
-}
-
-export function createLogger(context: string): Logger {
-  // Implementation with Pino or Winston
-}
-```
-
-**Secrets Manager Example:**
-
-```typescript
-// packages/infrastructure/secrets/src/index.ts
-export interface SecretsManager {
-  get(key: string): Promise<string>;
-  set(key: string, value: string): Promise<void>;
-}
-
-export function createSecretsManager(env: string): SecretsManager {
-  // Implementation for different environments
-  // - Local: .env files
-  // - Cloud: GCP Secret Manager / AWS Secrets Manager
-}
-```
-
-### 0.5 Shared Validation Layer
+### 0.8 Shared Validation Layer
 
 **Goal:** Centralized validation schemas
 
@@ -205,29 +211,9 @@ export function createSecretsManager(env: string): SecretsManager {
 - [ ] Validation helpers
 - [ ] Tests
 
-**Example:**
-
-```typescript
-// packages/validation/src/schemas/store.schema.ts
-import { z } from 'zod';
-
-export const storeSchema = z.object({
-  slug: z
-    .string()
-    .min(3)
-    .max(50)
-    .regex(/^[a-z0-9-]+$/),
-  name: z.string().min(1).max(100),
-  description: z.string().max(1000).optional(),
-  // ... more fields
-});
-
-export type StoreInput = z.infer<typeof storeSchema>;
-```
-
 **Dependencies:** Phase 0.1 (domain + contracts)
 
-### 0.6 Shared UI Component Library
+### 0.9 Shared UI Component Library
 
 **Goal:** Reusable React components for frontends
 
@@ -239,180 +225,65 @@ export type StoreInput = z.infer<typeof storeSchema>;
 - [ ] Storybook for component documentation
 - [ ] Tests (React Testing Library)
 
-**Structure:**
+**Dependencies:** None (independent of other sub-phases)
 
-```
-packages/ui/
-├── src/
-│   ├── components/
-│   │   ├── Button/
-│   │   ├── Input/
-│   │   ├── Card/
-│   │   └── ...
-│   ├── styles/
-│   │   └── globals.css
-│   └── index.ts
-├── .storybook/
-├── package.json
-└── tsconfig.json
-```
+**Phase 0 Completion Criteria:**
 
-**Completion Criteria:**
-
-- All phase 0 packages build successfully
+- All packages and apps build successfully in Turborepo
+- Docker images build and run for all 3 apps
+- Docker Compose brings up the full local stack
+- Terraform provisions a dev environment
+- GitHub Actions builds images, runs tests, and deploys branch previews
 - All tests passing
-- Documentation complete
-- Can be imported by other packages
+- Shared packages importable by `backends/` and `clients/` apps
 
 ---
 
-## Phase 1: API Foundation (Week 3-4)
+## Phase 1: API Foundation (Week 5-6)
 
-### 1.1 API Project Setup
+> **Note:** The NestJS shell was scaffolded in Phase 0.4. This phase adds database, auth, business logic, and the first real endpoint.
 
-**Goal:** Bootstrap NestJS API with basic structure
-
-**Deliverables:**
-
-- [ ] Create `backends/api/` with NestJS CLI
-- [ ] Configure TypeScript (extends root tsconfig)
-- [ ] Setup project structure (modules, controllers, services)
-- [ ] Configure environment variables (dotenv)
-- [ ] Add logger integration (from packages)
-- [ ] Add health check endpoint: `GET /health`
-- [ ] Configure Swagger/OpenAPI
-- [ ] Add basic error handling
-- [ ] Add request logging middleware
-
-**Structure:**
-
-```
-backends/api/
-├── src/
-│   ├── main.ts
-│   ├── app.module.ts
-│   ├── modules/
-│   │   ├── health/
-│   │   └── users/
-│   ├── common/
-│   │   ├── filters/
-│   │   ├── interceptors/
-│   │   └── pipes/
-│   └── config/
-├── test/
-├── package.json
-└── tsconfig.json
-```
-
-### 1.2 Database Setup
+### 1.1 Database Setup
 
 **Goal:** Connect to Supabase and setup migrations
 
 **Deliverables:**
 
-- [ ] Supabase project creation
-- [ ] Database schema design (initial)
-- [ ] Migration system setup (Supabase CLI or Prisma)
+- [ ] Supabase project creation (or local dev with Supabase CLI)
+- [ ] Database schema design (profiles, vendors, stores, products, orders)
+- [ ] Migration system setup (Supabase CLI)
 - [ ] Seed data script for development
-- [ ] Database connection in API
-- [ ] Repository pattern implementation
+- [ ] Database connection module in NestJS
+- [ ] Repository pattern implementation (base repository + concrete implementations)
 
-**Initial Schema:**
-
-```sql
--- Users (managed by Supabase Auth)
-CREATE TABLE profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id),
-  email TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('vendor', 'customer')),
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Vendors
-CREATE TABLE vendors (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id),
-  business_name TEXT NOT NULL,
-  stripe_connect_id TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Stores
-CREATE TABLE stores (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  vendor_id UUID NOT NULL REFERENCES vendors(id),
-  slug TEXT UNIQUE NOT NULL,
-  name TEXT NOT NULL,
-  description TEXT,
-  is_active BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Products (basic for now)
-CREATE TABLE products (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  store_id UUID NOT NULL REFERENCES stores(id),
-  name TEXT NOT NULL,
-  description TEXT,
-  price DECIMAL(10,2) NOT NULL,
-  inventory INTEGER DEFAULT 0,
-  is_active BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-### 1.3 Authentication Integration
+### 1.2 Authentication Integration
 
 **Goal:** Integrate Supabase Auth with NestJS
 
 **Deliverables:**
 
 - [ ] Supabase client setup in API
-- [ ] JWT validation middleware/guard
+- [ ] JWT validation guard (SupabaseAuthGuard)
 - [ ] User extraction from token
-- [ ] Role-based guards (vendor, customer)
+- [ ] Role-based guards (vendor, customer, admin)
 - [ ] Auth module and strategy
 - [ ] Tests for auth guards
 
-**Implementation:**
+### 1.3 First API Endpoint (Vertical Slice)
 
-```typescript
-// src/common/guards/supabase-auth.guard.ts
-@Injectable()
-export class SupabaseAuthGuard implements CanActivate {
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const token = this.extractToken(request);
-    const { data, error } = await supabase.auth.getUser(token);
-    if (error) throw new UnauthorizedException();
-    request.user = data.user;
-    return true;
-  }
-}
-```
-
-### 1.4 First API Endpoint (Test)
-
-**Goal:** Implement a simple test endpoint with full stack
+**Goal:** Implement `GET /api/v1/stores/:slug` as a vertical slice proving the full Clean Architecture stack
 
 **Deliverables:**
 
-- [ ] `GET /api/v1/stores/:slug` endpoint
-- [ ] Uses GetStoreUseCase from application layer
-- [ ] Repository implementation (Supabase)
-- [ ] DTO validation (Zod)
-- [ ] Unit tests
-- [ ] Integration tests
+- [ ] StoresModule with controller and service
+- [ ] Wire GetStoreUseCase from application layer
+- [ ] Supabase StoreRepository implementation
+- [ ] DTO validation (Zod pipe)
+- [ ] Map domain entity to StoreResponse
+- [ ] Unit + integration tests
 - [ ] Swagger documentation
 
-**Example Flow:**
-
-```
-Request → Controller → UseCase → Repository → Database
-        ← DTO      ← Domain   ← Entity    ←
-```
-
-### 1.5 API Testing Framework
+### 1.4 API Testing Framework
 
 **Goal:** Establish comprehensive testing strategy
 
@@ -420,106 +291,25 @@ Request → Controller → UseCase → Repository → Database
 
 - [ ] Unit test setup (Vitest or Jest)
 - [ ] Integration test setup (supertest)
-- [ ] Test database strategy (test container or separate DB)
+- [ ] Test database strategy (test containers or separate DB)
 - [ ] Example tests for all layers
-- [ ] CI integration (tests run on commit)
-
-**Test Structure:**
-
-```
-backends/api/test/
-├── unit/
-│   ├── use-cases/
-│   └── repositories/
-├── integration/
-│   └── api/
-├── fixtures/
-└── helpers/
-```
+- [ ] CI integration
 
 **Completion Criteria:**
 
 - API runs locally on port 3000
 - Health check returns 200
-- Test endpoint works end-to-end
+- GET /stores/:slug works end-to-end
 - All tests passing
 - Swagger UI accessible
 
 ---
 
-## Phase 2: Frontend Foundations (Week 5-6)
+## Phase 2: Frontend Implementation (Week 7-8)
 
-### 2.1 Vendor App Setup
+> **Note:** Next.js shells were scaffolded in Phase 0.4. This phase adds Supabase auth, API integration, layouts, and routing.
 
-**Goal:** Bootstrap Next.js app for vendor management
-
-**Deliverables:**
-
-- [ ] Create `clients/vendor/` with Next.js 15 (App Router)
-- [ ] Configure TypeScript
-- [ ] Setup Tailwind CSS + shadcn/ui
-- [ ] Import shared UI components
-- [ ] Setup Supabase client (auth)
-- [ ] Add environment configuration
-- [ ] Create basic layout with navigation
-- [ ] Home page with "Hello World"
-
-**Structure:**
-
-```
-clients/vendor/
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx
-│   │   ├── page.tsx
-│   │   └── (auth)/
-│   │       ├── login/
-│   │       └── register/
-│   ├── components/
-│   ├── lib/
-│   │   ├── supabase.ts
-│   │   └── api-client.ts
-│   └── styles/
-├── public/
-├── package.json
-└── tsconfig.json
-```
-
-### 2.2 Marketplace App Setup
-
-**Goal:** Bootstrap Next.js app for marketplace and stores
-
-**Deliverables:**
-
-- [ ] Create `clients/marketplace/` with Next.js 15
-- [ ] Configure TypeScript
-- [ ] Setup Tailwind CSS + shadcn/ui
-- [ ] Import shared UI components
-- [ ] Setup Supabase client
-- [ ] Subdomain extraction middleware
-- [ ] Basic routing:
-  - Marketplace home
-  - Store view (subdomain-based)
-- [ ] Home page with "Hello World"
-
-**Subdomain Middleware:**
-
-```typescript
-// middleware.ts
-export function middleware(request: NextRequest) {
-  const hostname = request.headers.get('host');
-  const subdomain = extractSubdomain(hostname);
-
-  if (subdomain && subdomain !== 'www') {
-    // Rewrite to /store/[slug] route
-    return NextResponse.rewrite(new URL(`/store/${subdomain}`, request.url));
-  }
-
-  return NextResponse.next();
-}
-```
-
-### 2.3 HTTP Client & API Integration
+### 2.1 Frontend Auth & API Integration
 
 **Goal:** Setup API communication from frontends
 
@@ -547,7 +337,7 @@ export const apiClient = createHttpClient({
 });
 ```
 
-### 2.4 Authentication UI
+### 2.2 Authentication UI
 
 **Goal:** Login and registration flows for both apps
 
@@ -569,187 +359,11 @@ export const apiClient = createHttpClient({
 
 ---
 
-## Phase 3: CI/CD & Infrastructure (Week 7-8)
-
-### 3.1 Docker Containerization
-
-**Goal:** Dockerize all applications
-
-**Deliverables:**
-
-- [ ] Dockerfile for API
-- [ ] Dockerfile for Vendor app
-- [ ] Dockerfile for Marketplace app
-- [ ] Docker Compose for local development
-- [ ] Multi-stage builds for optimization
-- [ ] .dockerignore files
-
-**Docker Compose:**
-
-```yaml
-version: '3.8'
-
-services:
-  # API Service
-  api:
-    build: ./backends/api
-    ports:
-      - '3000:3000'
-    env_file: .env.local
-    depends_on:
-      - redis
-      - minio
-    environment:
-      - REDIS_URL=redis://redis:6379
-      - MINIO_ENDPOINT=minio:9000
-
-  # Vendor Frontend
-  vendor:
-    build: ./clients/vendor
-    ports:
-      - '3001:3000'
-    env_file: .env.local
-
-  # Marketplace Frontend
-  marketplace:
-    build: ./clients/marketplace
-    ports:
-      - '3002:3000'
-    env_file: .env.local
-
-  # Redis (Caching + Queue)
-  redis:
-    image: redis:7-alpine
-    ports:
-      - '6379:6379'
-    volumes:
-      - redis-data:/data
-
-  # MinIO (S3-compatible local storage)
-  minio:
-    image: minio/minio:latest
-    ports:
-      - '9000:9000' # API
-      - '9001:9001' # Console
-    environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
-    volumes:
-      - minio-data:/data
-    command: server /data --console-address ':9001'
-
-  # PostgreSQL (Optional - if not using Supabase cloud)
-  # postgres:
-  #   image: postgres:15-alpine
-  #   ports:
-  #     - '5432:5432'
-  #   environment:
-  #     - POSTGRES_DB=ecomsaas
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #   volumes:
-  #     - postgres-data:/var/lib/postgresql/data
-
-volumes:
-  redis-data:
-  minio-data:
-  # postgres-data:
-```
-
-**Notes:**
-
-- MinIO simulates S3/GCS locally for file uploads
-- Redis serves both cache and message queue
-- PostgreSQL commented out (using Supabase cloud for development)
-- All services accessible from host machine
-
-### 3.2 GitHub Actions CI Pipeline
-
-**Goal:** Automated testing and building
-
-**Deliverables:**
-
-- [ ] Workflow for PR checks
-- [ ] Lint all code
-- [ ] Run all tests
-- [ ] Build all apps
-- [ ] Check for TypeScript errors
-- [ ] Dependency caching
-- [ ] Build Docker images
-- [ ] Push to container registry
-
-**Workflow:**
-
-```yaml
-# .github/workflows/ci.yml
-name: CI
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
-      - uses: actions/setup-node@v4
-      - run: pnpm install
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm build
-```
-
-### 3.3 Terraform Setup (GCP/AWS)
-
-**Goal:** Infrastructure as Code for cloud deployment
-
-**Deliverables:**
-
-- [ ] Create `infra/terraform/`
-- [ ] VPC and networking setup
-- [ ] Container registry
-- [ ] Kubernetes cluster (or Cloud Run)
-- [ ] Load balancer configuration
-- [ ] DNS configuration
-- [ ] Secrets management
-- [ ] Different environments (staging, production)
-
-**Structure:**
-
-```
-infra/terraform/
-├── modules/
-│   ├── networking/
-│   ├── compute/
-│   └── storage/
-├── environments/
-│   ├── staging/
-│   └── production/
-└── main.tf
-```
-
-### 3.4 Preview Deployments
-
-**Goal:** Automatic deployment for PRs
-
-**Deliverables:**
-
-- [ ] Preview environment per PR
-- [ ] Deploy to staging on PR
-- [ ] Comment with preview URL
-- [ ] Auto-cleanup on PR close
-- [ ] Environment isolation
-
-**Completion Criteria:**
-
-- Docker Compose runs entire stack locally
-- CI pipeline green on all commits
-- Can deploy to cloud staging environment
-- Preview deployments working
-
 ---
 
-## Phase 4: Core Backend Implementation (Week 9-10)
+## Phase 3: Core Backend Implementation (Week 9-10)
 
-### 4.1 Store Management API
+### 3.1 Store Management API
 
 **Goal:** Complete CRUD operations for stores
 
@@ -764,7 +378,7 @@ infra/terraform/
 - [ ] Slug validation and uniqueness
 - [ ] Tests and documentation
 
-### 4.2 Product Management API
+### 3.2 Product Management API
 
 **Goal:** Complete product catalog operations
 
@@ -779,7 +393,7 @@ infra/terraform/
 - [ ] Inventory management
 - [ ] Tests and documentation
 
-### 4.3 User & Vendor Management
+### 3.3 User & Vendor Management
 
 **Goal:** User profile and vendor operations
 
@@ -793,7 +407,7 @@ infra/terraform/
 - [ ] Vendor verification flow
 - [ ] Tests and documentation
 
-### 4.4 Search & Filtering
+### 3.4 Search & Filtering
 
 **Goal:** Product and store search functionality
 
@@ -815,9 +429,9 @@ infra/terraform/
 
 ---
 
-## Phase 5: Vendor App Development (Week 11-12)
+## Phase 4: Vendor App Development (Week 11-12)
 
-### 5.1 Vendor Registration Flow
+### 4.1 Vendor Registration Flow
 
 **Goal:** Complete vendor onboarding
 
@@ -838,7 +452,7 @@ infra/terraform/
 4. Stripe Connect setup
 5. Confirmation
 
-### 5.2 Store Dashboard
+### 4.2 Store Dashboard
 
 **Goal:** Vendor home page with overview
 
@@ -850,7 +464,7 @@ infra/terraform/
 - [ ] Store status indicator
 - [ ] Charts (revenue over time)
 
-### 5.3 Product Management UI
+### 4.3 Product Management UI
 
 **Goal:** Full product CRUD in vendor app
 
@@ -864,7 +478,7 @@ infra/terraform/
 - [ ] Inventory management UI
 - [ ] Product variants (future)
 
-### 5.4 Store Settings
+### 4.4 Store Settings
 
 **Goal:** Store configuration interface
 
@@ -885,9 +499,9 @@ infra/terraform/
 
 ---
 
-## Phase 6: Marketplace Development (Week 13-14)
+## Phase 5: Marketplace Development (Week 13-14)
 
-### 6.1 Marketplace Home Page
+### 5.1 Marketplace Home Page
 
 **Goal:** Storefront discovery and browsing
 
@@ -900,7 +514,7 @@ infra/terraform/
 - [ ] Responsive design
 - [ ] SEO optimization
 
-### 6.2 Individual Store View (Subdomain)
+### 5.2 Individual Store View (Subdomain)
 
 **Goal:** Render vendor stores on subdomains
 
@@ -915,7 +529,7 @@ infra/terraform/
 
 **Example:** `acme-store.oursite.com`
 
-### 6.3 Product Detail Pages
+### 5.3 Product Detail Pages
 
 **Goal:** Rich product presentation
 
@@ -931,7 +545,7 @@ infra/terraform/
 
 **Note:** Advanced SEO optimization (Open Graph, structured data, sitemaps) deferred to later phase
 
-### 6.4 Shopping Cart
+### 5.4 Shopping Cart
 
 **Goal:** Multi-vendor cart implementation
 
@@ -976,9 +590,9 @@ infra/terraform/
 
 ---
 
-## Phase 7: Order & Payment System (Week 15-16)
+## Phase 6: Order & Payment System (Week 15-16)
 
-### 7.1 Checkout Flow
+### 6.1 Checkout Flow
 
 **Goal:** Complete checkout implementation
 
@@ -992,7 +606,7 @@ infra/terraform/
 - [ ] Loading and error states
 - [ ] Order confirmation page
 
-### 7.2 Stripe Payment Integration
+### 6.2 Stripe Payment Integration
 
 **Goal:** Payment processing with Stripe Connect
 
@@ -1014,7 +628,7 @@ infra/terraform/
 4. Webhooks confirm payment
 5. Order marked as paid
 
-### 7.3 Order Management API
+### 6.3 Order Management API
 
 **Goal:** Order CRUD and status management
 
@@ -1029,7 +643,7 @@ infra/terraform/
 - [ ] Email notifications (order confirmation, shipping)
 - [ ] Tests
 
-### 7.4 Order Management UI
+### 6.4 Order Management UI
 
 **Goal:** Order views for customers and vendors
 
@@ -1060,9 +674,9 @@ infra/terraform/
 
 ---
 
-## Phase 8: Background Jobs & Worker (Week 17)
+## Phase 7: Background Jobs & Worker (Week 17)
 
-### 8.1 Message Queue Setup
+### 7.1 Message Queue Setup
 
 **Goal:** Setup BullMQ for async job processing
 
@@ -1073,7 +687,7 @@ infra/terraform/
 - [ ] Job queue definitions
 - [ ] Queue monitoring UI (Bull Board)
 
-### 8.2 Background Worker App
+### 7.2 Background Worker App
 
 **Goal:** Lightweight worker for job submission
 
@@ -1092,7 +706,7 @@ infra/terraform/
 - Keeps worker lightweight, business logic in API
 - Alternative approach: API could handle both producing and consuming
 
-### 8.3 Job Implementations
+### 7.3 Job Implementations
 
 **Goal:** Implement critical background jobs
 
@@ -1124,9 +738,9 @@ queueJobs.process('send-email', async (job) => {
 
 ---
 
-## Phase 9: Blockchain Integration (Week 18-20)
+## Phase 8: Blockchain Integration (Week 18-20)
 
-### 9.1 Smart Contract Development
+### 8.1 Smart Contract Development
 
 **Goal:** Solidity contracts for fundraising and rewards
 
@@ -1139,7 +753,7 @@ queueJobs.process('send-email', async (job) => {
 - [ ] Deploy to Polygon testnet (Mumbai)
 - [ ] Contract verification
 
-### 9.2 Web3 Integration (Frontend)
+### 8.2 Web3 Integration (Frontend)
 
 **Goal:** Connect wallets and interact with contracts
 
@@ -1152,7 +766,7 @@ queueJobs.process('send-email', async (job) => {
 - [ ] Transaction status handling
 - [ ] UI components for Web3 features
 
-### 9.3 Crypto Payment Feature
+### 8.3 Crypto Payment Feature
 
 **Goal:** Accept crypto payments for products
 
@@ -1165,7 +779,7 @@ queueJobs.process('send-email', async (job) => {
 - [ ] Reconciliation with orders
 - [ ] Vendor payout in crypto
 
-### 9.4 Fundraising Feature
+### 8.4 Fundraising Feature
 
 **Goal:** Vendors can raise funds via token issuance
 
@@ -1178,7 +792,7 @@ queueJobs.process('send-email', async (job) => {
 - [ ] Investor dashboard
 - [ ] Legal disclaimer (important!)
 
-### 9.5 Rewards System
+### 8.5 Rewards System
 
 **Goal:** Token-based loyalty program
 
@@ -1201,9 +815,9 @@ queueJobs.process('send-email', async (job) => {
 
 ---
 
-## Phase 10: MCP Server (Week 21)
+## Phase 9: MCP Server (Week 21)
 
-### 10.1 MCP Server Setup
+### 9.1 MCP Server Setup
 
 **Goal:** AI chat backend for vendor assistance
 
@@ -1215,7 +829,7 @@ queueJobs.process('send-email', async (job) => {
 - [ ] Authentication/authorization
 - [ ] Rate limiting
 
-### 10.2 Tools/Functions Implementation
+### 9.2 Tools/Functions Implementation
 
 **Goal:** Define available tools for AI
 
@@ -1228,7 +842,7 @@ queueJobs.process('send-email', async (job) => {
 - [ ] `getOrderStats` tool
 - [ ] JSON schema for all tools
 
-### 10.3 Chat UI Integration
+### 9.3 Chat UI Integration
 
 **Goal:** Chat interface in vendor app
 
@@ -1249,9 +863,9 @@ queueJobs.process('send-email', async (job) => {
 
 ---
 
-## Phase 11: Polish & Production Readiness (Week 22-24)
+## Phase 10: Polish & Production Readiness (Week 22-24)
 
-### 11.1 Security Hardening
+### 10.1 Security Hardening
 
 **Goal:** Production-grade security
 
@@ -1266,7 +880,7 @@ queueJobs.process('send-email', async (job) => {
 - [ ] Dependency vulnerability scan
 - [ ] Penetration testing (basic)
 
-### 11.2 Performance Optimization
+### 10.2 Performance Optimization
 
 **Goal:** Optimize for speed and scale
 
@@ -1281,7 +895,7 @@ queueJobs.process('send-email', async (job) => {
 - [ ] Lazy loading
 - [ ] Lighthouse audit (score > 90)
 
-### 11.3 Monitoring & Observability
+### 10.3 Monitoring & Observability
 
 **Goal:** Production monitoring setup
 
@@ -1295,7 +909,7 @@ queueJobs.process('send-email', async (job) => {
 - [ ] Dashboard creation
 - [ ] Analytics integration
 
-### 11.4 Documentation
+### 10.4 Documentation
 
 **Goal:** Complete documentation
 
@@ -1308,7 +922,7 @@ queueJobs.process('send-email', async (job) => {
 - [ ] Architecture diagrams
 - [ ] Video demos/tutorials
 
-### 11.5 Testing
+### 10.5 Testing
 
 **Goal:** Comprehensive test coverage
 
