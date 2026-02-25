@@ -128,7 +128,16 @@ export enum SubscriptionCadence {
 }
 
 /**
- * Subscription status
+ * Subscription plan status (vendor-managed plan offering)
+ */
+export enum SubscriptionPlanStatus {
+  Draft = 'DRAFT',
+  Active = 'ACTIVE',
+  Archived = 'ARCHIVED',
+}
+
+/**
+ * Customer subscription status (individual subscriber lifecycle)
  */
 export enum SubscriptionStatus {
   Active = 'ACTIVE',
