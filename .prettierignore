@@ -8,6 +8,11 @@ build
 .next
 .turbo
 
+# Foundry (Solidity)
+blockchain/contracts/out
+blockchain/contracts/cache
+blockchain/contracts/lib
+
 # Coverage
 coverage
 
