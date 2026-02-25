@@ -1,9 +1,11 @@
-import type { SubscriptionCadence, SubscriptionStatus } from '../enums';
+import type { SubscriptionCadence, SubscriptionPlanStatus, SubscriptionStatus } from '../enums';
 import type { Money, Image } from '../value-objects';
 
 /**
- * Subscription entity
- * Represents a recurring product offering
+ * Subscription plan entity (vendor-managed offering).
+ *
+ * Represents a recurring product bundle that customers can subscribe to.
+ * The plan defines cadence, pricing, subscriber cap, and product contents.
  */
 export interface Subscription {
   id: string;
@@ -12,11 +14,12 @@ export interface Subscription {
   description?: string;
   price: Money;
   cadence: SubscriptionCadence;
-  status: SubscriptionStatus;
+  status: SubscriptionPlanStatus;
   images: Image[];
   productIds: string[];
   maxSubscribers?: number;
   currentSubscribers: number;
+  trialPeriodDays: number;
   startDate?: Date;
   endDate?: Date;
   metadata: Record<string, unknown>;
@@ -25,7 +28,10 @@ export interface Subscription {
 }
 
 /**
- * Customer subscription instance
+ * Customer subscription instance.
+ *
+ * Represents an individual customer's active (or inactive) subscription
+ * to a plan. Tracks billing cycle, pause/resume, and cancellation state.
  */
 export interface CustomerSubscription {
   id: string;
@@ -33,6 +39,8 @@ export interface CustomerSubscription {
   subscriptionId: string;
   status: SubscriptionStatus;
   startDate: Date;
+  currentPeriodStart: Date;
+  currentPeriodEnd: Date;
   nextBillingDate?: Date;
   endDate?: Date;
   pausedAt?: Date;
