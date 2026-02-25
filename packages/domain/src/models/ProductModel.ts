@@ -263,15 +263,4 @@ export class ProductModel extends AggregateRoot<Product> implements Product {
     }
     return this.withUpdates({ tags: filtered });
   }
-
-  // ---------------------------------------------------------------------------
-  // Serialization
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Returns a plain object conforming to the Product interface.
-   */
-  toData(): Product {
-    return { ...this.props };
-  }
 }

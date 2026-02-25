@@ -65,7 +65,7 @@ packages/contracts/
 
 **Goal:** Implement core business entities with business logic
 
-**Status:** In progress — core DDD infrastructure, StoreModel, ProductModel, and MoneyVO implemented.
+**Status:** In progress — core DDD infrastructure, StoreModel, ProductModel, MoneyVO, and OrderModel implemented.
 
 **Deliverables:**
 
@@ -75,8 +75,9 @@ packages/contracts/
 - [x] Implement `StoreModel` — rich domain model wrapping Store entity interface
 - [x] Implement `ProductModel` — rich domain model wrapping Product entity interface
 - [x] Implement `MoneyVO` — value object with bigint arithmetic, crypto currencies, formatting
-- [x] Add unit tests (Vitest) — 159 tests across 4 test files
-- [ ] Add remaining rich domain model classes (OrderModel, SubscriptionModel, etc.)
+- [x] Implement `OrderModel` — rich domain model with state machine, MoneyVO calculations, guard/transition methods
+- [x] Add unit tests (Vitest) — 217 tests across 5 test files
+- [ ] Add remaining rich domain model classes (SubscriptionModel, etc.)
 - [ ] Document domain model
 
 **Structure:**

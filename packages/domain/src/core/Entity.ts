@@ -33,8 +33,11 @@ export abstract class Entity<T extends { id: string }> {
 
   /**
    * Serialize the entity to a plain data object.
+   * Subclasses may override for custom serialization.
    */
-  abstract toData(): T;
+  toData(): T {
+    return { ...this.props };
+  }
 }
 
 /**
