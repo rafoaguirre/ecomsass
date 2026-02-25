@@ -222,16 +222,4 @@ export class StoreModel extends AggregateRoot<Store> implements Store {
   updateMetadata(metadata: Record<string, unknown>): StoreModel {
     return this.withUpdates({ metadata: { ...this.metadata, ...metadata } });
   }
-
-  // ---------------------------------------------------------------------------
-  // Serialization
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Returns a plain object conforming to the Store interface.
-   * Useful for persistence or serialization.
-   */
-  toData(): Store {
-    return { ...this.props };
-  }
 }
