@@ -1,6 +1,9 @@
 import type { Product, ProductVariant } from '../entities/Product';
 import type { Money, Image } from '../value-objects';
 import { ProductAvailability } from '../enums';
+import { AggregateRoot } from '../core';
+import { InvariantError } from '../errors';
+import { validateRequired, validateSlug, validateNonNegative } from './validation';
 
 /**
  * Input for creating a new ProductModel via the factory method.
@@ -27,58 +30,69 @@ export interface CreateProductInput {
   metadata?: Record<string, unknown>;
 }
 
-const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const DEFAULT_LOW_STOCK_THRESHOLD = 5;
 
 /**
- * Rich domain model for Product entity.
+ * Rich domain model for Product aggregate root.
  *
- * Implements the Product interface with business validation,
- * computed inventory/pricing queries, and immutable update methods.
- * All mutations return a new ProductModel instance.
+ * Extends AggregateRoot for identity equality and domain-event support.
+ * Implements the Product interface via getters delegating to the props bag.
+ * All mutations return a new ProductModel instance (immutable).
  */
-export class ProductModel implements Product {
-  readonly id: string;
-  readonly storeId: string;
-  readonly name: string;
-  readonly slug: string;
-  readonly description?: string;
-  readonly price: Money;
-  readonly compareAtPrice?: Money;
-  readonly images: Image[];
-  readonly categoryId?: string;
-  readonly supplierId?: string;
-  readonly availability: ProductAvailability;
-  readonly inventory?: {
-    quantity: number;
-    trackQuantity: boolean;
-    lowStockThreshold?: number;
-  };
-  readonly variants?: ProductVariant[];
-  readonly tags: string[];
-  readonly metadata: Record<string, unknown>;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
+export class ProductModel extends AggregateRoot<Product> implements Product {
+  // --- Property accessors (delegate to props) --------------------------------
+
+  get storeId(): string {
+    return this.props.storeId;
+  }
+  get name(): string {
+    return this.props.name;
+  }
+  get slug(): string {
+    return this.props.slug;
+  }
+  get description(): string | undefined {
+    return this.props.description;
+  }
+  get price(): Money {
+    return this.props.price;
+  }
+  get compareAtPrice(): Money | undefined {
+    return this.props.compareAtPrice;
+  }
+  get images(): Image[] {
+    return this.props.images;
+  }
+  get categoryId(): string | undefined {
+    return this.props.categoryId;
+  }
+  get supplierId(): string | undefined {
+    return this.props.supplierId;
+  }
+  get availability(): ProductAvailability {
+    return this.props.availability;
+  }
+  get inventory(): Product['inventory'] {
+    return this.props.inventory;
+  }
+  get variants(): ProductVariant[] | undefined {
+    return this.props.variants;
+  }
+  get tags(): string[] {
+    return this.props.tags;
+  }
+  get metadata(): Record<string, unknown> {
+    return this.props.metadata;
+  }
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
+  get updatedAt(): Date {
+    return this.props.updatedAt;
+  }
 
   private constructor(props: Product) {
-    this.id = props.id;
-    this.storeId = props.storeId;
-    this.name = props.name;
-    this.slug = props.slug;
-    this.description = props.description;
-    this.price = props.price;
-    this.compareAtPrice = props.compareAtPrice;
-    this.images = props.images;
-    this.categoryId = props.categoryId;
-    this.supplierId = props.supplierId;
-    this.availability = props.availability;
-    this.inventory = props.inventory;
-    this.variants = props.variants;
-    this.tags = props.tags;
-    this.metadata = props.metadata;
-    this.createdAt = props.createdAt;
-    this.updatedAt = props.updatedAt;
-
+    super(props);
     this.validate();
   }
 
@@ -110,37 +124,16 @@ export class ProductModel implements Product {
   }
 
   // ---------------------------------------------------------------------------
-  // Validation
+  // Validation (single source of truth — runs in constructor)
   // ---------------------------------------------------------------------------
 
   private validate(): void {
-    ProductModel.validateName(this.name);
-    ProductModel.validateSlug(this.slug);
-    ProductModel.validatePrice(this.price);
+    validateRequired(this.name, 'Product name');
+    validateSlug(this.slug, 'Product');
+    validateNonNegative(this.price.amountInCents, 'Product price');
 
     if (this.compareAtPrice !== undefined) {
-      ProductModel.validatePrice(this.compareAtPrice);
-    }
-  }
-
-  static validateName(name: string): void {
-    if (!name || name.trim().length === 0) {
-      throw new Error('Product name is required');
-    }
-  }
-
-  static validateSlug(slug: string): void {
-    if (!slug || slug.trim().length === 0) {
-      throw new Error('Product slug is required');
-    }
-    if (!SLUG_PATTERN.test(slug)) {
-      throw new Error('Product slug must be kebab-case (lowercase, hyphens only)');
-    }
-  }
-
-  static validatePrice(price: Money): void {
-    if (price.amountInCents < 0) {
-      throw new Error('Product price must not be negative');
+      validateNonNegative(this.compareAtPrice.amountInCents, 'Product price');
     }
   }
 
@@ -182,16 +175,12 @@ export class ProductModel implements Product {
     return this.compareAtPrice.amountInCents > this.price.amountInCents;
   }
 
-  /**
-   * Whether the product has any variants defined.
-   */
+  /** Whether the product has any variants defined. */
   hasVariants(): boolean {
     return this.variants !== undefined && this.variants.length > 0;
   }
 
-  /**
-   * Total number of variant options.
-   */
+  /** Total number of variant options. */
   variantCount(): number {
     return this.variants?.length ?? 0;
   }
@@ -204,8 +193,12 @@ export class ProductModel implements Product {
   }
 
   // ---------------------------------------------------------------------------
-  // Immutable updates
+  // Immutable updates (withUpdates handles timestamp + re-validation)
   // ---------------------------------------------------------------------------
+
+  private withUpdates(updates: Partial<Product>): ProductModel {
+    return new ProductModel({ ...this.props, ...updates, updatedAt: new Date() });
+  }
 
   /**
    * Returns a new ProductModel with adjusted inventory quantity.
@@ -214,100 +207,61 @@ export class ProductModel implements Product {
    */
   adjustInventory(delta: number): ProductModel {
     if (!this.inventory) {
-      throw new Error('Cannot adjust inventory: product has no inventory tracking');
+      throw new InvariantError('Cannot adjust inventory: product has no inventory tracking');
     }
     const newQuantity = this.inventory.quantity + delta;
     if (newQuantity < 0) {
-      throw new Error('Inventory quantity cannot be negative');
+      throw new InvariantError('Inventory quantity cannot be negative');
     }
-    return new ProductModel({
-      ...this.toData(),
+    return this.withUpdates({
       inventory: { ...this.inventory, quantity: newQuantity },
-      updatedAt: new Date(),
     });
   }
 
-  /**
-   * Returns a new ProductModel with the updated price.
-   */
+  /** Returns a new ProductModel with the updated price. */
   updatePrice(newPrice: Money): ProductModel {
-    ProductModel.validatePrice(newPrice);
-    return new ProductModel({
-      ...this.toData(),
-      price: newPrice,
-      updatedAt: new Date(),
-    });
+    return this.withUpdates({ price: newPrice });
   }
 
-  /**
-   * Returns a new ProductModel with a variant added.
-   */
+  /** Returns a new ProductModel with a variant added. */
   addVariant(variant: ProductVariant): ProductModel {
     const existing = this.variants ?? [];
     if (existing.some((v) => v.id === variant.id)) {
-      throw new Error(`Variant with id "${variant.id}" already exists`);
+      throw new InvariantError(`Variant with id "${variant.id}" already exists`);
     }
-    return new ProductModel({
-      ...this.toData(),
-      variants: [...existing, variant],
-      updatedAt: new Date(),
-    });
+    return this.withUpdates({ variants: [...existing, variant] });
   }
 
-  /**
-   * Returns a new ProductModel with the specified variant removed.
-   */
+  /** Returns a new ProductModel with the specified variant removed. */
   removeVariant(variantId: string): ProductModel {
     const existing = this.variants ?? [];
     const filtered = existing.filter((v) => v.id !== variantId);
     if (filtered.length === existing.length) {
-      throw new Error(`Variant with id "${variantId}" not found`);
+      throw new InvariantError(`Variant with id "${variantId}" not found`);
     }
-    return new ProductModel({
-      ...this.toData(),
-      variants: filtered,
-      updatedAt: new Date(),
-    });
+    return this.withUpdates({ variants: filtered });
   }
 
-  /**
-   * Returns a new ProductModel with the updated availability status.
-   */
+  /** Returns a new ProductModel with the updated availability status. */
   updateAvailability(availability: ProductAvailability): ProductModel {
-    return new ProductModel({
-      ...this.toData(),
-      availability,
-      updatedAt: new Date(),
-    });
+    return this.withUpdates({ availability });
   }
 
-  /**
-   * Returns a new ProductModel with a tag added.
-   */
+  /** Returns a new ProductModel with a tag added. */
   addTag(tag: string): ProductModel {
     if (this.tags.includes(tag)) {
       return this;
     }
-    return new ProductModel({
-      ...this.toData(),
-      tags: [...this.tags, tag],
-      updatedAt: new Date(),
-    });
+    return this.withUpdates({ tags: [...this.tags, tag] });
   }
 
-  /**
-   * Returns a new ProductModel with a tag removed.
-   */
+  /** Returns a new ProductModel with a tag removed. */
   removeTag(tag: string): ProductModel {
     const filtered = this.tags.filter((t) => t !== tag);
     if (filtered.length === this.tags.length) {
       return this;
     }
-    return new ProductModel({
-      ...this.toData(),
-      tags: filtered,
-      updatedAt: new Date(),
-    });
+    return this.withUpdates({ tags: filtered });
   }
 
   // ---------------------------------------------------------------------------
@@ -318,24 +272,6 @@ export class ProductModel implements Product {
    * Returns a plain object conforming to the Product interface.
    */
   toData(): Product {
-    return {
-      id: this.id,
-      storeId: this.storeId,
-      name: this.name,
-      slug: this.slug,
-      description: this.description,
-      price: this.price,
-      compareAtPrice: this.compareAtPrice,
-      images: this.images,
-      categoryId: this.categoryId,
-      supplierId: this.supplierId,
-      availability: this.availability,
-      inventory: this.inventory,
-      variants: this.variants,
-      tags: this.tags,
-      metadata: this.metadata,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
-    };
+    return { ...this.props };
   }
 }

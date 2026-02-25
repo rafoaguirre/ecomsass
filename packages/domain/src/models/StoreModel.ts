@@ -1,6 +1,14 @@
 import type { Store } from '../entities/Store';
 import type { Address, OperatingHours } from '../value-objects';
 import type { StoreType } from '../enums';
+import { AggregateRoot } from '../core';
+import {
+  validateRequired,
+  validateSlug,
+  validateMinLength,
+  validateMaxLength,
+  validateEmail,
+} from './validation';
 
 /**
  * Input for creating a new StoreModel via the factory method.
@@ -21,53 +29,65 @@ export interface CreateStoreInput {
   metadata?: Record<string, unknown>;
 }
 
-const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_NAME_LENGTH = 100;
 const MIN_SLUG_LENGTH = 3;
 const MAX_SLUG_LENGTH = 50;
 
 /**
- * Rich domain model for Store entity.
+ * Rich domain model for Store aggregate root.
  *
- * Implements the Store interface with business validation,
- * computed properties, and immutable update methods.
- * All mutations return a new StoreModel instance.
+ * Extends AggregateRoot for identity equality and domain-event support.
+ * Implements the Store interface via getters delegating to the props bag.
+ * All mutations return a new StoreModel instance (immutable).
  */
-export class StoreModel implements Store {
-  readonly id: string;
-  readonly vendorProfileId: string;
-  readonly name: string;
-  readonly description?: string;
-  readonly email?: string;
-  readonly phoneNumber?: string;
-  readonly phoneCountryCode?: string;
-  readonly address: Address;
-  readonly slug: string;
-  readonly storeType: StoreType;
-  readonly isActive: boolean;
-  readonly operatingHours?: OperatingHours[];
-  readonly metadata: Record<string, unknown>;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
+export class StoreModel extends AggregateRoot<Store> implements Store {
+  // --- Property accessors (delegate to props) --------------------------------
+
+  get vendorProfileId(): string {
+    return this.props.vendorProfileId;
+  }
+  get name(): string {
+    return this.props.name;
+  }
+  get description(): string | undefined {
+    return this.props.description;
+  }
+  get email(): string | undefined {
+    return this.props.email;
+  }
+  get phoneNumber(): string | undefined {
+    return this.props.phoneNumber;
+  }
+  get phoneCountryCode(): string | undefined {
+    return this.props.phoneCountryCode;
+  }
+  get address(): Address {
+    return this.props.address;
+  }
+  get slug(): string {
+    return this.props.slug;
+  }
+  get storeType(): StoreType {
+    return this.props.storeType;
+  }
+  get isActive(): boolean {
+    return this.props.isActive;
+  }
+  get operatingHours(): OperatingHours[] | undefined {
+    return this.props.operatingHours;
+  }
+  get metadata(): Record<string, unknown> {
+    return this.props.metadata;
+  }
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
+  get updatedAt(): Date {
+    return this.props.updatedAt;
+  }
 
   private constructor(props: Store) {
-    this.id = props.id;
-    this.vendorProfileId = props.vendorProfileId;
-    this.name = props.name;
-    this.description = props.description;
-    this.email = props.email;
-    this.phoneNumber = props.phoneNumber;
-    this.phoneCountryCode = props.phoneCountryCode;
-    this.address = props.address;
-    this.slug = props.slug;
-    this.storeType = props.storeType;
-    this.isActive = props.isActive;
-    this.operatingHours = props.operatingHours;
-    this.metadata = props.metadata;
-    this.createdAt = props.createdAt;
-    this.updatedAt = props.updatedAt;
-
+    super(props);
     this.validate();
   }
 
@@ -105,42 +125,18 @@ export class StoreModel implements Store {
   }
 
   // ---------------------------------------------------------------------------
-  // Validation
+  // Validation (single source of truth — runs in constructor)
   // ---------------------------------------------------------------------------
 
   private validate(): void {
-    StoreModel.validateName(this.name);
-    StoreModel.validateSlug(this.slug);
+    validateRequired(this.name, 'Store name');
+    validateMaxLength(this.name, MAX_NAME_LENGTH, 'Store name');
+    validateMinLength(this.slug, MIN_SLUG_LENGTH, 'Store slug');
+    validateMaxLength(this.slug, MAX_SLUG_LENGTH, 'Store slug');
+    validateSlug(this.slug, 'Store');
 
     if (this.email !== undefined && this.email !== '') {
-      StoreModel.validateEmail(this.email);
-    }
-  }
-
-  static validateName(name: string): void {
-    if (!name || name.trim().length === 0) {
-      throw new Error('Store name is required');
-    }
-    if (name.length > MAX_NAME_LENGTH) {
-      throw new Error(`Store name must not exceed ${String(MAX_NAME_LENGTH)} characters`);
-    }
-  }
-
-  static validateSlug(slug: string): void {
-    if (!slug || slug.length < MIN_SLUG_LENGTH) {
-      throw new Error(`Store slug must be at least ${String(MIN_SLUG_LENGTH)} characters`);
-    }
-    if (slug.length > MAX_SLUG_LENGTH) {
-      throw new Error(`Store slug must not exceed ${String(MAX_SLUG_LENGTH)} characters`);
-    }
-    if (!SLUG_PATTERN.test(slug)) {
-      throw new Error('Store slug must be kebab-case (lowercase, hyphens only)');
-    }
-  }
-
-  static validateEmail(email: string): void {
-    if (!EMAIL_PATTERN.test(email)) {
-      throw new Error('Store email is not a valid email address');
+      validateEmail(this.email, 'Store email');
     }
   }
 
@@ -181,7 +177,7 @@ export class StoreModel implements Store {
     if (this.isActive) {
       return this;
     }
-    return new StoreModel({ ...this.toData(), isActive: true, updatedAt: new Date() });
+    return this.withUpdates({ isActive: true });
   }
 
   /**
@@ -191,56 +187,40 @@ export class StoreModel implements Store {
     if (!this.isActive) {
       return this;
     }
-    return new StoreModel({ ...this.toData(), isActive: false, updatedAt: new Date() });
+    return this.withUpdates({ isActive: false });
   }
 
   // ---------------------------------------------------------------------------
-  // Immutable updates
+  // Immutable updates (withUpdates handles timestamp + re-validation)
   // ---------------------------------------------------------------------------
 
-  /**
-   * Returns a new StoreModel with the updated name.
-   */
+  private withUpdates(updates: Partial<Store>): StoreModel {
+    return new StoreModel({ ...this.props, ...updates, updatedAt: new Date() });
+  }
+
+  /** Returns a new StoreModel with the updated name. */
   updateName(name: string): StoreModel {
-    StoreModel.validateName(name);
-    return new StoreModel({ ...this.toData(), name, updatedAt: new Date() });
+    return this.withUpdates({ name });
   }
 
-  /**
-   * Returns a new StoreModel with the updated slug.
-   */
+  /** Returns a new StoreModel with the updated slug. */
   updateSlug(slug: string): StoreModel {
-    StoreModel.validateSlug(slug);
-    return new StoreModel({ ...this.toData(), slug, updatedAt: new Date() });
+    return this.withUpdates({ slug });
   }
 
-  /**
-   * Returns a new StoreModel with the updated address.
-   */
+  /** Returns a new StoreModel with the updated address. */
   updateAddress(address: Address): StoreModel {
-    return new StoreModel({ ...this.toData(), address, updatedAt: new Date() });
+    return this.withUpdates({ address });
   }
 
-  /**
-   * Returns a new StoreModel with updated operating hours.
-   */
+  /** Returns a new StoreModel with updated operating hours. */
   updateOperatingHours(hours: OperatingHours[]): StoreModel {
-    return new StoreModel({
-      ...this.toData(),
-      operatingHours: hours,
-      updatedAt: new Date(),
-    });
+    return this.withUpdates({ operatingHours: hours });
   }
 
-  /**
-   * Returns a new StoreModel with merged metadata.
-   */
+  /** Returns a new StoreModel with merged metadata. */
   updateMetadata(metadata: Record<string, unknown>): StoreModel {
-    return new StoreModel({
-      ...this.toData(),
-      metadata: { ...this.metadata, ...metadata },
-      updatedAt: new Date(),
-    });
+    return this.withUpdates({ metadata: { ...this.metadata, ...metadata } });
   }
 
   // ---------------------------------------------------------------------------
@@ -252,22 +232,6 @@ export class StoreModel implements Store {
    * Useful for persistence or serialization.
    */
   toData(): Store {
-    return {
-      id: this.id,
-      vendorProfileId: this.vendorProfileId,
-      name: this.name,
-      description: this.description,
-      email: this.email,
-      phoneNumber: this.phoneNumber,
-      phoneCountryCode: this.phoneCountryCode,
-      address: this.address,
-      slug: this.slug,
-      storeType: this.storeType,
-      isActive: this.isActive,
-      operatingHours: this.operatingHours,
-      metadata: this.metadata,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
-    };
+    return { ...this.props };
   }
 }

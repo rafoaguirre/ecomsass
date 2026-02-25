@@ -22,6 +22,14 @@
       "types": "./dist/value-objects/index.d.ts",
       "import": "./dist/value-objects/index.js"
     },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./errors": {
+      "types": "./dist/errors/index.d.ts",
+      "import": "./dist/errors/index.js"
+    },
     "./models": {
       "types": "./dist/models/index.d.ts",
       "import": "./dist/models/index.js"
