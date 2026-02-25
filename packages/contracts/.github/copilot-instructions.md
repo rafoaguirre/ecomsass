@@ -40,6 +40,7 @@ This package lives in the **interface-adapter layer** of Clean Architecture. It 
 - Never use relative paths to reach into domain's source — always use `@ecomsaas/domain/*` subpath exports.
 - Use `type` imports for all interfaces: `import type { ... }`.
 - One DTO file per domain area barrel-exported via `index.ts`.
+- **Money in DTOs:** Use `amount: string` (not `bigint`) because `bigint` is not JSON-serializable. The domain layer uses `amount: bigint`; serialization/deserialization is an infrastructure concern.
 
 ## Cross-Package Resolution
 

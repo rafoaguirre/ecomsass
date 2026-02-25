@@ -27,7 +27,8 @@ This document outlines the phased implementation plan for the EcomSaaS platform,
 - [x] Create `packages/domain/` — core entities, value objects, enums (zero dependencies)
 - [x] Create `packages/contracts/` — DTOs, API protocol types (depends on domain)
 - [x] Define entity interfaces: UserAccount, VendorProfile, Store, Product, Order, Subscription, Category, Supplier, Invite, Link, Log
-- [x] Define value objects: Money, Address, GeoPoint, Image, Schedule, Quantity
+- [x] Define value objects: Money (bigint, crypto-aware), Address, GeoPoint, Image, Schedule, Quantity
+- [x] Implement MoneyVO class with arithmetic, factories, and formatting (extends ValueObject<Money>)
 - [x] Define 20+ business enums: OrderStatus, PaymentMethod, AccountTier, StoreType, etc.
 - [x] Define DTOs: auth, stores, products, orders, subscriptions
 - [x] Define common types: ApiResponse, Pagination, ErrorCode, FilterOptions
@@ -43,7 +44,7 @@ packages/domain/
 │   │   ├── identity/  (UserAccount, VendorProfile)
 │   │   ├── Store.ts, Product.ts, Order.ts, Subscription.ts, ...
 │   │   └── index.ts
-│   ├── value-objects/  (Money, Address, GeoPoint, Image, Schedule, Quantity)
+│   ├── value-objects/  (Money, MoneyVO, Address, GeoPoint, Image, Schedule, Quantity)
 │   ├── enums/          (20+ business enums)
 │   └── index.ts
 ├── package.json
@@ -64,12 +65,18 @@ packages/contracts/
 
 **Goal:** Implement core business entities with business logic
 
+**Status:** In progress — core DDD infrastructure, StoreModel, ProductModel, and MoneyVO implemented.
+
 **Deliverables:**
 
-- [ ] Add rich domain model classes to existing `packages/domain/` (wrapping current interfaces)
-- [ ] Implement business validation rules in domain classes
-- [ ] Add factory methods and domain operations
-- [ ] Add unit tests (Vitest)
+- [x] Add core DDD building blocks: `Entity`, `AggregateRoot`, `ValueObject`, `Result<T,E>`, `DomainEvent`
+- [x] Add typed domain error hierarchy: `DomainError`, `ValidationError`, `InvariantError`, `NotFoundError`
+- [x] Add shared validators: `validateRequired`, `validateSlug`, `validateEmail`, `validateNonNegative`
+- [x] Implement `StoreModel` — rich domain model wrapping Store entity interface
+- [x] Implement `ProductModel` — rich domain model wrapping Product entity interface
+- [x] Implement `MoneyVO` — value object with bigint arithmetic, crypto currencies, formatting
+- [x] Add unit tests (Vitest) — 159 tests across 4 test files
+- [ ] Add remaining rich domain model classes (OrderModel, SubscriptionModel, etc.)
 - [ ] Document domain model
 
 **Structure:**

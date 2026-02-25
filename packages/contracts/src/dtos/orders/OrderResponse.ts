@@ -17,7 +17,7 @@ export interface OrderSummary {
   referenceId: string;
   status: string;
   total: {
-    amountInCents: number;
+    amount: string;
     currency: string;
   };
   itemCount: number;

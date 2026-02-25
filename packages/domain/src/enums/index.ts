@@ -1,6 +1,5 @@
 /**
  * Business enums for the EcomSaaS platform
- * These mirror enums from yande/shared/domain for use in type-only contexts
  */
 
 /**

@@ -1,4 +1,5 @@
 export * from './Money';
+export * from './MoneyVO';
 export * from './Address';
 export * from './GeoPoint';
 export * from './Image';

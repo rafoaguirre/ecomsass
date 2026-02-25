@@ -17,7 +17,7 @@ export interface ProductSummary {
   name: string;
   slug: string;
   price: {
-    amountInCents: number;
+    amount: string;
     currency: string;
   };
   mainImage?: string;
