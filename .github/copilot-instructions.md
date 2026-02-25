@@ -8,12 +8,12 @@ EcomSaaS is a multi-tenant e-commerce SaaS platform enabling vendors to create o
 
 **Phase 0.2** — Rich domain models. Building on the shared type system from Phase 0.1:
 
-- `packages/domain/` — entities, value objects, enums + **core DDD building blocks** (`Entity`, `AggregateRoot`, `ValueObject`, `Result`, `DomainEvent`), **typed domain errors** (`ValidationError`, `InvariantError`, etc.), **rich domain models** (`StoreModel`, `ProductModel`), and **Money value object** (`MoneyVO` — bigint-based, crypto-aware, with arithmetic and formatting)
+- `packages/domain/` — entities, value objects, enums + **core DDD building blocks** (`Entity`, `AggregateRoot`, `ValueObject`, `Result`, `DomainEvent`), **typed domain errors** (`ValidationError`, `InvariantError`, etc.), **rich domain models** (`StoreModel`, `ProductModel`, `OrderModel`), and **Money value object** (`MoneyVO` — bigint-based, crypto-aware, with arithmetic and formatting)
 - `packages/contracts/` — DTOs, API protocol types (implemented, builds clean)
 
 **CI:** GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push to main and PRs: build → lint → type-check → test → format check.
 
-**Testing:** Vitest configured in `packages/domain/` with `tsconfig.test.json` for ESLint type-aware linting of test files. 159 tests across 4 test files.
+**Testing:** Vitest configured in `packages/domain/` with `tsconfig.test.json` for ESLint type-aware linting of test files. 217 tests across 5 test files.
 
 Everything else in the monorepo structure is **planned but not yet created**. Do not generate code that imports from packages that don't exist yet (application, utils, ui, config, validation, infrastructure, backends, clients).
 
