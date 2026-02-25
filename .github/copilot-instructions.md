@@ -6,14 +6,14 @@ EcomSaaS is a multi-tenant e-commerce SaaS platform enabling vendors to create o
 
 ## Current Phase
 
-**Phase 0.1** — Shared type system. Only two packages exist today:
+**Phase 0.2** — Rich domain models. Building on the shared type system from Phase 0.1:
 
-- `packages/domain/` — entities, value objects, enums (implemented, builds clean)
+- `packages/domain/` — entities, value objects, enums + **core DDD building blocks** (`Entity`, `AggregateRoot`, `ValueObject`, `Result`, `DomainEvent`), **typed domain errors** (`ValidationError`, `InvariantError`, etc.), and **rich domain models** (`StoreModel`, `ProductModel`) with business logic, validation, and immutable updates
 - `packages/contracts/` — DTOs, API protocol types (implemented, builds clean)
 
 **CI:** GitHub Actions workflow (`.github/workflows/ci.yml`) runs on push to main and PRs: build → lint → type-check → test → format check.
 
-**Testing:** Vitest configured in `packages/domain/` with `tsconfig.test.json` for ESLint type-aware linting of test files.
+**Testing:** Vitest configured in `packages/domain/` with `tsconfig.test.json` for ESLint type-aware linting of test files. 80 tests across 3 test files.
 
 Everything else in the monorepo structure is **planned but not yet created**. Do not generate code that imports from packages that don't exist yet (application, utils, ui, config, validation, infrastructure, backends, clients).
 
@@ -78,7 +78,10 @@ blockchain/contracts/   → Solidity smart contracts (planned)
 - Unused variables must be prefixed with `_` (e.g. `_unused`).
 - Module resolution: `bundler` in packages, `NodeNext` at root.
 - No default exports in shared packages.
-- No classes in domain or contracts — plain interfaces and enums only.
+- Domain models extend `AggregateRoot<T>` from `src/core/Entity.ts`.
+- Entity interfaces remain as interfaces in `src/entities/` — models wrap them.
+- Throw typed domain errors (`ValidationError`, `InvariantError`) — never raw `new Error()`.
+- Use shared validators from `models/validation.ts` — never duplicate regex/logic.
 
 ### File & Naming
 

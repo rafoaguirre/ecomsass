@@ -155,6 +155,7 @@ export enum ProductAvailability {
  */
 export enum StoreType {
   General = 'GENERAL',
+  Restaurant = 'RESTAURANT',
   School = 'SCHOOL',
   Cafeteria = 'CAFETERIA',
   Events = 'EVENTS',

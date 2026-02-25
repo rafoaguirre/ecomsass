@@ -6,6 +6,9 @@
  * It has ZERO external dependencies and ZERO knowledge of outer layers.
  */
 
+export * from './core';
 export * from './entities';
-export * from './value-objects';
 export * from './enums';
+export * from './errors';
+export * from './value-objects';
+export * from './models';
