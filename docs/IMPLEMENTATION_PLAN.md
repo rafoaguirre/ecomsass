@@ -39,7 +39,7 @@ This document outlines the phased implementation plan for the EcomSaaS platform,
 
 **Goal:** Implement core business entities with business logic
 
-**Status:** Complete — core DDD infrastructure, StoreModel, ProductModel, MoneyVO, and OrderModel implemented with 217 tests.
+**Status:** Complete — core DDD infrastructure, StoreModel, ProductModel, MoneyVO, and OrderModel implemented. Test suite has expanded to 280 tests across 6 files.
 
 **Deliverables:**
 
@@ -50,33 +50,37 @@ This document outlines the phased implementation plan for the EcomSaaS platform,
 - [x] Implement `ProductModel` — rich domain model wrapping Product entity interface
 - [x] Implement `MoneyVO` — value object with bigint arithmetic, crypto currencies, formatting
 - [x] Implement `OrderModel` — rich domain model with state machine, MoneyVO calculations, guard/transition methods
-- [x] Add unit tests (Vitest) — 217 tests across 5 test files
+- [x] Add unit tests (Vitest) — 280 tests across 6 test files
 
 **Dependencies:** Phase 0.1
 
-### 0.3 Remaining Domain Models
+### 0.3 Remaining Domain Models ✅
 
 **Goal:** Complete the domain model layer with remaining aggregate roots
 
+**Status:** Complete — `SubscriptionModel` implemented with cadence logic, lifecycle transitions, and subscriber cap enforcement.
+
 **Deliverables:**
 
-- [ ] Implement `SubscriptionModel` — cadence logic, pause/resume/cancel, subscriber cap enforcement
-- [ ] Document domain models (README or JSDoc)
+- [x] Implement `SubscriptionModel` — cadence logic and subscriber cap enforcement
+- [x] Document domain models (README or JSDoc)
 
 **Dependencies:** Phase 0.2
 
-### 0.4 Application Scaffolding
+### 0.4 Application Scaffolding ✅
 
 **Goal:** Scaffold the NestJS API and Next.js frontend apps in their default form — no business logic, just working shells that build, lint, and serve.
 
+**Status:** Complete — API and frontend shells exist, are wired into Turborepo, and build/test/lint/type-check successfully.
+
 **Deliverables:**
 
-- [ ] Scaffold `backends/api/` with NestJS (default project with health check)
-- [ ] Scaffold `clients/storefront/` with Next.js 15 (App Router, Tailwind, default page)
-- [ ] Scaffold `clients/vendor/` with Next.js 15 (App Router, Tailwind, default page)
-- [ ] Wire all apps into Turborepo pipeline (build, lint, type-check, test)
-- [ ] Verify `pnpm build` succeeds for entire monorepo
-- [ ] Add `.gitignore` entries for app build outputs
+- [x] Scaffold `backends/api/` with NestJS (default project with health check)
+- [x] Scaffold `clients/storefront/` with Next.js 15 (App Router, Tailwind, default page)
+- [x] Scaffold `clients/vendor/` with Next.js 15 (App Router, Tailwind, default page)
+- [x] Wire all apps into Turborepo pipeline (build, lint, type-check, test)
+- [x] Verify `pnpm build` succeeds for entire monorepo
+- [x] Add `.gitignore` entries for app build outputs
 
 **Structure:**
 
@@ -1004,5 +1008,8 @@ Each phase should meet:
 2. ✅ Complete Phase 0.1 (Shared Type System — domain + contracts)
 3. ✅ Setup project tracking (GitHub Projects/Issues)
 4. ✅ Establish branch strategy and commit conventions
-5. Begin Phase 0.2 (Rich Domain Models with business logic)
-6. Begin Phase 0.3 (Application Layer — use cases and repository interfaces)
+5. ✅ Complete Phase 0.2 (Rich Domain Models with business logic)
+6. ✅ Complete Phase 0.3 (Remaining domain models)
+7. ✅ Complete Phase 0.4 (NestJS + Next.js scaffolding)
+8. Begin Phase 0.5 (CI/CD and infrastructure foundation)
+9. Begin Phase 0.6 (Application Layer — use cases and repository interfaces)

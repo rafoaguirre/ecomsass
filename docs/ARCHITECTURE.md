@@ -230,7 +230,7 @@ ecomsaas/
 │   └── mcp/                    # MCP server for AI chat
 ├── clients/
 │   ├── vendor/                 # Vendor management app (Next.js)
-│   └── marketplace/            # Customer marketplace + stores (Next.js)
+│   └── storefront/             # Customer storefront + stores (Next.js)
 ├── blockchain/
 │   └── contracts/              # Solidity smart contracts
 ├── packages/
