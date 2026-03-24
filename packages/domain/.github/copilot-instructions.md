@@ -1,5 +1,8 @@
 # Copilot Instructions — @ecomsaas/domain
 
+In addition to this file, follow `docs/AGENT_GUIDE.md` from the repository root.
+This file only adds package-specific constraints for `packages/domain`.
+
 ## Package Role
 
 This is the **innermost ring** of Clean Architecture — the stable core that everything else depends on and that depends on nothing.

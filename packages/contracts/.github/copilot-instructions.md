@@ -1,5 +1,8 @@
 # Copilot Instructions — @ecomsaas/contracts
 
+In addition to this file, follow `docs/AGENT_GUIDE.md` from the repository root.
+This file only adds package-specific constraints for `packages/contracts`.
+
 ## Package Role
 
 This package lives in the **interface-adapter layer** of Clean Architecture. It defines shapes that cross architectural boundaries — API request/response contracts, pagination, error formats, and other protocol types.
