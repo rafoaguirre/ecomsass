@@ -207,12 +207,12 @@ This project follows Clean Architecture principles with clear separation between
 
 - `packages/domain/` - Core domain layer: entities, value objects, enums (zero dependencies)
 - `packages/contracts/` - API contracts, DTOs, shared protocol types (depends on domain)
-- `packages/application/` - Business use cases _(planned)_
+- `packages/application/` - Business use cases (depends on domain)
 - `packages/utils/` - Pure utility functions _(planned)_
 - `packages/config/` - Shared configuration _(planned)_
-- `packages/validation/` - Shared validation schemas (Zod) _(planned)_
+- `packages/validation/` - Shared validation schemas (Zod)
 - `packages/ui/` - Shared UI components (React) _(planned)_
-- `packages/infrastructure/` - Shared infra utilities _(planned)_
+- `packages/infrastructure/` - Shared infra utilities
 
 **App-Specific:**
 
@@ -238,12 +238,12 @@ ecomsaas/
 ├── packages/
 │   ├── domain/                 # Core domain layer (entities, value objects, enums)
 │   ├── contracts/              # API contracts, DTOs, shared protocol types
-│   ├── application/            # Shared use cases (planned)
+│   ├── application/            # Shared use cases
 │   ├── ui/                     # Shared UI components (planned)
 │   ├── utils/                  # Shared utilities (planned)
 │   ├── config/                 # Shared configurations (planned)
-│   ├── validation/             # Shared validation schemas — Zod (planned)
-│   └── infrastructure/         # Shared infra utilities (planned)
+│   ├── validation/             # Shared validation schemas — Zod
+│   └── infrastructure/         # Shared infra utilities
 │       ├── logger/             # Logging utility
 │       ├── secrets/            # Secrets manager wrapper
 │       ├── http/               # HTTP client wrapper

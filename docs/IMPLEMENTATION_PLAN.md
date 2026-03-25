@@ -227,12 +227,14 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 **Goal:** Centralized validation schemas
 
+**Status:** Complete — validation package delivered with shared schemas, helpers, and tests.
+
 **Deliverables:**
 
-- [ ] Create `packages/validation/`
-- [ ] Zod schemas for all entities
-- [ ] Validation helpers
-- [ ] Tests
+- [x] Create `packages/validation/`
+- [x] Zod schemas for domain entities and API request DTOs
+- [x] Validation helpers (`validateSchema`, `safeValidateSchema`)
+- [x] Tests
 
 **Dependencies:** Phase 0.1 (domain + contracts)
 
@@ -1038,6 +1040,6 @@ Each phase should meet:
 7. ✅ Complete Phase 0.4 (NestJS + Next.js scaffolding)
 8. ✅ Complete Phase 0.6 (Application Layer — use cases and repository interfaces)
 9. ✅ Complete Phase 0.7 (Infrastructure foundation/scaffold)
-10. Begin Phase 0.8 (Shared Validation Layer — Zod schemas)
+10. ✅ Complete Phase 0.8 (Shared Validation Layer — Zod schemas)
 11. Begin Phase 1.1 (Database setup + repository pattern + Supabase adapter)
 12. Defer Phase 0.5 (CI/CD and infrastructure foundation) to end-of-roadmap

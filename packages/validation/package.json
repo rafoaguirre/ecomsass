@@ -1,0 +1,49 @@
+{
+  "name": "@ecomsaas/validation",
+  "version": "0.1.0",
+  "description": "Shared Zod validation schemas and helpers for the EcomSaaS platform",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas/index.d.ts",
+      "import": "./dist/schemas/index.js"
+    },
+    "./helpers": {
+      "types": "./dist/helpers/index.d.ts",
+      "import": "./dist/helpers/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "validation",
+    "zod",
+    "ecommerce",
+    "saas"
+  ],
+  "dependencies": {
+    "@ecomsaas/domain": "workspace:*",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}
