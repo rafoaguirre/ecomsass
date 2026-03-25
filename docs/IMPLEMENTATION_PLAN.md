@@ -192,6 +192,7 @@ services:
 
 **Deliverables:**
 
+- [ ] `packages/infrastructure/id-generator/` - ID generation service used via application-layer port injection
 - [ ] `packages/infrastructure/logger/` — Logging utility (Pino)
 - [ ] `packages/infrastructure/secrets/` — Secret manager wrapper (environment-aware)
 - [ ] `packages/infrastructure/http/` — HTTP client (with auth, retry, error handling)
@@ -203,6 +204,10 @@ services:
 - [ ] Add tests and documentation
 
 **Dependencies:** None (independent of other sub-phases)
+
+**Note:** In Phase 0.6, ID creation in `PlaceOrder` is kept local for delivery speed.
+Phase 0.7 will move this into a shared infrastructure utility injected through an
+application port to preserve clean boundaries and SRP.
 
 ### 0.8 Shared Validation Layer
 

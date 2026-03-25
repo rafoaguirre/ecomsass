@@ -198,6 +198,8 @@ This project follows Clean Architecture principles with clear separation between
 - Application layer depends only on domain
 - Infrastructure implements interfaces defined in inner layers
 - Presentation layer orchestrates everything
+- ID generation is treated as an infrastructure concern and consumed in use cases via
+  injected ports (Phase 0.7 extraction target)
 
 ### Shared vs App-Specific Code
 
