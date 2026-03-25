@@ -11,12 +11,12 @@
       "import": "./dist/index.js"
     },
     "./ports": {
-      "types": "./dist/ports/index.d.ts",
-      "import": "./dist/ports/index.js"
+      "types": "./dist/ports.d.ts",
+      "import": "./dist/ports.js"
     },
     "./use-cases": {
-      "types": "./dist/use-cases/index.d.ts",
-      "import": "./dist/use-cases/index.js"
+      "types": "./dist/use-cases.d.ts",
+      "import": "./dist/use-cases.js"
     }
   },
   "files": [

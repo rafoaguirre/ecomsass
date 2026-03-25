@@ -68,8 +68,8 @@
 
 ### ID Generation Boundary
 
-- **Current (Phase 0.6):** `PlaceOrder` generates IDs inline for fast delivery
-- **Target (Phase 0.7):** Move ID creation to `packages/infrastructure/id-generator`
+- **Current:** `PlaceOrder` consumes an `IdGenerator` application port
+- **Implementation:** Infrastructure provides `packages/infrastructure/id-generator` adapter
 - **Architecture rule:** Application use cases consume ID generation through a port
   to keep responsibilities separated (SRP/Clean Architecture)
 
@@ -78,7 +78,9 @@
 - **Principle**: Code identical across environments
 - **What changes**: Only secrets/configuration
 - **Local**: .env files
-- **Cloud**: GCP Secret Manager / AWS Secrets Manager
+- **Cloud**: Infisical (primary), with provider abstraction in infrastructure
+- **Runtime pattern**: preload required secrets at startup, cache in-process, inject typed config
+- **Policy**: avoid blind global export of all secrets to `process.env`; attach only explicit keys when needed
 
 ### API Architecture: **Modular Monolith (NestJS)**
 

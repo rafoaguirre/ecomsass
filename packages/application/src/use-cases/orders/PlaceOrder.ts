@@ -15,7 +15,7 @@ import type {
   CurrencyCode,
   FulfillmentInfo,
 } from '@ecomsaas/domain';
-import type { OrderRepository, ProductRepository, StoreRepository } from '../../ports';
+import type { OrderRepository, ProductRepository, StoreRepository, IdGenerator } from '../../ports';
 
 /**
  * Input for placing an order.
@@ -70,7 +70,8 @@ export class PlaceOrder {
   constructor(
     private readonly orderRepository: OrderRepository,
     private readonly productRepository: ProductRepository,
-    private readonly storeRepository: StoreRepository
+    private readonly storeRepository: StoreRepository,
+    private readonly idGenerator: IdGenerator
   ) {}
 
   /**
@@ -136,7 +137,7 @@ export class PlaceOrder {
       );
 
       orderItems.push({
-        id: this.generateItemId(),
+        id: this.idGenerator.generate(),
         productId: product.id,
         productName: product.name,
         variantId: item.variantId,
@@ -168,7 +169,7 @@ export class PlaceOrder {
 
     // 5. Create order
     const orderData: CreateOrderInput = {
-      id: this.generateOrderId(),
+      id: this.idGenerator.generate(),
       storeId: input.storeId,
       userId: input.userId,
       referenceId,
@@ -182,7 +183,7 @@ export class PlaceOrder {
       notes: input.notes
         ? [
             {
-              id: this.generateNoteId(),
+              id: this.idGenerator.generate(),
               targetId: input.userId,
               target: 'buyer',
               note: input.notes,
@@ -197,27 +198,5 @@ export class PlaceOrder {
 
     // 6. Persist the order
     return this.orderRepository.save(order);
-  }
-
-  /**
-   * Generate a unique order ID.
-   * In a real implementation, this would use a proper ID generation strategy.
-   */
-  private generateOrderId(): string {
-    return `order-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-  }
-
-  /**
-   * Generate a unique order item ID.
-   */
-  private generateItemId(): string {
-    return `item-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-  }
-
-  /**
-   * Generate a unique note ID.
-   */
-  private generateNoteId(): string {
-    return `note-${Date.now()}-${Math.random().toString(36).substring(7)}`;
   }
 }
