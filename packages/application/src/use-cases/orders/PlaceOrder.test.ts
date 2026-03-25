@@ -14,13 +14,14 @@ import {
   err,
 } from '@ecomsaas/domain';
 import type { CreateProductInput } from '@ecomsaas/domain';
-import type { OrderRepository, ProductRepository, StoreRepository } from '../../ports';
+import type { OrderRepository, ProductRepository, StoreRepository, IdGenerator } from '../../ports';
 
 describe('PlaceOrder Use Case', () => {
   let placeOrder: PlaceOrder;
   let mockOrderRepository: OrderRepository;
   let mockProductRepository: ProductRepository;
   let mockStoreRepository: StoreRepository;
+  let mockIdGenerator: IdGenerator;
 
   const mockStoreData = {
     id: 'store-123',
@@ -76,7 +77,17 @@ describe('PlaceOrder Use Case', () => {
       slugExists: vi.fn(),
     };
 
-    placeOrder = new PlaceOrder(mockOrderRepository, mockProductRepository, mockStoreRepository);
+    mockIdGenerator = {
+      generate: vi.fn().mockReturnValue('mock-id-123'),
+      generateBatch: vi.fn(),
+    };
+
+    placeOrder = new PlaceOrder(
+      mockOrderRepository,
+      mockProductRepository,
+      mockStoreRepository,
+      mockIdGenerator
+    );
   });
 
   describe('execute', () => {

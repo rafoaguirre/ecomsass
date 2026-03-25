@@ -176,38 +176,52 @@ services:
 
 **Goal:** Implement reusable use cases (business orchestration)
 
+**Status:** Complete — shared application package delivered with ports, use cases, tests, and docs.
+
 **Deliverables:**
 
-- [ ] Create `packages/application/`
-- [ ] Define repository interfaces (ports): `StoreRepository`, `ProductRepository`, `OrderRepository`
-- [ ] Implement use cases: `GetStore`, `CreateProduct`, `PlaceOrder`
-- [ ] Add unit tests
-- [ ] Document use cases
+- [x] Create `packages/application/`
+- [x] Define repository interfaces (ports): `StoreRepository`, `ProductRepository`, `OrderRepository`, `IdGenerator`
+- [x] Implement use cases: `GetStore`, `CreateProduct`, `PlaceOrder`
+- [x] Add unit tests
+- [x] Document use cases
 
 **Dependencies:** Phase 0.2 (domain)
 
-### 0.7 Shared Infrastructure Utilities
+### 0.7 Shared Infrastructure Utilities — Foundation
 
-**Goal:** Create reusable infrastructure tools
+**Goal:** Establish infrastructure abstraction layer with stable interfaces and reference implementations. Production adapters (Redis, BullMQ, Supabase, S3/MinIO, OpenTelemetry) will be implemented on-demand in later phases when first real consumer lands.
+
+**Status:** Complete — foundation layer delivered with contracts + in-memory reference implementations for testing and early integration.
 
 **Deliverables:**
 
-- [ ] `packages/infrastructure/id-generator/` - ID generation service used via application-layer port injection
-- [ ] `packages/infrastructure/logger/` — Logging utility (Pino)
-- [ ] `packages/infrastructure/secrets/` — Secret manager wrapper (environment-aware)
-- [ ] `packages/infrastructure/http/` — HTTP client (with auth, retry, error handling)
-- [ ] `packages/infrastructure/cache/` — Redis caching wrapper
-- [ ] `packages/infrastructure/queue/` — BullMQ queue wrapper (producer & consumer)
-- [ ] `packages/infrastructure/database/` — Supabase migration wrapper
-- [ ] `packages/infrastructure/storage/` — File storage wrapper (MinIO/S3/Supabase)
-- [ ] `packages/infrastructure/tracing/` — Observability setup
-- [ ] Add tests and documentation
+- [x] `packages/infrastructure/id-generator/` — Crypto-based ID generation service (production-ready, uses Node.js crypto)
+- [x] `packages/infrastructure/logger/` — Logging abstraction with Pino adapter (production-ready)
+- [x] `packages/infrastructure/secrets/` — Secrets management interfaces with env and Infisical-backed adapters
+- [x] `packages/infrastructure/http/` — HTTP client with retry, timeout, auth hooks, error handling (native fetch)
+- [x] `packages/infrastructure/cache/` — Cache interface with in-memory reference implementation
+- [x] `packages/infrastructure/queue/` — Queue interface with in-memory reference implementation
+- [x] `packages/infrastructure/database/` — Database interface with stub reference implementation
+- [x] `packages/infrastructure/storage/` — Object storage interface with in-memory reference implementation
+- [x] `packages/infrastructure/tracing/` — Tracer interface with console/noop reference implementations
+- [x] Comprehensive tests (121 tests) and documentation (README + JSDoc)
+
+**Production Adapter Follow-ups (deferred to later phases):**
+
+The following adapters will be implemented when first needed by application code:
+
+- **Redis Cache Adapter** — Replace in-memory cache when Phase 1+ needs distributed caching
+- **BullMQ Queue Adapter** — Replace in-memory queue when Phase 1+ needs persistent job queues
+- **Supabase Database Adapter** — Add migration/connection utilities when Phase 1+ needs database helpers
+- **S3/MinIO Storage Adapter** — Replace in-memory storage when Phase 1+ needs file uploads
+- **OpenTelemetry Tracer Adapter** — Replace console tracer when observability requirements are defined
+- **Startup Secrets Preload** — Fetch required secrets once on app bootstrap and inject typed runtime config
 
 **Dependencies:** None (independent of other sub-phases)
 
-**Note:** In Phase 0.6, ID creation in `PlaceOrder` is kept local for delivery speed.
-Phase 0.7 will move this into a shared infrastructure utility injected through an
-application port to preserve clean boundaries and SRP.
+**Note:** ID generation is now consumed through an application-layer port (`IdGenerator`)
+and implemented by infrastructure adapter(s), preserving clean boundaries and SRP.
 
 ### 0.8 Shared Validation Layer
 
@@ -264,6 +278,8 @@ application port to preserve clean boundaries and SRP.
 - [ ] Seed data script for development
 - [ ] Database connection module in NestJS
 - [ ] Repository pattern implementation (base repository + concrete implementations)
+- [ ] **Supabase Database Adapter** for `@ecomsaas/infrastructure` (connection pooling, migration helpers)
+- [ ] **API bootstrap preload** for required secrets with typed runtime config
 
 ### 1.2 Authentication Integration
 
@@ -398,7 +414,8 @@ export const apiClient = createHttpClient({
 - [ ] `PUT /api/v1/products/:id` - Update product
 - [ ] `DELETE /api/v1/products/:id` - Soft delete
 - [ ] `GET /api/v1/stores/:storeId/products` - List store products
-- [ ] Image upload integration (Supabase Storage)
+- [ ] **S3/MinIO Storage Adapter** for `@ecomsaas/infrastructure` (file uploads, presigned URLs)
+- [ ] Image upload integration (using Storage adapter)
 - [ ] Inventory management
 - [ ] Tests and documentation
 
@@ -692,6 +709,8 @@ export const apiClient = createHttpClient({
 **Deliverables:**
 
 - [ ] Redis setup (production)
+- [ ] **Redis Cache Adapter** for `@ecomsaas/infrastructure` (ioredis client, TTL support)
+- [ ] **BullMQ Queue Adapter** for `@ecomsaas/infrastructure` (producer/consumer, job retry)
 - [ ] BullMQ configuration
 - [ ] Job queue definitions
 - [ ] Queue monitoring UI (Bull Board)
@@ -910,6 +929,7 @@ queueJobs.process('send-email', async (job) => {
 
 **Deliverables:**
 
+- [ ] **OpenTelemetry Tracer Adapter** for `@ecomsaas/infrastructure` (distributed tracing, spans, metrics)
 - [ ] Application logs aggregation
 - [ ] Error tracking (Sentry)
 - [ ] Performance monitoring (APM)
@@ -1016,5 +1036,8 @@ Each phase should meet:
 5. ✅ Complete Phase 0.2 (Rich Domain Models with business logic)
 6. ✅ Complete Phase 0.3 (Remaining domain models)
 7. ✅ Complete Phase 0.4 (NestJS + Next.js scaffolding)
-8. Begin Phase 0.5 (CI/CD and infrastructure foundation)
-9. Begin Phase 0.6 (Application Layer — use cases and repository interfaces)
+8. ✅ Complete Phase 0.6 (Application Layer — use cases and repository interfaces)
+9. ✅ Complete Phase 0.7 (Infrastructure foundation/scaffold)
+10. Begin Phase 0.8 (Shared Validation Layer — Zod schemas)
+11. Begin Phase 1.1 (Database setup + repository pattern + Supabase adapter)
+12. Defer Phase 0.5 (CI/CD and infrastructure foundation) to end-of-roadmap

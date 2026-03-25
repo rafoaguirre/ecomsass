@@ -620,9 +620,10 @@ src/
 **Secrets Management:**
 
 - Local: `.env` files
-- Cloud: GCP Secret Manager / AWS Secrets Manager
+- Cloud: Infisical (via provider adapter), with room for additional providers
 - Wrapper in `packages/infrastructure/secrets` abstracts provider
-- Environment-aware: loads from appropriate source
+- Startup bootstrap preloads required keys once and injects typed runtime config
+- Optional env projection is explicit/allow-listed (not bulk export of all secrets)
 
 **Local Development Infrastructure:**
 
