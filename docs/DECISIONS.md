@@ -66,6 +66,13 @@
 - Frequently accessed endpoints
 - Wrapper utility in `packages/infrastructure/cache`
 
+### ID Generation Boundary
+
+- **Current (Phase 0.6):** `PlaceOrder` generates IDs inline for fast delivery
+- **Target (Phase 0.7):** Move ID creation to `packages/infrastructure/id-generator`
+- **Architecture rule:** Application use cases consume ID generation through a port
+  to keep responsibilities separated (SRP/Clean Architecture)
+
 ### Environment Management
 
 - **Principle**: Code identical across environments
