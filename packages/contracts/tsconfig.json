@@ -7,7 +7,7 @@
     "declarationMap": true,
     "moduleResolution": "bundler",
     "module": "ESNext",
-    "lib": ["ES2022", "DOM"],
+    "lib": ["ES2022"],
     "skipLibCheck": true,
     "incremental": false,
     "composite": false,
