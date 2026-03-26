@@ -51,6 +51,21 @@
 - Abstraction allows future tool changes
 - Environment-aware (dev, staging, production)
 
+### Supabase Client vs SQL Database Interface
+
+- **`Database` interface** (`packages/infrastructure/database/Database.ts`): Raw SQL
+  abstraction (`query`, `execute`, `beginTransaction`). Used for complex queries,
+  migrations, or cases where PostgREST is insufficient.
+- **`createSupabaseClient`** (`packages/infrastructure/database/SupabaseClient.ts`):
+  Factory for `@supabase/supabase-js` client. Used in repository implementations
+  for standard CRUD via PostgREST (`client.from('table').select()`).
+- **Decision**: Repository implementations use the Supabase JS client directly through
+  NestJS DI (`SUPABASE_CLIENT` token). They do NOT implement the SQL `Database`
+  interface. The two coexist for different use cases.
+- **Rationale**: The Supabase JS client is PostgREST-based, not raw SQL. Forcing it
+  into the SQL interface would create a leaky abstraction. Repositories speaking the
+  Supabase query builder API is more natural and type-safe.
+
 ### Clean Architecture & Database
 
 - **Domain Layer**: Pure entities (no DB specifics)
