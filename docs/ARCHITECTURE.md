@@ -211,7 +211,7 @@ This project follows Clean Architecture principles with clear separation between
 - `packages/utils/` - Pure utility functions _(planned)_
 - `packages/config/` - Shared configuration _(planned)_
 - `packages/validation/` - Shared validation schemas (Zod)
-- `packages/ui/` - Shared UI components (React) _(planned)_
+- `packages/ui/` - Shared UI tokens, core style contracts, and platform adapters (`web`, `native`)
 - `packages/infrastructure/` - Shared infra utilities
 
 **App-Specific:**
@@ -239,7 +239,7 @@ ecomsaas/
 │   ├── domain/                 # Core domain layer (entities, value objects, enums)
 │   ├── contracts/              # API contracts, DTOs, shared protocol types
 │   ├── application/            # Shared use cases
-│   ├── ui/                     # Shared UI components (planned)
+│   ├── ui/                     # Shared UI tokens and adapters (web/native)
 │   ├── utils/                  # Shared utilities (planned)
 │   ├── config/                 # Shared configurations (planned)
 │   ├── validation/             # Shared validation schemas — Zod

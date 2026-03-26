@@ -16,7 +16,7 @@ export default [
   },
   {
     files: ['**/*.ts', '**/*.tsx'],
-    ignores: ['**/*.config.ts'],
+    ignores: ['**/*.config.ts', '**/.storybook/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -56,6 +56,25 @@ export default [
   },
   {
     files: ['**/*.config.ts', '**/*.config.js'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+      prettier: prettier,
+    },
+    rules: {
+      ...tseslint.configs.recommended.rules,
+      ...prettierConfig.rules,
+      'prettier/prettier': 'error',
+    },
+  },
+  {
+    files: ['**/.storybook/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {

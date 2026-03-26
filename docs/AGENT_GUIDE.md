@@ -17,6 +17,10 @@ Implemented workspaces:
 
 - `packages/domain`
 - `packages/contracts`
+- `packages/application`
+- `packages/validation`
+- `packages/infrastructure`
+- `packages/ui`
 - `backends/api` (scaffold)
 - `clients/storefront` (scaffold)
 - `clients/vendor` (scaffold)
@@ -24,12 +28,8 @@ Implemented workspaces:
 
 Planned but not yet created:
 
-- `packages/application`
-- `packages/ui`
 - `packages/utils`
 - `packages/config`
-- `packages/validation`
-- `packages/infrastructure/*`
 - `backends/worker`
 - `backends/mcp`
 - Terraform modules under `infra/terraform`
