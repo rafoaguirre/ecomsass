@@ -3,48 +3,89 @@
   "version": "0.1.0",
   "description": "Shared infrastructure utilities for the EcomSaaS platform",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./id-generator": {
       "types": "./dist/id-generator/index.d.ts",
-      "import": "./dist/id-generator/index.js"
+      "import": "./dist/id-generator/index.js",
+      "require": "./dist/id-generator/index.cjs"
     },
     "./logger": {
       "types": "./dist/logger/index.d.ts",
-      "import": "./dist/logger/index.js"
+      "import": "./dist/logger/index.js",
+      "require": "./dist/logger/index.cjs"
     },
     "./secrets": {
       "types": "./dist/secrets/index.d.ts",
-      "import": "./dist/secrets/index.js"
+      "import": "./dist/secrets/index.js",
+      "require": "./dist/secrets/index.cjs"
     },
     "./http": {
       "types": "./dist/http/index.d.ts",
-      "import": "./dist/http/index.js"
+      "import": "./dist/http/index.js",
+      "require": "./dist/http/index.cjs"
     },
     "./cache": {
       "types": "./dist/cache/index.d.ts",
-      "import": "./dist/cache/index.js"
+      "import": "./dist/cache/index.js",
+      "require": "./dist/cache/index.cjs"
     },
     "./queue": {
       "types": "./dist/queue/index.d.ts",
-      "import": "./dist/queue/index.js"
+      "import": "./dist/queue/index.js",
+      "require": "./dist/queue/index.cjs"
     },
     "./database": {
       "types": "./dist/database/index.d.ts",
-      "import": "./dist/database/index.js"
+      "import": "./dist/database/index.js",
+      "require": "./dist/database/index.cjs"
     },
     "./storage": {
       "types": "./dist/storage/index.d.ts",
-      "import": "./dist/storage/index.js"
+      "import": "./dist/storage/index.js",
+      "require": "./dist/storage/index.cjs"
     },
     "./tracing": {
       "types": "./dist/tracing/index.d.ts",
-      "import": "./dist/tracing/index.js"
+      "import": "./dist/tracing/index.js",
+      "require": "./dist/tracing/index.cjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "id-generator": [
+        "./dist/id-generator/index.d.ts"
+      ],
+      "logger": [
+        "./dist/logger/index.d.ts"
+      ],
+      "secrets": [
+        "./dist/secrets/index.d.ts"
+      ],
+      "http": [
+        "./dist/http/index.d.ts"
+      ],
+      "cache": [
+        "./dist/cache/index.d.ts"
+      ],
+      "queue": [
+        "./dist/queue/index.d.ts"
+      ],
+      "database": [
+        "./dist/database/index.d.ts"
+      ],
+      "storage": [
+        "./dist/storage/index.d.ts"
+      ],
+      "tracing": [
+        "./dist/tracing/index.d.ts"
+      ]
     }
   },
   "files": [
@@ -68,6 +109,7 @@
   "dependencies": {
     "@ecomsaas/application": "workspace:*",
     "@infisical/sdk": "^5.0.0",
+    "@supabase/supabase-js": "^2.100.0",
     "pino": "^9.7.0",
     "pino-pretty": "^13.0.0"
   },

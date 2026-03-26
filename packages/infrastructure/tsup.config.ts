@@ -13,7 +13,7 @@ export default defineConfig({
     'storage/index': 'src/storage/index.ts',
     'tracing/index': 'src/tracing/index.ts',
   },
-  format: ['esm'],
+  format: ['esm', 'cjs'],
   dts: true,
   sourcemap: true,
   clean: true,

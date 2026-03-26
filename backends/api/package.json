@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "description": "EcomSaaS API — NestJS backend",
   "private": true,
-  "type": "module",
   "scripts": {
     "build": "nest build",
     "dev": "nest start --watch",
@@ -14,6 +13,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@ecomsaas/infrastructure": "workspace:^",
     "@nestjs/common": "^11.1.14",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.14",

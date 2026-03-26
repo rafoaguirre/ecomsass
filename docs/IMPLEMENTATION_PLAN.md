@@ -279,16 +279,28 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 **Goal:** Connect to Supabase and setup migrations
 
+**Status:** In Progress — foundation PR complete (schema + adapter + config wiring).
+
 **Deliverables:**
 
-- [ ] Supabase project creation (or local dev with Supabase CLI)
-- [ ] Database schema design (profiles, vendors, stores, products, orders)
-- [ ] Migration system setup (Supabase CLI)
-- [ ] Seed data script for development
-- [ ] Database connection module in NestJS
-- [ ] Repository pattern implementation (base repository + concrete implementations)
-- [ ] **Supabase Database Adapter** for `@ecomsaas/infrastructure` (connection pooling, migration helpers)
-- [ ] **API bootstrap preload** for required secrets with typed runtime config
+- [x] Supabase local dev setup (Supabase CLI `init`, `config.toml`)
+- [x] Initial database schema migration (`profiles`, `vendor_profiles`, `stores`)
+- [x] Migration includes: enum types, RLS policies, auto-updated timestamps, indexes
+- [x] Seed data script for local development (auth users + profiles + vendor + store)
+- [x] `createSupabaseClient` factory in `@ecomsaas/infrastructure/database`
+- [x] API bootstrap preload (secrets → `process.env` before NestJS boot)
+- [x] Typed `AppConfig` + `REQUIRED_SECRET_KEYS` in `backends/api/src/config/`
+- [x] NestJS `DatabaseModule` (global) exposing `SUPABASE_CLIENT` + `SUPABASE_ANON_CLIENT` tokens
+- [x] `.env.example` documenting required variables
+- [x] DECISIONS.md: Supabase client vs SQL Database interface architectural decision
+- [ ] Repository pattern implementation (base repository + concrete implementations) → PR 2
+
+**Notes:**
+
+- Schema scope is intentionally narrowed to the 3 tables needed for the first vertical slice (Phase 1.3: `GET /stores/:slug`). Products and orders tables will be added in their respective slices.
+- The `createSupabaseClient` factory is separate from the SQL `Database` interface. Repositories use the Supabase JS client (PostgREST) directly — see DECISIONS.md.
+
+**Dependencies:** Phase 0.4 (scaffolded API), Phase 0.7 (infrastructure secrets)
 
 ### 1.2 Authentication Integration
 
