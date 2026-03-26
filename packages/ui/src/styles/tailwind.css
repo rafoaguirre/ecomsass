@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+
+@source "../**/*.{ts,tsx}";
+
+@theme {
+  --color-brand-500: #1b80f2;
+  --color-brand-600: #0d63c7;
+  --color-accent-500: #f76819;
+  --color-accent-600: #dd4d0d;
+  --color-foreground: #171a1f;
+  --color-muted: #5d6776;
+  --color-border: #dde3eb;
+  --radius-md: 12px;
+  --radius-pill: 999px;
+  --font-sans: "Manrope", "Inter", "Segoe UI", sans-serif;
+  --font-display: "Sora", "Inter", sans-serif;
+}

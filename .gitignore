@@ -10,6 +10,7 @@ coverage/
 build/
 dist/
 out/
+storybook-static/
 .next/
 .turbo/
 *.tsbuildinfo

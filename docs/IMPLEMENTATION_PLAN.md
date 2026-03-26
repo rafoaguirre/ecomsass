@@ -244,11 +244,18 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 **Deliverables:**
 
-- [ ] Create `packages/ui/`
-- [ ] Setup Tailwind + shadcn/ui
-- [ ] Implement base components: Button, Input, Card, Modal
-- [ ] Storybook for component documentation
-- [ ] Tests (React Testing Library)
+- [x] Create `packages/ui/`
+- [x] Setup Tailwind + shadcn/ui
+- [x] Implement base components: Button, Input, Card, Modal
+- [x] Storybook for component documentation
+- [x] Tests for core/web/native UI helpers (Vitest)
+
+**Current Status Notes:**
+
+- Shared tokens and core style contracts are implemented for cross-platform reuse.
+- Web adapter components are implemented in `@ecomsaas/ui/web`.
+- Native adapter style helpers are implemented in `@ecomsaas/ui/native`.
+- Tailwind + shadcn primitives and Storybook stories are implemented in `packages/ui`.
 
 **Dependencies:** None (independent of other sub-phases)
 
