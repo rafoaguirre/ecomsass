@@ -13,4 +13,14 @@ describe('createSupabaseClient', () => {
     expect(typeof client.auth).toBe('object');
     expect(typeof client.storage).toBe('object');
   });
+
+  it('should accept an optional access token for request-scoped auth context', () => {
+    const client = createSupabaseClient({
+      url: 'http://localhost:54321',
+      key: 'test-anon-key',
+      accessToken: 'jwt-token',
+    });
+
+    expect(typeof client.from).toBe('function');
+  });
 });

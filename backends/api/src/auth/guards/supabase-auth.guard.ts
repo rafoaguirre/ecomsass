@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@ecomsaas/infrastructure/database';
 import { SUPABASE_ANON_CLIENT } from '../../database';
+import { extractBearerToken } from '../../common/auth/extract-bearer-token';
 import type { AuthUser } from '../types/auth-user';
 
 interface RequestLike {
@@ -23,7 +24,7 @@ export class SupabaseAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<RequestLike>();
-    const token = this.extractBearerToken(request.headers?.authorization);
+    const token = extractBearerToken(request.headers?.authorization);
 
     if (!token) {
       throw new UnauthorizedException('Missing bearer token');
@@ -42,24 +43,6 @@ export class SupabaseAuthGuard implements CanActivate {
     };
 
     return true;
-  }
-
-  private extractBearerToken(authorizationHeader: string | string[] | undefined): string | null {
-    const header = Array.isArray(authorizationHeader)
-      ? authorizationHeader[0]
-      : authorizationHeader;
-
-    if (!header) {
-      return null;
-    }
-
-    const [type, token] = header.split(' ');
-
-    if (type !== 'Bearer' || !token) {
-      return null;
-    }
-
-    return token;
   }
 
   private extractRole(appMetadata: Record<string, unknown> | undefined): string | null {
