@@ -19,6 +19,12 @@ export interface SupabaseClientOptions {
    * - `serviceRoleKey`: bypasses RLS (for server-side admin operations)
    */
   key: string;
+
+  /**
+   * Optional user JWT to forward per-request.
+   * When present, PostgREST policies can evaluate `auth.uid()` contextually.
+   */
+  accessToken?: string;
 }
 
 /**
@@ -38,7 +44,14 @@ export interface SupabaseClientOptions {
  * ```
  */
 export function createSupabaseClient(options: SupabaseClientOptions): SupabaseClientType {
+  const globalHeaders = options.accessToken
+    ? { Authorization: `Bearer ${options.accessToken}` }
+    : undefined;
+
   return createClient(options.url, options.key, {
+    global: {
+      headers: globalHeaders,
+    },
     auth: {
       autoRefreshToken: false,
       persistSession: false,

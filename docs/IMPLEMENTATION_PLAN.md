@@ -290,7 +290,7 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 - [x] Supabase local dev setup (Supabase CLI `init`, `config.toml`)
 - [x] Initial database schema migration (`profiles`, `vendor_profiles`, `stores`)
 - [x] Migration includes: enum types, RLS policies, auto-updated timestamps, indexes
-- [x] Seed data script for local development (auth users + profiles + vendor + store)
+- [x] Seed data script for local development (profiles + vendor + store linked to existing auth users)
 - [x] `createSupabaseClient` factory in `@ecomsaas/infrastructure/database`
 - [x] API bootstrap preload (secrets → `process.env` before NestJS boot)
 - [x] Typed `AppConfig` + `REQUIRED_SECRET_KEYS` in `backends/api/src/config/`
@@ -320,7 +320,7 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 - [x] Role-based guards foundation (`Roles` decorator + `RolesGuard`)
 - [x] Auth module scaffolding (`AuthModule`, `/auth/me`)
 - [x] Tests for auth guards
-- [ ] Request-scoped JWT propagation into Supabase client context for `auth.uid()` RLS policies
+- [x] Request-scoped JWT propagation into Supabase client context for `auth.uid()` RLS policies
 - [ ] Complete role strategy integration across feature modules/endpoints
 
 **Future Improvement Options (after workflow baseline is stable):**
