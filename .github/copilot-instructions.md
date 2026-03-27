@@ -17,6 +17,8 @@ Use `docs/AGENT_GUIDE.md` as the primary instruction source for this repository.
 
 - Prefer minimal, scoped changes over large speculative scaffolding.
 - Do not import planned packages that do not exist yet unless explicitly creating them as part of the task.
+- Never commit real secrets/tokens/credentials; use placeholders in docs/examples.
+- Assume CI secret scanning is mandatory (Gitleaks) and keep allowlist changes minimal and explicit.
 - For non-trivial changes, run and report:
   - `pnpm build`
   - `pnpm type-check`
