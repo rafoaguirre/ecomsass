@@ -118,6 +118,10 @@ clients/vendor/        # Next.js — vendor dashboard frontend shell
   - [ ] Auto-cleanup preview on PR close
   - [ ] Comment PR with preview URLs
 
+**Implemented Early (Security Exception):**
+
+- [x] CI secret scanning with Gitleaks (`.github/workflows/ci.yml`, `.gitleaks.toml`)
+
 **Structure:**
 
 ```
@@ -306,14 +310,24 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 **Goal:** Integrate Supabase Auth with NestJS
 
+**Status:** In Progress — guard/module foundation implemented.
+
 **Deliverables:**
 
-- [ ] Supabase client setup in API
-- [ ] JWT validation guard (SupabaseAuthGuard)
-- [ ] User extraction from token
-- [ ] Role-based guards (vendor, customer, admin)
-- [ ] Auth module and strategy
-- [ ] Tests for auth guards
+- [x] Supabase client setup in API
+- [x] JWT validation guard (SupabaseAuthGuard)
+- [x] User extraction from token (`CurrentUser` decorator)
+- [x] Role-based guards foundation (`Roles` decorator + `RolesGuard`)
+- [x] Auth module scaffolding (`AuthModule`, `/auth/me`)
+- [x] Tests for auth guards
+- [ ] Request-scoped JWT propagation into Supabase client context for `auth.uid()` RLS policies
+- [ ] Complete role strategy integration across feature modules/endpoints
+
+**Future Improvement Options (after workflow baseline is stable):**
+
+- Keep remote token validation with Supabase `auth.getUser(token)` (current baseline; simplest).
+- Add local JWT verification with Supabase JWKS (`jose`) to reduce auth latency.
+- Move JWT verification to an API gateway / edge layer for centralized auth checks.
 
 ### 1.3 First API Endpoint (Vertical Slice)
 

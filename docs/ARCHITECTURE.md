@@ -152,6 +152,7 @@ EcomSaaS is a multi-tenant e-commerce platform that enables vendors to create an
 - **Cloud Provider:** GCP / AWS (Terraform)
 - **CDN:** Cloudflare
 - **CI/CD:** GitHub Actions
+- **Secret Scanning:** Gitleaks in CI (`secret-scan` job + `.gitleaks.toml`)
 - **Containers:** Docker
 - **Orchestration:** Kubernetes (production)
 
@@ -584,6 +585,10 @@ src/
 
 - Rate limiting and DDoS protection
 - Advanced RBAC (Role-Based Access Control)
+- JWT validation hardening options:
+  - Local JWT verification via Supabase JWKS (`jose`) for lower latency
+  - Gateway/edge JWT verification for centralized policy enforcement
+  - Request-scoped auth context propagation for strict RLS (`auth.uid()`) flows
 - Security audit and penetration testing
 - PCI DSS compliance for payments
 - Regular dependency vulnerability scanning

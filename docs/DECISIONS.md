@@ -96,6 +96,18 @@
 - **Cloud**: Infisical (primary), with provider abstraction in infrastructure
 - **Runtime pattern**: preload required secrets at startup, cache in-process, inject typed config
 - **Policy**: avoid blind global export of all secrets to `process.env`; attach only explicit keys when needed
+- **CI enforcement**: Gitleaks secret scanning in `.github/workflows/ci.yml` with tuned allowlist in `.gitleaks.toml`
+
+### API JWT Validation Strategy (Supabase)
+
+- **Current baseline**: API validates `Authorization: Bearer <token>` by calling
+  Supabase Auth (`auth.getUser(token)`) in `SupabaseAuthGuard`.
+- **Why now**: Minimizes implementation complexity while establishing end-to-end
+  client auth + API transaction validation flow.
+- **Future improvements (post-baseline)**:
+  - Local JWT verification using Supabase JWKS (`jose`) to reduce per-request latency.
+  - Gateway/edge-level JWT validation for centralized auth enforcement.
+  - Request-scoped auth context propagation to support strict RLS flows relying on `auth.uid()`.
 
 ### API Architecture: **Modular Monolith (NestJS)**
 

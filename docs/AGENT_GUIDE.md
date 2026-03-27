@@ -138,6 +138,18 @@ Prefer editing source files under `src/` and config files at workspace roots.
 - Avoid hard-coded test counts in multiple files unless updated together.
 - When status changes, include concrete workspace/file evidence in updates.
 
+## Secrets and Security Hygiene
+
+- Never commit real secrets, credentials, private keys, or live tokens.
+- Use placeholders in examples (`<your-key>`, `env(VAR_NAME)`) and `.env.example` files.
+- Do not paste secret values into docs, tests, seed files, comments, or commit messages.
+- Keep secret loading explicit and allow-listed (no bulk export of all provider secrets).
+- CI secret scanning is enforced with Gitleaks:
+  - Workflow: `.github/workflows/ci.yml` (`secret-scan` job)
+  - Config: `.gitleaks.toml`
+- If a false positive is discovered, prefer narrow regex allowlist entries with an explanation in PR notes.
+- If a real secret is exposed, treat it as compromised: rotate it and remove it from history/process immediately.
+
 ## Commit and PR Conventions
 
 - Follow Conventional Commits with required scope.
