@@ -4,8 +4,9 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     root: './',
-    include: ['src/**/*.spec.ts'],
-    exclude: ['**/*.e2e.spec.ts'],
+    include: ['test/**/*.e2e.spec.ts'],
+    testTimeout: 15_000,
+    hookTimeout: 15_000,
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
@@ -14,4 +15,3 @@ export default defineConfig({
   },
   plugins: [swc.vite()],
 });
-
