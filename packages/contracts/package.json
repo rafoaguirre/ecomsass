@@ -11,12 +11,12 @@
       "import": "./dist/index.js"
     },
     "./dtos": {
-      "types": "./dist/dtos/index.d.ts",
-      "import": "./dist/dtos/index.js"
+      "types": "./dist/dtos.d.ts",
+      "import": "./dist/dtos.js"
     },
     "./common": {
-      "types": "./dist/common/index.d.ts",
-      "import": "./dist/common/index.js"
+      "types": "./dist/common.d.ts",
+      "import": "./dist/common.js"
     }
   },
   "files": [

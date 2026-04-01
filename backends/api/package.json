@@ -13,7 +13,11 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@ecomsaas/application": "workspace:^",
+    "@ecomsaas/contracts": "workspace:^",
+    "@ecomsaas/domain": "workspace:^",
     "@ecomsaas/infrastructure": "workspace:^",
+    "@ecomsaas/validation": "workspace:^",
     "@nestjs/common": "^11.1.14",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.14",
