@@ -78,8 +78,11 @@ jobs:
       - name: Type check
         run: pnpm type-check
 
-      - name: Test
+      - name: Unit tests
         run: pnpm test
+
+      - name: API e2e tests
+        run: pnpm --filter @ecomsaas/api test:e2e
 
       - name: Format check
         run: pnpm format:check
