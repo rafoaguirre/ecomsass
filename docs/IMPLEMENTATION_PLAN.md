@@ -310,7 +310,7 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 **Goal:** Integrate Supabase Auth with NestJS
 
-**Status:** In Progress — guard/module foundation implemented.
+**Status:** Complete — auth guards, role strategy, and request-scoped JWT propagation implemented.
 
 **Deliverables:**
 
@@ -321,7 +321,7 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 - [x] Auth module scaffolding (`AuthModule`, `/auth/me`)
 - [x] Tests for auth guards
 - [x] Request-scoped JWT propagation into Supabase client context for `auth.uid()` RLS policies
-- [ ] Complete role strategy integration across feature modules/endpoints
+- [x] Complete role strategy integration across feature modules/endpoints
 
 **Future Improvement Options (after workflow baseline is stable):**
 
@@ -333,15 +333,17 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 **Goal:** Implement `GET /api/v1/stores/:slug` as a vertical slice proving the full Clean Architecture stack
 
+**Status:** Complete — stores vertical slice implemented with repository adapter, validation, mapping, role-aware endpoint, tests, and Swagger docs.
+
 **Deliverables:**
 
-- [ ] StoresModule with controller and service
-- [ ] Wire GetStoreUseCase from application layer
-- [ ] Supabase StoreRepository implementation
-- [ ] DTO validation (Zod pipe)
-- [ ] Map domain entity to StoreResponse
-- [ ] Unit + integration tests
-- [ ] Swagger documentation
+- [x] StoresModule with controller and service
+- [x] Wire GetStoreUseCase from application layer
+- [x] Supabase StoreRepository implementation
+- [x] DTO validation (Zod pipe)
+- [x] Map domain entity to StoreResponse
+- [x] Unit + integration tests
+- [x] Swagger documentation
 
 ### 1.4 API Testing Framework
 
