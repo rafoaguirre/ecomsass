@@ -1,3 +1,5 @@
+import { S3Storage } from './S3Storage';
+
 /**
  * Storage metadata interface.
  */
@@ -178,15 +180,39 @@ export interface StorageOptions {
 }
 
 /**
+ * S3-specific configuration (passed through when type is 's3').
+ */
+export interface S3Config {
+  bucket: string;
+  region?: string;
+  endpoint?: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  forcePathStyle?: boolean;
+  publicBaseUrl?: string;
+  defaultExpiresInSeconds?: number;
+}
+
+/**
  * Create a storage instance based on configuration.
  */
-export function createStorage(options: StorageOptions = {}): Storage {
-  const type = options.type || 'memory';
+export function createStorage(options: StorageOptions & { s3?: S3Config } = {}): Storage {
+  const type = options.type ?? 'memory';
 
   switch (type) {
+    case 's3': {
+      if (!options.s3?.bucket && !options.bucket) {
+        throw new StorageError(
+          'createStorage with type="s3" requires s3.bucket or bucket to be set'
+        );
+      }
+      return new S3Storage({
+        bucket: options.s3?.bucket ?? options.bucket ?? '',
+        ...options.s3,
+      });
+    }
     case 'memory':
     default:
       return new InMemoryStorage();
-    // Future: Add S3, GCS implementations
   }
 }

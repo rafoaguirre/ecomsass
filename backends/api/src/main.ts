@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 import {
   createSecretsManager,
   preloadSecrets,
@@ -57,15 +58,28 @@ async function bootstrap() {
   //    ConfigModule (global) reads the now-populated process.env values.
   const app = await NestFactory.create(AppModule);
 
-  // Swagger / OpenAPI
-  const config = new DocumentBuilder()
-    .setTitle('EcomSaaS API')
-    .setDescription('Multi-vendor e-commerce SaaS platform API')
-    .setVersion('0.1.0')
-    .build();
+  // Security headers
+  app.use(helmet());
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  // CORS
+  const corsOrigin = process.env.CORS_ORIGIN ?? 'http://localhost:3001';
+  app.enableCors({
+    origin: corsOrigin.split(',').map((o) => o.trim()),
+    credentials: true,
+  });
+
+  // Swagger / OpenAPI (non-production only)
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('EcomSaaS API')
+      .setDescription('Multi-vendor e-commerce SaaS platform API')
+      .setVersion('0.1.0')
+      .addBearerAuth()
+      .build();
+
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);

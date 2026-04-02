@@ -31,6 +31,6 @@ import { SupabaseStoreRepository } from './repositories/supabase-store.repositor
       inject: [SupabaseStoreRepository],
     },
   ],
-  exports: [StoresService],
+  exports: [StoresService, STORE_REPOSITORY],
 })
 export class StoresModule {}

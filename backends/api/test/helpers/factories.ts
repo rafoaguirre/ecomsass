@@ -1,4 +1,4 @@
-import { StoreType } from '@ecomsaas/domain';
+import { StoreType, ProductAvailability, ProductModel } from '@ecomsaas/domain';
 import type { Store } from '@ecomsaas/domain';
 
 let counter = 0;
@@ -41,4 +41,28 @@ export function buildStore(overrides: Partial<Store> = {}): Store {
     }),
     ...(overrides.operatingHours !== undefined && { operatingHours: overrides.operatingHours }),
   };
+}
+
+/** Build a ProductModel with sensible defaults. Override any field. */
+export function buildProduct(
+  overrides: Partial<Parameters<typeof ProductModel.create>[0]> = {}
+): ProductModel {
+  const id = overrides.id ?? nextId('prod');
+  return ProductModel.create({
+    id,
+    storeId: overrides.storeId ?? nextId('store'),
+    name: overrides.name ?? 'Test Product',
+    slug: overrides.slug ?? `test-product-${id}`,
+    price: overrides.price ?? { amount: BigInt(1000), currency: 'CAD' },
+    description: overrides.description,
+    compareAtPrice: overrides.compareAtPrice,
+    images: overrides.images ?? [],
+    categoryId: overrides.categoryId,
+    supplierId: overrides.supplierId,
+    availability: overrides.availability ?? ProductAvailability.Available,
+    inventory: overrides.inventory,
+    variants: overrides.variants,
+    tags: overrides.tags ?? [],
+    metadata: overrides.metadata ?? {},
+  });
 }

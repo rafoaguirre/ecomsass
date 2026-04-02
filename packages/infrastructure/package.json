@@ -107,6 +107,8 @@
     "utilities"
   ],
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1022.0",
+    "@aws-sdk/s3-request-presigner": "^3.1022.0",
     "@ecomsaas/application": "workspace:*",
     "@infisical/sdk": "^5.0.0",
     "@supabase/supabase-js": "^2.100.0",

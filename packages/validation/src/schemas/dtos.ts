@@ -41,6 +41,7 @@ export const UpdateStoreRequestSchema = z.object({
 });
 
 export const CreateProductRequestSchema = z.object({
+  storeId: z.string().uuid(),
   name: z.string().min(1),
   description: z.string().optional(),
   price: MoneyInputSchema,
@@ -65,6 +66,26 @@ export const CreateProductRequestSchema = z.object({
         attributes: z.record(z.string(), z.string()),
       })
     )
+    .optional(),
+  tags: z.array(z.string()).optional(),
+  metadata: MetadataSchema.optional(),
+});
+
+export const UpdateProductRequestSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+  price: MoneyInputSchema.optional(),
+  compareAtPrice: MoneyInputSchema.optional(),
+  images: z.array(ImageUploadSchema).optional(),
+  categoryId: z.string().min(1).optional(),
+  supplierId: z.string().min(1).optional(),
+  availability: z.nativeEnum(ProductAvailability).optional(),
+  inventory: z
+    .object({
+      trackQuantity: z.boolean().optional(),
+      quantity: z.number().int().nonnegative().optional(),
+      lowStockThreshold: z.number().int().nonnegative().optional(),
+    })
     .optional(),
   tags: z.array(z.string()).optional(),
   metadata: MetadataSchema.optional(),

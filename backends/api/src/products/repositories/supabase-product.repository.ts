@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { ProductRepository } from '@ecomsaas/application/ports';
 import { NotFoundError, ProductModel, err, ok, type Result } from '@ecomsaas/domain';
+import type { CurrencyCode } from '@ecomsaas/domain';
 import type { SupabaseClient } from '@ecomsaas/infrastructure/database';
 import { SUPABASE_CLIENT } from '../../database';
 import { applyPagination, asRecord, type PaginationOptions } from '../../common/database';
@@ -11,8 +12,10 @@ type ProductRow = {
   name: string;
   slug: string;
   description: string | null;
-  price: unknown;
-  compare_at_price: unknown | null;
+  price_amount: string; // bigint comes back as string from Supabase
+  price_currency: string;
+  compare_at_price_amount: string | null;
+  compare_at_price_currency: string | null;
   images: unknown;
   category_id: string | null;
   supplier_id: string | null;
@@ -122,8 +125,10 @@ export class SupabaseProductRepository implements ProductRepository {
       name: product.name,
       slug: product.slug,
       description: product.description ?? null,
-      price: product.price,
-      compare_at_price: product.compareAtPrice ?? null,
+      price_amount: product.price.amount.toString(),
+      price_currency: product.price.currency,
+      compare_at_price_amount: product.compareAtPrice?.amount.toString() ?? null,
+      compare_at_price_currency: product.compareAtPrice?.currency ?? null,
       images: product.images,
       category_id: product.categoryId ?? null,
       supplier_id: product.supplierId ?? null,
@@ -151,7 +156,10 @@ export class SupabaseProductRepository implements ProductRepository {
   }
 
   async delete(id: string): Promise<Result<void, Error>> {
-    const { error } = await this.supabase.from('products').delete().eq('id', id);
+    const { error } = await this.supabase
+      .from('products')
+      .update({ is_active: false })
+      .eq('id', id);
 
     if (error) {
       return err(new Error(`Failed to delete product: ${error.message}`));
@@ -182,14 +190,22 @@ export class SupabaseProductRepository implements ProductRepository {
   }
 
   private toProductModel(row: ProductRow): ProductModel {
+    const compareAtPrice =
+      row.compare_at_price_amount && row.compare_at_price_currency
+        ? {
+            amount: BigInt(row.compare_at_price_amount),
+            currency: row.compare_at_price_currency as CurrencyCode,
+          }
+        : undefined;
+
     return ProductModel.fromData({
       id: row.id,
       storeId: row.store_id,
       name: row.name,
       slug: row.slug,
       description: row.description ?? undefined,
-      price: row.price as ProductModel['price'],
-      compareAtPrice: row.compare_at_price as ProductModel['compareAtPrice'],
+      price: { amount: BigInt(row.price_amount), currency: row.price_currency as CurrencyCode },
+      compareAtPrice,
       images: Array.isArray(row.images) ? (row.images as ProductModel['images']) : [],
       categoryId: row.category_id ?? undefined,
       supplierId: row.supplier_id ?? undefined,
