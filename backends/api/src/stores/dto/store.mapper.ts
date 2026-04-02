@@ -1,4 +1,4 @@
-import type { StoreResponse } from '@ecomsaas/contracts';
+import type { StoreResponse, StoreSummary } from '@ecomsaas/contracts';
 import type { StoreModel } from '@ecomsaas/domain';
 
 function asString(value: unknown): string | undefined {
@@ -23,5 +23,14 @@ export function toStoreResponse(store: StoreModel): StoreResponse {
     createdAt: store.createdAt,
     updatedAt: store.updatedAt,
     vendorName: asString(store.metadata.vendorName) ?? 'Unknown Vendor',
+  };
+}
+
+export function toStoreSummary(store: StoreModel): StoreSummary {
+  return {
+    id: store.id,
+    name: store.name,
+    slug: store.slug,
+    isActive: store.isActive,
   };
 }

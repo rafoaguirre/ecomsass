@@ -1,13 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { createSecretsManager, preloadSecrets } from '@ecomsaas/infrastructure/secrets';
+import {
+  createSecretsManager,
+  preloadSecrets,
+  type SecretsManagerOptions,
+} from '@ecomsaas/infrastructure/secrets';
 import { AppModule } from './app.module';
 import { REQUIRED_SECRET_KEYS } from './config';
 
 async function bootstrap() {
   // 1. Resolve required secrets into process.env before NestJS boots.
   //    In local dev this reads from .env via EnvSecretsManager.
-  //    In production, set SECRETS_PROVIDER=infisical to use Infisical.
+  //    Set SECRETS_PROVIDER=infisical to load secrets from Infisical.
   const VALID_PROVIDERS = ['env', 'infisical'] as const;
   type SecretsProvider = (typeof VALID_PROVIDERS)[number];
   const raw = process.env.SECRETS_PROVIDER ?? 'env';
@@ -18,9 +22,32 @@ async function bootstrap() {
     );
   }
 
-  const secretsManager = createSecretsManager({
-    type: raw as SecretsProvider,
-  });
+  const provider = raw as SecretsProvider;
+  const options: SecretsManagerOptions = { type: provider };
+
+  if (provider === 'infisical') {
+    const clientId = process.env.INFISICAL_CLIENT_ID;
+    const clientSecret = process.env.INFISICAL_CLIENT_SECRET;
+    const projectId = process.env.INFISICAL_PROJECT_ID;
+    const environment = process.env.INFISICAL_ENVIRONMENT ?? 'dev';
+
+    if (!clientId || !clientSecret || !projectId) {
+      throw new Error(
+        'SECRETS_PROVIDER=infisical requires INFISICAL_CLIENT_ID, INFISICAL_CLIENT_SECRET, and INFISICAL_PROJECT_ID environment variables.'
+      );
+    }
+
+    options.infisical = {
+      clientId,
+      clientSecret,
+      projectId,
+      environment,
+      secretPath: process.env.INFISICAL_SECRET_PATH ?? '/',
+      siteUrl: process.env.INFISICAL_SITE_URL,
+    };
+  }
+
+  const secretsManager = createSecretsManager(options);
 
   await preloadSecrets(secretsManager, [...REQUIRED_SECRET_KEYS], {
     attachToEnv: true,

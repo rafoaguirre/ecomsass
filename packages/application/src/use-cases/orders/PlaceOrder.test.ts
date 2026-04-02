@@ -72,6 +72,7 @@ describe('PlaceOrder Use Case', () => {
       findById: vi.fn(),
       findBySlug: vi.fn(),
       findByVendorId: vi.fn(),
+      findActive: vi.fn(),
       save: vi.fn(),
       delete: vi.fn(),
       slugExists: vi.fn(),

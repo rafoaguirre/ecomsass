@@ -32,6 +32,13 @@ export interface StoreRepository {
   findByVendorId(vendorProfileId: string): Promise<StoreModel[]>;
 
   /**
+   * Find all active stores.
+   *
+   * @returns Array of active StoreModel instances
+   */
+  findActive(): Promise<StoreModel[]>;
+
+  /**
    * Save a store (create or update).
    *
    * @param store - StoreModel instance to persist

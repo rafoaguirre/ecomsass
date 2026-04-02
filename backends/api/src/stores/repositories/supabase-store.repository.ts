@@ -103,6 +103,21 @@ export class SupabaseStoreRepository implements StoreRepository {
     return (data ?? []).map((row) => this.toStoreModel(row));
   }
 
+  async findActive(): Promise<StoreModel[]> {
+    const { data, error } = await this.supabase
+      .from('stores')
+      .select('*, vendor_profiles!inner(business_name)')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .returns<StoreRow[]>();
+
+    if (error) {
+      throw new Error(`Failed to list active stores: ${error.message}`);
+    }
+
+    return (data ?? []).map((row) => this.toStoreModel(row));
+  }
+
   async save(store: StoreModel): Promise<Result<StoreModel, Error>> {
     const payload = {
       id: store.id,

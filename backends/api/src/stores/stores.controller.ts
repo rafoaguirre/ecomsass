@@ -1,17 +1,42 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiConflictResponse,
+  ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import type { StoreResponse } from '@ecomsaas/contracts';
+import type {
+  CreateStoreRequest,
+  StoreResponse,
+  StoreSummary,
+  UpdateStoreRequest,
+} from '@ecomsaas/contracts';
+import { CreateStoreRequestSchema, UpdateStoreRequestSchema } from '@ecomsaas/validation/schemas';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
+import type { AuthUser } from '../auth/types/auth-user';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ParseSlugPipe } from './pipes/parse-slug.pipe';
 import { StoresService } from './stores.service';
 
@@ -20,7 +45,24 @@ import { StoresService } from './stores.service';
 export class StoresController {
   constructor(private readonly storesService: StoresService) {}
 
-  @Get(':slug')
+  // ── Public endpoints ────────────────────────────────────────────────
+
+  @Get()
+  @ApiOperation({ summary: 'List active stores for marketplace' })
+  @ApiOkResponse({ description: 'List of active store summaries' })
+  async list(): Promise<StoreSummary[]> {
+    return this.storesService.listForMarketplace();
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get store by ID' })
+  @ApiOkResponse({ description: 'Store found and returned' })
+  @ApiNotFoundResponse({ description: 'Store not found' })
+  async getById(@Param('id', ParseUUIDPipe) id: string): Promise<StoreResponse> {
+    return this.storesService.getById(id);
+  }
+
+  @Get('slug/:slug')
   @ApiOperation({ summary: 'Get active store by slug' })
   @ApiOkResponse({ description: 'Store found and returned' })
   @ApiNotFoundResponse({ description: 'Store not found' })
@@ -28,7 +70,64 @@ export class StoresController {
     return this.storesService.getBySlugPublic(slug);
   }
 
-  @Get(':slug/vendor')
+  // ── Vendor/Admin endpoints ──────────────────────────────────────────
+
+  @Post()
+  @UseGuards(SupabaseAuthGuard, RolesGuard)
+  @Roles('Vendor', 'Admin')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new store' })
+  @ApiCreatedResponse({ description: 'Store created' })
+  @ApiBadRequestResponse({ description: 'Validation failed' })
+  @ApiConflictResponse({ description: 'Slug already in use' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Insufficient role' })
+  async create(
+    @Body(new ZodValidationPipe(CreateStoreRequestSchema)) body: CreateStoreRequest,
+    @CurrentUser() user: AuthUser
+  ): Promise<StoreResponse> {
+    return this.storesService.create({
+      vendorProfileId: user.id,
+      ...body,
+    });
+  }
+
+  @Put(':id')
+  @UseGuards(SupabaseAuthGuard, RolesGuard)
+  @Roles('Vendor', 'Admin')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a store' })
+  @ApiOkResponse({ description: 'Store updated' })
+  @ApiBadRequestResponse({ description: 'Validation failed' })
+  @ApiNotFoundResponse({ description: 'Store not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Insufficient role' })
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body(new ZodValidationPipe(UpdateStoreRequestSchema)) body: UpdateStoreRequest,
+    @CurrentUser() user: AuthUser
+  ): Promise<StoreResponse> {
+    return this.storesService.update({ id, ...body }, user);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(SupabaseAuthGuard, RolesGuard)
+  @Roles('Vendor', 'Admin')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Soft-delete a store' })
+  @ApiNoContentResponse({ description: 'Store deleted' })
+  @ApiNotFoundResponse({ description: 'Store not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Insufficient role' })
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser
+  ): Promise<void> {
+    return this.storesService.remove(id, user);
+  }
+
+  @Get('vendor/:slug')
   @UseGuards(SupabaseAuthGuard, RolesGuard)
   @Roles('Vendor', 'Admin')
   @ApiBearerAuth()
@@ -37,7 +136,10 @@ export class StoresController {
   @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
   @ApiForbiddenResponse({ description: 'Insufficient role' })
   @ApiNotFoundResponse({ description: 'Store not found' })
-  async getBySlugVendor(@Param('slug', ParseSlugPipe) slug: string): Promise<StoreResponse> {
-    return this.storesService.getBySlugForVendor(slug);
+  async getBySlugVendor(
+    @Param('slug', ParseSlugPipe) slug: string,
+    @CurrentUser() user: AuthUser
+  ): Promise<StoreResponse> {
+    return this.storesService.getBySlugForVendor(slug, user);
   }
 }

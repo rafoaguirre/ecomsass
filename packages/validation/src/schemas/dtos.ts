@@ -27,6 +27,19 @@ export const CreateStoreRequestSchema = z.object({
   metadata: MetadataSchema.optional(),
 });
 
+export const UpdateStoreRequestSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+  email: EmailSchema.optional(),
+  phoneNumber: PhoneSchema.optional(),
+  phoneCountryCode: z.string().optional(),
+  address: AddressSchema.optional(),
+  storeType: z.nativeEnum(StoreType).optional(),
+  isActive: z.boolean().optional(),
+  operatingHours: z.array(OperatingHoursSchema).optional(),
+  metadata: MetadataSchema.optional(),
+});
+
 export const CreateProductRequestSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
