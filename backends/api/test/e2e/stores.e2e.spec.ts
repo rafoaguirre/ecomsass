@@ -47,15 +47,15 @@ describe('Stores (e2e)', () => {
     resetFactories();
   });
 
-  // ── Public endpoint: GET /api/v1/stores/:slug ──────────────────────
+  // ── Public endpoint: GET /api/v1/stores/slug/:slug ─────────────────
 
-  describe('GET /api/v1/stores/:slug', () => {
+  describe('GET /api/v1/stores/slug/:slug', () => {
     it('returns 200 with store data when store is active', async () => {
       const store = buildStore({ slug: 'demo-store', isActive: true });
       testApp.supabaseClient.__setQueryResult(toStoreRow(store));
 
       const res = await request(testApp.app.getHttpServer())
-        .get('/api/v1/stores/demo-store')
+        .get('/api/v1/stores/slug/demo-store')
         .expect(200);
 
       expect(res.body).toMatchObject({
@@ -69,30 +69,38 @@ describe('Stores (e2e)', () => {
     it('returns 404 when store does not exist', async () => {
       testApp.supabaseClient.__setQueryResult(null);
 
-      await request(testApp.app.getHttpServer()).get('/api/v1/stores/nonexistent').expect(404);
+      await request(testApp.app.getHttpServer()).get('/api/v1/stores/slug/nonexistent').expect(404);
     });
 
     it('returns 404 when store is inactive', async () => {
       const store = buildStore({ slug: 'closed-store', isActive: false });
       testApp.supabaseClient.__setQueryResult(toStoreRow(store));
 
-      await request(testApp.app.getHttpServer()).get('/api/v1/stores/closed-store').expect(404);
+      await request(testApp.app.getHttpServer())
+        .get('/api/v1/stores/slug/closed-store')
+        .expect(404);
     });
 
     it('returns 400 for invalid slug format', async () => {
-      await request(testApp.app.getHttpServer()).get('/api/v1/stores/INVALID%20SLUG!').expect(400);
+      await request(testApp.app.getHttpServer())
+        .get('/api/v1/stores/slug/INVALID%20SLUG!')
+        .expect(400);
     });
   });
 
-  // ── Vendor endpoint: GET /api/v1/stores/:slug/vendor ───────────────
+  // ── Vendor endpoint: GET /api/v1/stores/vendor/:slug ───────────────
 
-  describe('GET /api/v1/stores/:slug/vendor', () => {
+  describe('GET /api/v1/stores/vendor/:slug', () => {
     it('returns 200 for authenticated vendor even when store is inactive', async () => {
-      const store = buildStore({ slug: 'vendor-store', isActive: false });
+      const store = buildStore({
+        slug: 'vendor-store',
+        isActive: false,
+        vendorProfileId: 'vendor-user-1',
+      });
       testApp.supabaseClient.__setQueryResult(toStoreRow(store));
 
       const res = await request(testApp.app.getHttpServer())
-        .get('/api/v1/stores/vendor-store/vendor')
+        .get('/api/v1/stores/vendor/vendor-store')
         .set('Authorization', authHeader('vendor-user-1'))
         .expect(200);
 
@@ -103,7 +111,7 @@ describe('Stores (e2e)', () => {
     });
 
     it('returns 401 without auth header', async () => {
-      await request(testApp.app.getHttpServer()).get('/api/v1/stores/any-store/vendor').expect(401);
+      await request(testApp.app.getHttpServer()).get('/api/v1/stores/vendor/any-store').expect(401);
     });
 
     it('returns 403 for non-vendor role', async () => {
@@ -120,7 +128,7 @@ describe('Stores (e2e)', () => {
       });
 
       await request(testApp.app.getHttpServer())
-        .get('/api/v1/stores/any-store/vendor')
+        .get('/api/v1/stores/vendor/any-store')
         .set('Authorization', authHeader('regular-user'))
         .expect(403);
     });
