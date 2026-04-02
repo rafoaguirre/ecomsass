@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { VendorProfileModel } from './VendorProfileModel';
-import { VerificationStatus } from '../enums';
+import { AddressType, VerificationStatus } from '../enums';
 
 describe('VendorProfileModel', () => {
   const validInput = {
@@ -92,7 +92,7 @@ describe('VendorProfileModel', () => {
     it('updateAddresses returns new instance', () => {
       const addresses = [
         {
-          type: 'Primary' as const,
+          type: AddressType.Primary,
           address: {
             street: '123 Main St',
             city: 'Toronto',
