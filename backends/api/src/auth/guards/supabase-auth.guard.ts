@@ -5,10 +5,13 @@ import {
   type CanActivate,
   type ExecutionContext,
 } from '@nestjs/common';
+import { UserRole } from '@ecomsaas/domain';
 import type { SupabaseClient } from '@ecomsaas/infrastructure/database';
 import { SUPABASE_ANON_CLIENT } from '../../database';
 import { extractBearerToken } from '../../common/auth/extract-bearer-token';
 import type { AuthUser } from '../types/auth-user';
+
+const VALID_ROLES = new Set<string>(Object.values(UserRole));
 
 interface RequestLike {
   headers?: Record<string, string | string[] | undefined>;
@@ -51,6 +54,9 @@ export class SupabaseAuthGuard implements CanActivate {
     }
 
     const role = appMetadata['role'];
-    return typeof role === 'string' ? role : null;
+    if (typeof role !== 'string' || !VALID_ROLES.has(role)) {
+      return null;
+    }
+    return role;
   }
 }
