@@ -111,6 +111,7 @@ describe('DTO schemas', () => {
 
   it('should validate CreateProductRequest', () => {
     const input = validateSchema(CreateProductRequestSchema, {
+      storeId: '00000000-0000-4000-a000-000000000001',
       name: 'Product',
       price: { amount: 500, currency: 'USD' },
     });
