@@ -47,9 +47,17 @@ export function createMockSupabaseClient(options: MockSupabaseOptions = {}) {
 
   const queryBuilder = {
     select: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    upsert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
+    neq: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
+    range: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
+    returns: vi.fn().mockImplementation(() => Promise.resolve(queryResult)),
+    single: vi.fn().mockImplementation(() => Promise.resolve(queryResult)),
     maybeSingle: vi.fn().mockImplementation(() => Promise.resolve(queryResult)),
     then: undefined as unknown, // Prevent accidental await on the builder itself
   };

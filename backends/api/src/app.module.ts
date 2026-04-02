@@ -7,6 +7,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { DatabaseModule } from './database';
 import { HealthModule } from './health/health.module';
 import { StoresModule } from './stores';
+import { ProductsModule } from './products';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { StoresModule } from './stores';
     DatabaseModule,
     HealthModule,
     StoresModule,
+    ProductsModule,
   ],
   providers: [
     {

@@ -5,6 +5,7 @@ import type { ImageUpload } from '@ecomsaas/domain/value-objects';
  * Create product request
  */
 export interface CreateProductRequest {
+  storeId: string;
   name: string;
   description?: string;
   price: {
