@@ -367,11 +367,80 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 ---
 
-## Phase 2: Frontend Implementation (Week 7-8)
+## Phase 2: Core Backend Implementation (Week 7-8)
 
-> **Note:** Next.js shells were scaffolded in Phase 0.4. This phase adds Supabase auth, API integration, layouts, and routing.
+### 2.1 Store Management API
 
-### 2.1 Frontend Auth & API Integration
+**Goal:** Complete CRUD operations for stores
+
+**Deliverables:**
+
+- [ ] `POST /api/v1/stores` - Create store
+- [ ] `GET /api/v1/stores/:id` - Get store by ID
+- [ ] `GET /api/v1/stores/slug/:slug` - Get by slug
+- [ ] `PUT /api/v1/stores/:id` - Update store
+- [ ] `DELETE /api/v1/stores/:id` - Soft delete
+- [ ] `GET /api/v1/stores` - List all (marketplace)
+- [ ] Slug validation and uniqueness
+- [ ] Tests and documentation
+
+### 2.2 Product Management API
+
+**Goal:** Complete product catalog operations
+
+**Deliverables:**
+
+- [ ] `POST /api/v1/products` - Create product
+- [ ] `GET /api/v1/products/:id` - Get product
+- [ ] `PUT /api/v1/products/:id` - Update product
+- [ ] `DELETE /api/v1/products/:id` - Soft delete
+- [ ] `GET /api/v1/stores/:storeId/products` - List store products
+- [ ] **S3/MinIO Storage Adapter** for `@ecomsaas/infrastructure` (file uploads, presigned URLs)
+- [ ] Image upload integration (using Storage adapter)
+- [ ] Inventory management
+- [ ] Tests and documentation
+
+### 2.3 User & Vendor Management
+
+**Goal:** User profile and vendor operations
+
+**Deliverables:**
+
+- [ ] `GET /api/v1/users/me` - Current user profile
+- [ ] `PUT /api/v1/users/me` - Update profile
+- [ ] `POST /api/v1/vendors` - Become vendor
+- [ ] `GET /api/v1/vendors/:id` - Get vendor
+- [ ] `PUT /api/v1/vendors/:id` - Update vendor
+- [ ] Vendor verification flow
+- [ ] Tests and documentation
+
+### 2.4 Search & Filtering
+
+**Goal:** Product and store search functionality
+
+**Deliverables:**
+
+- [ ] `GET /api/v1/search/products?q=...`
+- [ ] `GET /api/v1/search/stores?q=...`
+- [ ] Filtering by category, price range
+- [ ] Sorting options
+- [ ] Pagination
+- [ ] Consider: PostgreSQL full-text search or Algolia
+
+**Completion Criteria:**
+
+- All core CRUD operations working
+- Comprehensive tests
+- Swagger docs complete
+- Search functional
+
+---
+
+## Phase 3: Frontend Implementation (Week 9-10)
+
+> **Note:** Next.js shells were scaffolded in Phase 0.4. This phase adds Supabase auth, API integration, layouts, and routing. Moved after core backend so frontends have real endpoints to consume.
+
+### 3.1 Frontend Auth & API Integration
 
 **Goal:** Setup API communication from frontends
 
@@ -399,7 +468,7 @@ export const apiClient = createHttpClient({
 });
 ```
 
-### 2.2 Authentication UI
+### 3.2 Authentication UI
 
 **Goal:** Login and registration flows for both apps
 
@@ -418,77 +487,6 @@ export const apiClient = createHttpClient({
 - Can register and login
 - Protected pages require auth
 - Can call API successfully
-
----
-
----
-
-## Phase 3: Core Backend Implementation (Week 9-10)
-
-### 3.1 Store Management API
-
-**Goal:** Complete CRUD operations for stores
-
-**Deliverables:**
-
-- [ ] `POST /api/v1/stores` - Create store
-- [ ] `GET /api/v1/stores/:id` - Get store by ID
-- [ ] `GET /api/v1/stores/slug/:slug` - Get by slug
-- [ ] `PUT /api/v1/stores/:id` - Update store
-- [ ] `DELETE /api/v1/stores/:id` - Soft delete
-- [ ] `GET /api/v1/stores` - List all (marketplace)
-- [ ] Slug validation and uniqueness
-- [ ] Tests and documentation
-
-### 3.2 Product Management API
-
-**Goal:** Complete product catalog operations
-
-**Deliverables:**
-
-- [ ] `POST /api/v1/products` - Create product
-- [ ] `GET /api/v1/products/:id` - Get product
-- [ ] `PUT /api/v1/products/:id` - Update product
-- [ ] `DELETE /api/v1/products/:id` - Soft delete
-- [ ] `GET /api/v1/stores/:storeId/products` - List store products
-- [ ] **S3/MinIO Storage Adapter** for `@ecomsaas/infrastructure` (file uploads, presigned URLs)
-- [ ] Image upload integration (using Storage adapter)
-- [ ] Inventory management
-- [ ] Tests and documentation
-
-### 3.3 User & Vendor Management
-
-**Goal:** User profile and vendor operations
-
-**Deliverables:**
-
-- [ ] `GET /api/v1/users/me` - Current user profile
-- [ ] `PUT /api/v1/users/me` - Update profile
-- [ ] `POST /api/v1/vendors` - Become vendor
-- [ ] `GET /api/v1/vendors/:id` - Get vendor
-- [ ] `PUT /api/v1/vendors/:id` - Update vendor
-- [ ] Vendor verification flow
-- [ ] Tests and documentation
-
-### 3.4 Search & Filtering
-
-**Goal:** Product and store search functionality
-
-**Deliverables:**
-
-- [ ] `GET /api/v1/search/products?q=...`
-- [ ] `GET /api/v1/search/stores?q=...`
-- [ ] Filtering by category, price range
-- [ ] Sorting options
-- [ ] Pagination
-- [ ] Consider: PostgreSQL full-text search or Algolia
-
-**Completion Criteria:**
-
-- All core CRUD operations working
-- Comprehensive tests
-- Swagger docs complete
-- Search functional
 
 ---
 

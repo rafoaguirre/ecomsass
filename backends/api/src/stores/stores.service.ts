@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { GetStore } from '@ecomsaas/application/use-cases';
 import { NotFoundError } from '@ecomsaas/domain';
 import type { StoreResponse } from '@ecomsaas/contracts';
@@ -12,7 +12,7 @@ export class StoresService {
     const store = await this.getBySlug(slug);
 
     if (!store.isActive) {
-      throw new NotFoundException(`Store with slug '${slug}' not found`);
+      throw new NotFoundError('Store', slug);
     }
 
     return toStoreResponse(store);
@@ -27,10 +27,6 @@ export class StoresService {
     const result = await this.getStore.execute({ identifier: slug, identifierType: 'slug' });
 
     if (result.isErr()) {
-      if (result.error instanceof NotFoundError) {
-        throw new NotFoundException(result.error.message);
-      }
-
       throw result.error;
     }
 
