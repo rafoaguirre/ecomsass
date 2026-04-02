@@ -1,4 +1,3 @@
-import { NotFoundException } from '@nestjs/common';
 import type { GetStore } from '@ecomsaas/application/use-cases';
 import { NotFoundError, StoreModel, StoreType, err, ok } from '@ecomsaas/domain';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -49,7 +48,7 @@ describe('StoresService', () => {
     const store = StoreModel.fromData({ ...baseStore, isActive: false });
     vi.mocked(getStore.execute).mockResolvedValue(ok(store));
 
-    await expect(service.getBySlugPublic('demo-store')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.getBySlugPublic('demo-store')).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it('returns store for vendor endpoint even when inactive', async () => {
@@ -64,8 +63,6 @@ describe('StoresService', () => {
   it('maps domain not found to http not found', async () => {
     vi.mocked(getStore.execute).mockResolvedValue(err(new NotFoundError('Store', 'missing-store')));
 
-    await expect(service.getBySlugPublic('missing-store')).rejects.toBeInstanceOf(
-      NotFoundException
-    );
+    await expect(service.getBySlugPublic('missing-store')).rejects.toBeInstanceOf(NotFoundError);
   });
 });

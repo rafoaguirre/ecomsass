@@ -3,6 +3,7 @@ import type { StoreRepository } from '@ecomsaas/application/ports';
 import { NotFoundError, StoreModel, err, ok, type Result } from '@ecomsaas/domain';
 import type { SupabaseClient } from '@ecomsaas/infrastructure/database';
 import { SUPABASE_CLIENT } from '../../database';
+import { asRecord } from '../../common/database';
 
 type StoreRow = {
   id: string;
@@ -22,12 +23,6 @@ type StoreRow = {
   updated_at: string;
   vendor_profiles?: { business_name: string | null } | { business_name: string | null }[] | null;
 };
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
-}
 
 function asOperatingHours(value: unknown): StoreModel['operatingHours'] {
   return Array.isArray(value) ? (value as StoreModel['operatingHours']) : undefined;
