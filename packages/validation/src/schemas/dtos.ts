@@ -11,6 +11,7 @@ import {
   ImageUploadSchema,
   MoneyInputSchema,
   OperatingHoursSchema,
+  TypedAddressSchema,
 } from './value-objects';
 import { EmailSchema, MetadataSchema, PhoneSchema, SlugSchema, TimestampSchema } from './common';
 
@@ -124,5 +125,34 @@ export const CreateSubscriptionRequestSchema = z.object({
   maxSubscribers: z.number().int().positive().optional(),
   startDate: TimestampSchema.optional(),
   endDate: TimestampSchema.optional(),
+  metadata: MetadataSchema.optional(),
+});
+
+export const UpdateUserRequestSchema = z.object({
+  fullName: z.string().min(1).optional(),
+  defaultLocale: z.string().min(2).max(10).optional(),
+  preferences: z
+    .object({
+      emailNotifications: z.boolean().optional(),
+      smsNotifications: z.boolean().optional(),
+      marketingEmails: z.boolean().optional(),
+    })
+    .optional(),
+  metadata: MetadataSchema.optional(),
+});
+
+export const CreateVendorProfileRequestSchema = z.object({
+  businessName: z.string().min(1),
+  phone: PhoneSchema.optional(),
+  phoneCountryCode: z.string().optional(),
+  addresses: z.array(TypedAddressSchema).optional(),
+  metadata: MetadataSchema.optional(),
+});
+
+export const UpdateVendorProfileRequestSchema = z.object({
+  businessName: z.string().min(1).optional(),
+  phone: PhoneSchema.optional(),
+  phoneCountryCode: z.string().optional(),
+  addresses: z.array(TypedAddressSchema).optional(),
   metadata: MetadataSchema.optional(),
 });

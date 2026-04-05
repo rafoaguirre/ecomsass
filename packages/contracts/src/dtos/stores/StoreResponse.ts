@@ -2,7 +2,25 @@ import type { StoreType } from '@ecomsaas/domain/enums';
 import type { Address, OperatingHours } from '@ecomsaas/domain/value-objects';
 
 /**
- * Store response
+ * Public store response — safe for unauthenticated callers.
+ * Excludes sensitive fields: vendorProfileId, email, phone, metadata.
+ */
+export interface PublicStoreResponse {
+  id: string;
+  name: string;
+  description?: string;
+  address: Address;
+  slug: string;
+  storeType: StoreType;
+  isActive: boolean;
+  operatingHours?: OperatingHours[];
+  vendorName: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Full store response — returned to authenticated owner/admin only.
  */
 export interface StoreResponse {
   id: string;

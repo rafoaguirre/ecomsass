@@ -1,8 +1,24 @@
-import type { StoreResponse, StoreSummary } from '@ecomsaas/contracts';
+import type { PublicStoreResponse, StoreResponse, StoreSummary } from '@ecomsaas/contracts';
 import type { StoreModel } from '@ecomsaas/domain';
 
 function asString(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+export function toPublicStoreResponse(store: StoreModel): PublicStoreResponse {
+  return {
+    id: store.id,
+    name: store.name,
+    description: store.description,
+    address: store.address,
+    slug: store.slug,
+    storeType: store.storeType,
+    isActive: store.isActive,
+    operatingHours: store.operatingHours,
+    vendorName: asString(store.metadata.vendorName) ?? 'Unknown Vendor',
+    createdAt: store.createdAt,
+    updatedAt: store.updatedAt,
+  };
 }
 
 export function toStoreResponse(store: StoreModel): StoreResponse {

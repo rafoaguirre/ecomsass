@@ -49,7 +49,7 @@ describe('StoresService', () => {
     service = new StoresService(getStore, createStore, updateStore, storeRepository);
   });
 
-  it('returns active store for public endpoint', async () => {
+  it('returns active store for public endpoint without sensitive fields', async () => {
     const store = StoreModel.fromData(baseStore);
     vi.mocked(getStore.execute).mockResolvedValue(ok(store));
 
@@ -57,6 +57,11 @@ describe('StoresService', () => {
 
     expect(result.slug).toBe('demo-store');
     expect(result.vendorName).toBe('Demo Vendor');
+    expect(result).not.toHaveProperty('vendorProfileId');
+    expect(result).not.toHaveProperty('email');
+    expect(result).not.toHaveProperty('phoneNumber');
+    expect(result).not.toHaveProperty('phoneCountryCode');
+    expect(result).not.toHaveProperty('metadata');
   });
 
   it('hides inactive stores on public endpoint', async () => {
@@ -150,17 +155,22 @@ describe('StoresService', () => {
     expect(storeRepository.findById).not.toHaveBeenCalled();
   });
 
-  it('gets store by id', async () => {
+  it('gets store by id without sensitive fields', async () => {
     const store = StoreModel.fromData(baseStore);
     vi.mocked(getStore.execute).mockResolvedValue(ok(store));
 
-    const result = await service.getById('store-1');
+    const result = await service.getByIdPublic('store-1');
 
     expect(result.id).toBe('store-1');
     expect(getStore.execute).toHaveBeenCalledWith({
       identifier: 'store-1',
       identifierType: 'id',
     });
+    expect(result).not.toHaveProperty('vendorProfileId');
+    expect(result).not.toHaveProperty('email');
+    expect(result).not.toHaveProperty('phoneNumber');
+    expect(result).not.toHaveProperty('phoneCountryCode');
+    expect(result).not.toHaveProperty('metadata');
   });
 
   it('lists stores by vendor', async () => {

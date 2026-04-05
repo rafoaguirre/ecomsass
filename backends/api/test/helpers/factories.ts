@@ -1,5 +1,6 @@
 import { StoreType, ProductAvailability, ProductModel } from '@ecomsaas/domain';
-import type { Store } from '@ecomsaas/domain';
+import type { Store, UserAccount, VendorProfile } from '@ecomsaas/domain';
+import { AccountTier, AccountStatus, UserRole, VerificationStatus } from '@ecomsaas/domain';
 
 let counter = 0;
 
@@ -65,4 +66,50 @@ export function buildProduct(
     tags: overrides.tags ?? [],
     metadata: overrides.metadata ?? {},
   });
+}
+
+/** Build a plain UserAccount entity with sensible defaults. Override any field. */
+export function buildUser(overrides: Partial<UserAccount> = {}): UserAccount {
+  const id = overrides.id ?? nextId('user');
+  return {
+    id,
+    email: overrides.email ?? `${id}@example.com`,
+    fullName: overrides.fullName ?? 'Test User',
+    defaultLocale: overrides.defaultLocale ?? 'en',
+    accountTier: overrides.accountTier ?? AccountTier.GeneralUser,
+    accountStatus: overrides.accountStatus ?? AccountStatus.Active,
+    role: overrides.role ?? UserRole.Customer,
+    stripeCustomerId: overrides.stripeCustomerId ?? null,
+    marketingConsent: overrides.marketingConsent ?? false,
+    agreementAccepted: overrides.agreementAccepted ?? false,
+    verificationStatus: overrides.verificationStatus ?? VerificationStatus.Unverified,
+    preferences: overrides.preferences ?? {
+      emailNotifications: true,
+      smsNotifications: false,
+      marketingEmails: false,
+    },
+    metadata: overrides.metadata ?? {},
+    createdAt: overrides.createdAt ?? new Date('2026-01-01T00:00:00.000Z'),
+    updatedAt: overrides.updatedAt ?? new Date('2026-01-01T00:00:00.000Z'),
+  };
+}
+
+/** Build a plain VendorProfile entity with sensible defaults. Override any field. */
+export function buildVendorProfile(overrides: Partial<VendorProfile> = {}): VendorProfile {
+  const id = overrides.id ?? nextId('vendor');
+  return {
+    id,
+    userId: overrides.userId ?? nextId('user'),
+    businessName: overrides.businessName ?? 'Test Business',
+    phone: overrides.phone,
+    phoneCountryCode: overrides.phoneCountryCode,
+    addresses: overrides.addresses ?? [],
+    verificationStatus: overrides.verificationStatus ?? VerificationStatus.Unverified,
+    stripeConnectId: overrides.stripeConnectId,
+    agreementAccepted: overrides.agreementAccepted ?? false,
+    onboardingCompleted: overrides.onboardingCompleted ?? false,
+    metadata: overrides.metadata ?? {},
+    createdAt: overrides.createdAt ?? new Date('2026-01-01T00:00:00.000Z'),
+    updatedAt: overrides.updatedAt ?? new Date('2026-01-01T00:00:00.000Z'),
+  };
 }
