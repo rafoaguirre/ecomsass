@@ -64,6 +64,12 @@ describe('Stores (e2e)', () => {
         isActive: true,
         vendorName: 'Test Vendor',
       });
+      // Sensitive fields must not leak to public consumers
+      expect(res.body).not.toHaveProperty('vendorProfileId');
+      expect(res.body).not.toHaveProperty('email');
+      expect(res.body).not.toHaveProperty('phoneNumber');
+      expect(res.body).not.toHaveProperty('phoneCountryCode');
+      expect(res.body).not.toHaveProperty('metadata');
     });
 
     it('returns 404 when store does not exist', async () => {
@@ -108,6 +114,9 @@ describe('Stores (e2e)', () => {
         slug: 'vendor-store',
         isActive: false,
       });
+      // Vendor/admin endpoint returns full payload including sensitive fields
+      expect(res.body).toHaveProperty('vendorProfileId');
+      expect(res.body).toHaveProperty('metadata');
     });
 
     it('returns 401 without auth header', async () => {

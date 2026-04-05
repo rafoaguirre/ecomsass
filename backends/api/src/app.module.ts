@@ -8,6 +8,8 @@ import { DatabaseModule } from './database';
 import { HealthModule } from './health/health.module';
 import { StoresModule } from './stores';
 import { ProductsModule } from './products';
+import { UsersModule } from './users';
+import { VendorsModule } from './vendors';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { ProductsModule } from './products';
     HealthModule,
     StoresModule,
     ProductsModule,
+    UsersModule,
+    VendorsModule,
   ],
   providers: [
     {

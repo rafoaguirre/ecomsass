@@ -8,11 +8,11 @@ import {
 } from '@ecomsaas/application/use-cases';
 import { NotFoundError } from '@ecomsaas/domain';
 import type { StoreModel } from '@ecomsaas/domain';
-import type { StoreResponse, StoreSummary } from '@ecomsaas/contracts';
+import type { PublicStoreResponse, StoreResponse, StoreSummary } from '@ecomsaas/contracts';
 import type { StoreRepository } from '@ecomsaas/application/ports';
 import type { AuthUser } from '../auth/types/auth-user';
 import { STORE_REPOSITORY } from './store.tokens';
-import { toStoreResponse, toStoreSummary } from './dto/store.mapper';
+import { toPublicStoreResponse, toStoreResponse, toStoreSummary } from './dto/store.mapper';
 
 @Injectable()
 export class StoresService {
@@ -33,24 +33,24 @@ export class StoresService {
     return toStoreResponse(result.value);
   }
 
-  async getById(id: string): Promise<StoreResponse> {
+  async getByIdPublic(id: string): Promise<PublicStoreResponse> {
     const result = await this.getStore.execute({ identifier: id, identifierType: 'id' });
 
     if (result.isErr()) {
       throw result.error;
     }
 
-    return toStoreResponse(result.value);
+    return toPublicStoreResponse(result.value);
   }
 
-  async getBySlugPublic(slug: string): Promise<StoreResponse> {
+  async getBySlugPublic(slug: string): Promise<PublicStoreResponse> {
     const store = await this.getBySlug(slug);
 
     if (!store.isActive) {
       throw new NotFoundError('Store', slug);
     }
 
-    return toStoreResponse(store);
+    return toPublicStoreResponse(store);
   }
 
   async getBySlugForVendor(slug: string, user: AuthUser): Promise<StoreResponse> {

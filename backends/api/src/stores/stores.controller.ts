@@ -26,6 +26,7 @@ import {
 } from '@nestjs/swagger';
 import type {
   CreateStoreRequest,
+  PublicStoreResponse,
   StoreResponse,
   StoreSummary,
   UpdateStoreRequest,
@@ -58,15 +59,15 @@ export class StoresController {
   @ApiOperation({ summary: 'Get store by ID' })
   @ApiOkResponse({ description: 'Store found and returned' })
   @ApiNotFoundResponse({ description: 'Store not found' })
-  async getById(@Param('id', ParseUUIDPipe) id: string): Promise<StoreResponse> {
-    return this.storesService.getById(id);
+  async getById(@Param('id', ParseUUIDPipe) id: string): Promise<PublicStoreResponse> {
+    return this.storesService.getByIdPublic(id);
   }
 
   @Get('slug/:slug')
   @ApiOperation({ summary: 'Get active store by slug' })
   @ApiOkResponse({ description: 'Store found and returned' })
   @ApiNotFoundResponse({ description: 'Store not found' })
-  async getBySlug(@Param('slug', ParseSlugPipe) slug: string): Promise<StoreResponse> {
+  async getBySlug(@Param('slug', ParseSlugPipe) slug: string): Promise<PublicStoreResponse> {
     return this.storesService.getBySlugPublic(slug);
   }
 
