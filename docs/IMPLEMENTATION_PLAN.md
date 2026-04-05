@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** In Progress — Phase 0  
+> **Status:** In Progress — Phase 2 (core backend nearly complete)  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -283,7 +283,7 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 **Goal:** Connect to Supabase and setup migrations
 
-**Status:** In Progress — foundation PR complete (schema + adapter + config wiring).
+**Status:** Complete — database schema, Supabase client, config wiring, and repository pattern all implemented.
 
 **Deliverables:**
 
@@ -297,7 +297,7 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 - [x] NestJS `DatabaseModule` (global) exposing `SUPABASE_CLIENT` + `SUPABASE_ANON_CLIENT` tokens
 - [x] `.env.example` documenting required variables
 - [x] DECISIONS.md: Supabase client vs SQL Database interface architectural decision
-- [ ] Repository pattern implementation (base repository + concrete implementations) → PR 2
+- [x] Repository pattern implementation (base repository + concrete implementations)
 
 **Notes:**
 
@@ -349,13 +349,15 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 **Goal:** Establish comprehensive testing strategy
 
+**Status:** Complete — Vitest unit tests + supertest e2e tests established across all modules (89 unit, 46 e2e).
+
 **Deliverables:**
 
-- [ ] Unit test setup (Vitest or Jest)
-- [ ] Integration test setup (supertest)
-- [ ] Test database strategy (test containers or separate DB)
-- [ ] Example tests for all layers
-- [ ] CI integration
+- [x] Unit test setup (Vitest)
+- [x] Integration test setup (supertest)
+- [x] Test database strategy (mock Supabase client with factory helpers)
+- [x] Example tests for all layers
+- [x] CI integration
 
 **Completion Criteria:**
 
@@ -373,46 +375,52 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 **Goal:** Complete CRUD operations for stores
 
+**Status:** Complete — full CRUD with slug validation, marketplace listing, ownership guards, PublicStoreResponse for public endpoints.
+
 **Deliverables:**
 
-- [ ] `POST /api/v1/stores` - Create store
-- [ ] `GET /api/v1/stores/:id` - Get store by ID
-- [ ] `GET /api/v1/stores/slug/:slug` - Get by slug
-- [ ] `PUT /api/v1/stores/:id` - Update store
-- [ ] `DELETE /api/v1/stores/:id` - Soft delete
-- [ ] `GET /api/v1/stores` - List all (marketplace)
-- [ ] Slug validation and uniqueness
-- [ ] Tests and documentation
+- [x] `POST /api/v1/stores` - Create store
+- [x] `GET /api/v1/stores/:id` - Get store by ID
+- [x] `GET /api/v1/stores/slug/:slug` - Get by slug
+- [x] `PUT /api/v1/stores/:id` - Update store
+- [x] `DELETE /api/v1/stores/:id` - Soft delete
+- [x] `GET /api/v1/stores` - List all (marketplace)
+- [x] Slug validation and uniqueness
+- [x] Tests and documentation
 
 ### 2.2 Product Management API
 
 **Goal:** Complete product catalog operations
 
+**Status:** Complete — full product CRUD with S3 storage adapter, presigned URLs, inventory management.
+
 **Deliverables:**
 
-- [ ] `POST /api/v1/products` - Create product
-- [ ] `GET /api/v1/products/:id` - Get product
-- [ ] `PUT /api/v1/products/:id` - Update product
-- [ ] `DELETE /api/v1/products/:id` - Soft delete
-- [ ] `GET /api/v1/stores/:storeId/products` - List store products
-- [ ] **S3/MinIO Storage Adapter** for `@ecomsaas/infrastructure` (file uploads, presigned URLs)
-- [ ] Image upload integration (using Storage adapter)
-- [ ] Inventory management
-- [ ] Tests and documentation
+- [x] `POST /api/v1/products` - Create product
+- [x] `GET /api/v1/products/:id` - Get product
+- [x] `PUT /api/v1/products/:id` - Update product
+- [x] `DELETE /api/v1/products/:id` - Soft delete
+- [x] `GET /api/v1/stores/:storeId/products` - List store products
+- [x] **S3/MinIO Storage Adapter** for `@ecomsaas/infrastructure` (file uploads, presigned URLs)
+- [x] Image upload integration (using Storage adapter)
+- [x] Inventory management
+- [x] Tests and documentation
 
 ### 2.3 User & Vendor Management
 
 **Goal:** User profile and vendor operations
 
+**Status:** Complete — user self-service, vendor CRUD with IDOR fix on GET /vendors/:id.
+
 **Deliverables:**
 
-- [ ] `GET /api/v1/users/me` - Current user profile
-- [ ] `PUT /api/v1/users/me` - Update profile
-- [ ] `POST /api/v1/vendors` - Become vendor
-- [ ] `GET /api/v1/vendors/:id` - Get vendor
-- [ ] `PUT /api/v1/vendors/:id` - Update vendor
-- [ ] Vendor verification flow
-- [ ] Tests and documentation
+- [x] `GET /api/v1/users/me` - Current user profile
+- [x] `PUT /api/v1/users/me` - Update profile
+- [x] `POST /api/v1/vendors` - Become vendor
+- [x] `GET /api/v1/vendors/:id` - Get vendor (ownership enforced)
+- [x] `PUT /api/v1/vendors/:id` - Update vendor
+- [ ] Vendor verification flow (deferred — requires email/document verification infrastructure)
+- [x] Tests and documentation
 
 ### 2.4 Search & Filtering
 
