@@ -62,9 +62,22 @@ async function bootstrap() {
   app.use(helmet());
 
   // CORS
-  const corsOrigin = process.env.CORS_ORIGIN ?? 'http://localhost:3001';
+  const isProduction = process.env.NODE_ENV === 'production';
+  const rawCorsOrigin = process.env.CORS_ORIGIN;
+
+  if (isProduction && !rawCorsOrigin) {
+    throw new Error('CORS_ORIGIN must be set in production');
+  }
+
+  const corsOrigins = rawCorsOrigin
+    ? rawCorsOrigin
+        .split(',')
+        .map((o) => o.trim())
+        .filter(Boolean)
+    : ['http://localhost:3001'];
+
   app.enableCors({
-    origin: corsOrigin.split(',').map((o) => o.trim()),
+    origin: corsOrigins,
     credentials: true,
   });
 

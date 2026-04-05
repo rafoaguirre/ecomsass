@@ -1,4 +1,13 @@
-import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
+
+const ALLOWED_IMAGE_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/svg+xml',
+  'image/avif',
+]);
 import {
   GetProduct,
   CreateProduct,
@@ -148,7 +157,21 @@ export class ProductsService {
     contentType: string,
     filename: string
   ): Promise<{ key: string; uploadUrl: string }> {
-    const ext = filename.split('.').pop() ?? 'bin';
+    if (!contentType || !ALLOWED_IMAGE_TYPES.has(contentType)) {
+      throw new BadRequestException(
+        `Unsupported content type. Allowed: ${[...ALLOWED_IMAGE_TYPES].join(', ')}`
+      );
+    }
+
+    if (!filename || filename.length > 255) {
+      throw new BadRequestException('Filename is required and must be at most 255 characters');
+    }
+
+    const ext =
+      filename
+        .split('.')
+        .pop()
+        ?.replace(/[^a-zA-Z0-9]/g, '') ?? 'bin';
     const key = `products/${idGenerator.generate('img')}.${ext}`;
     const uploadUrl = await this.storage.getSignedUrl(key, 3600);
     return { key, uploadUrl };

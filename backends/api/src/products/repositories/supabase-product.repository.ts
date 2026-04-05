@@ -1,6 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { ProductRepository } from '@ecomsaas/application/ports';
-import { NotFoundError, ProductModel, err, ok, type Result } from '@ecomsaas/domain';
+import {
+  InvariantError,
+  NotFoundError,
+  ProductModel,
+  err,
+  ok,
+  type Result,
+} from '@ecomsaas/domain';
 import type { CurrencyCode } from '@ecomsaas/domain';
 import type { SupabaseClient } from '@ecomsaas/infrastructure/database';
 import { SUPABASE_CLIENT } from '../../database';
@@ -41,7 +48,7 @@ export class SupabaseProductRepository implements ProductRepository {
       .maybeSingle<ProductRow>();
 
     if (error) {
-      throw new Error(`Failed to query product by id: ${error.message}`);
+      throw new InvariantError(`Failed to query product by id`, { cause: error.message });
     }
 
     if (!data) {
@@ -61,7 +68,7 @@ export class SupabaseProductRepository implements ProductRepository {
       .maybeSingle<ProductRow>();
 
     if (error) {
-      throw new Error(`Failed to query product by slug: ${error.message}`);
+      throw new InvariantError(`Failed to query product by slug`, { cause: error.message });
     }
 
     if (!data) {
@@ -92,7 +99,7 @@ export class SupabaseProductRepository implements ProductRepository {
     const { data, error } = await query.returns<ProductRow[]>();
 
     if (error) {
-      throw new Error(`Failed to list products by store: ${error.message}`);
+      throw new InvariantError(`Failed to list products by store`, { cause: error.message });
     }
 
     return (data ?? []).map((row) => this.toProductModel(row));
@@ -112,7 +119,7 @@ export class SupabaseProductRepository implements ProductRepository {
     const { data, error } = await query.returns<ProductRow[]>();
 
     if (error) {
-      throw new Error(`Failed to list products by category: ${error.message}`);
+      throw new InvariantError(`Failed to list products by category`, { cause: error.message });
     }
 
     return (data ?? []).map((row) => this.toProductModel(row));
@@ -149,7 +156,7 @@ export class SupabaseProductRepository implements ProductRepository {
       .single<ProductRow>();
 
     if (error) {
-      return err(new Error(`Failed to save product: ${error.message}`));
+      return err(new InvariantError(`Failed to save product`, { cause: error.message }));
     }
 
     return ok(this.toProductModel(data));
@@ -162,7 +169,7 @@ export class SupabaseProductRepository implements ProductRepository {
       .eq('id', id);
 
     if (error) {
-      return err(new Error(`Failed to delete product: ${error.message}`));
+      return err(new InvariantError(`Failed to delete product`, { cause: error.message }));
     }
 
     return ok(undefined);
@@ -183,7 +190,7 @@ export class SupabaseProductRepository implements ProductRepository {
     const { data, error } = await query.returns<{ id: string }[]>();
 
     if (error) {
-      throw new Error(`Failed to check product slug uniqueness: ${error.message}`);
+      throw new InvariantError(`Failed to check product slug uniqueness`, { cause: error.message });
     }
 
     return (data ?? []).length > 0;

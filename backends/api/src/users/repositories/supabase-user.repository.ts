@@ -1,6 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { UserRepository } from '@ecomsaas/application/ports';
-import { NotFoundError, UserAccountModel, err, ok, type Result } from '@ecomsaas/domain';
+import {
+  InvariantError,
+  NotFoundError,
+  UserAccountModel,
+  err,
+  ok,
+  type Result,
+} from '@ecomsaas/domain';
 import type { SupabaseClient } from '@ecomsaas/infrastructure/database';
 import { SUPABASE_CLIENT } from '../../database';
 import { asRecord } from '../../common/database';
@@ -36,7 +43,7 @@ export class SupabaseUserRepository implements UserRepository {
       .maybeSingle<ProfileRow>();
 
     if (error) {
-      throw new Error(`Failed to query profile by id: ${error.message}`);
+      throw new InvariantError(`Failed to query profile by id`, { cause: error.message });
     }
 
     if (!data) {
@@ -55,7 +62,7 @@ export class SupabaseUserRepository implements UserRepository {
       .maybeSingle<ProfileRow>();
 
     if (error) {
-      throw new Error(`Failed to query profile by email: ${error.message}`);
+      throw new InvariantError(`Failed to query profile by email`, { cause: error.message });
     }
 
     if (!data) {
@@ -92,7 +99,7 @@ export class SupabaseUserRepository implements UserRepository {
       .single<ProfileRow>();
 
     if (error) {
-      return err(new Error(`Failed to save profile: ${error.message}`));
+      return err(new InvariantError(`Failed to save profile`, { cause: error.message }));
     }
 
     return ok(this.toUserAccountModel(data));

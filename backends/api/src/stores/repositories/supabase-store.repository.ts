@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { StoreRepository } from '@ecomsaas/application/ports';
-import { NotFoundError, StoreModel, err, ok, type Result } from '@ecomsaas/domain';
+import { InvariantError, NotFoundError, StoreModel, err, ok, type Result } from '@ecomsaas/domain';
 import type { SupabaseClient } from '@ecomsaas/infrastructure/database';
 import { SUPABASE_CLIENT } from '../../database';
 import { asRecord } from '../../common/database';
@@ -59,7 +59,7 @@ export class SupabaseStoreRepository implements StoreRepository {
       .maybeSingle<StoreRow>();
 
     if (error) {
-      throw new Error(`Failed to query store by id: ${error.message}`);
+      throw new InvariantError(`Failed to query store by id`, { cause: error.message });
     }
 
     if (!data) {
@@ -78,7 +78,7 @@ export class SupabaseStoreRepository implements StoreRepository {
       .maybeSingle<StoreRow>();
 
     if (error) {
-      throw new Error(`Failed to query store by slug: ${error.message}`);
+      throw new InvariantError(`Failed to query store by slug`, { cause: error.message });
     }
 
     if (!data) {
@@ -97,7 +97,7 @@ export class SupabaseStoreRepository implements StoreRepository {
       .returns<StoreRow[]>();
 
     if (error) {
-      throw new Error(`Failed to list stores by vendor id: ${error.message}`);
+      throw new InvariantError(`Failed to list stores by vendor id`, { cause: error.message });
     }
 
     return (data ?? []).map((row) => this.toStoreModel(row));
@@ -112,7 +112,7 @@ export class SupabaseStoreRepository implements StoreRepository {
       .returns<StoreRow[]>();
 
     if (error) {
-      throw new Error(`Failed to list active stores: ${error.message}`);
+      throw new InvariantError(`Failed to list active stores`, { cause: error.message });
     }
 
     return (data ?? []).map((row) => this.toStoreModel(row));
@@ -145,7 +145,7 @@ export class SupabaseStoreRepository implements StoreRepository {
       .single<StoreRow>();
 
     if (error) {
-      return err(new Error(`Failed to save store: ${error.message}`));
+      return err(new InvariantError(`Failed to save store`, { cause: error.message }));
     }
 
     return ok(this.toStoreModel(data));
@@ -155,7 +155,7 @@ export class SupabaseStoreRepository implements StoreRepository {
     const { error } = await this.supabase.from('stores').update({ is_active: false }).eq('id', id);
 
     if (error) {
-      return err(new Error(`Failed to delete store: ${error.message}`));
+      return err(new InvariantError(`Failed to delete store`, { cause: error.message }));
     }
 
     return ok(undefined);
@@ -171,7 +171,7 @@ export class SupabaseStoreRepository implements StoreRepository {
     const { data, error } = await query.returns<{ id: string }[]>();
 
     if (error) {
-      throw new Error(`Failed to check store slug uniqueness: ${error.message}`);
+      throw new InvariantError(`Failed to check store slug uniqueness`, { cause: error.message });
     }
 
     return (data ?? []).length > 0;

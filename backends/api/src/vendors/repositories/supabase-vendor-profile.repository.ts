@@ -1,6 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { VendorProfileRepository } from '@ecomsaas/application/ports';
-import { NotFoundError, VendorProfileModel, err, ok, type Result } from '@ecomsaas/domain';
+import {
+  InvariantError,
+  NotFoundError,
+  VendorProfileModel,
+  err,
+  ok,
+  type Result,
+} from '@ecomsaas/domain';
 import type { SupabaseClient } from '@ecomsaas/infrastructure/database';
 import { SUPABASE_CLIENT } from '../../database';
 import { asRecord } from '../../common/database';
@@ -34,7 +41,7 @@ export class SupabaseVendorProfileRepository implements VendorProfileRepository 
       .maybeSingle<VendorProfileRow>();
 
     if (error) {
-      throw new Error(`Failed to query vendor profile by id: ${error.message}`);
+      throw new InvariantError(`Failed to query vendor profile by id`, { cause: error.message });
     }
 
     if (!data) {
@@ -53,7 +60,9 @@ export class SupabaseVendorProfileRepository implements VendorProfileRepository 
       .maybeSingle<VendorProfileRow>();
 
     if (error) {
-      throw new Error(`Failed to query vendor profile by user id: ${error.message}`);
+      throw new InvariantError(`Failed to query vendor profile by user id`, {
+        cause: error.message,
+      });
     }
 
     if (!data) {
@@ -88,7 +97,7 @@ export class SupabaseVendorProfileRepository implements VendorProfileRepository 
       .single<VendorProfileRow>();
 
     if (error) {
-      return err(new Error(`Failed to save vendor profile: ${error.message}`));
+      return err(new InvariantError(`Failed to save vendor profile`, { cause: error.message }));
     }
 
     return ok(this.toVendorProfileModel(data));
