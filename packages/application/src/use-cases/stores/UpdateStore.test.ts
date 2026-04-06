@@ -31,6 +31,7 @@ describe('UpdateStore', () => {
     save: vi.fn(),
     delete: vi.fn(),
     slugExists: vi.fn(),
+    searchActive: vi.fn(),
   };
 
   it('updates store name', async () => {

@@ -42,6 +42,7 @@ describe('CreateProduct Use Case', () => {
       save: vi.fn(),
       delete: vi.fn(),
       slugExists: vi.fn(),
+      searchActive: vi.fn(),
     };
 
     mockStoreRepository = {
@@ -52,6 +53,7 @@ describe('CreateProduct Use Case', () => {
       save: vi.fn(),
       delete: vi.fn(),
       slugExists: vi.fn(),
+      searchActive: vi.fn(),
     };
 
     createProduct = new CreateProduct(mockProductRepository, mockStoreRepository);
