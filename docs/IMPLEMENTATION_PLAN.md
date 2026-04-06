@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** In Progress — Phase 2 (core backend nearly complete)  
+> **Status:** In Progress — Phase 3 (frontend implementation)  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -426,14 +426,17 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 **Goal:** Product and store search functionality
 
+**Status:** Complete — search via query params on existing list endpoints using PostgreSQL ilike + exact count pagination.
+
 **Deliverables:**
 
-- [ ] `GET /api/v1/search/products?q=...`
-- [ ] `GET /api/v1/search/stores?q=...`
-- [ ] Filtering by category, price range
-- [ ] Sorting options
-- [ ] Pagination
-- [ ] Consider: PostgreSQL full-text search or Algolia
+- [x] `GET /api/v1/stores?q=...&storeType=...&sortBy=...&offset=...&limit=...`
+- [x] `GET /api/v1/products?q=...&storeId=...&categoryId=...&availability=...&minPrice=...&maxPrice=...`
+- [x] Filtering by store type, category, price range, availability
+- [x] Sorting options (name, price, createdAt; asc/desc)
+- [x] Pagination with exact total count (`{ count: 'exact' }`)
+- [x] PostgreSQL `ilike` for text search via Supabase PostgREST
+- [x] Tests (92 unit, 54 e2e)
 
 **Completion Criteria:**
 
