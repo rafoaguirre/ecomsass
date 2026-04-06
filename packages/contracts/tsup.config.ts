@@ -6,7 +6,7 @@ export default defineConfig({
     dtos: 'src/dtos/index.ts',
     common: 'src/common/index.ts',
   },
-  format: ['esm'],
+  format: ['esm', 'cjs'],
   dts: true,
   sourcemap: true,
   clean: true,

@@ -8,15 +8,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./ports": {
       "types": "./dist/ports.d.ts",
-      "import": "./dist/ports.js"
+      "import": "./dist/ports.js",
+      "require": "./dist/ports.cjs"
     },
     "./use-cases": {
       "types": "./dist/use-cases.d.ts",
-      "import": "./dist/use-cases.js"
+      "import": "./dist/use-cases.js",
+      "require": "./dist/use-cases.cjs"
     }
   },
   "files": [

@@ -8,31 +8,38 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./entities": {
       "types": "./dist/entities.d.ts",
-      "import": "./dist/entities.js"
+      "import": "./dist/entities.js",
+      "require": "./dist/entities.cjs"
     },
     "./enums": {
       "types": "./dist/enums.d.ts",
-      "import": "./dist/enums.js"
+      "import": "./dist/enums.js",
+      "require": "./dist/enums.cjs"
     },
     "./value-objects": {
       "types": "./dist/value-objects.d.ts",
-      "import": "./dist/value-objects.js"
+      "import": "./dist/value-objects.js",
+      "require": "./dist/value-objects.cjs"
     },
     "./core": {
       "types": "./dist/core.d.ts",
-      "import": "./dist/core.js"
+      "import": "./dist/core.js",
+      "require": "./dist/core.cjs"
     },
     "./errors": {
       "types": "./dist/errors.d.ts",
-      "import": "./dist/errors.js"
+      "import": "./dist/errors.js",
+      "require": "./dist/errors.cjs"
     },
     "./models": {
       "types": "./dist/models.d.ts",
-      "import": "./dist/models.js"
+      "import": "./dist/models.js",
+      "require": "./dist/models.cjs"
     }
   },
   "files": [

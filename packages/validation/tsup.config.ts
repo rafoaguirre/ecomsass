@@ -6,7 +6,7 @@ export default defineConfig({
     'schemas/index': 'src/schemas/index.ts',
     'helpers/index': 'src/helpers/index.ts',
   },
-  format: ['esm'],
+  format: ['esm', 'cjs'],
   dts: true,
   sourcemap: true,
   clean: true,
