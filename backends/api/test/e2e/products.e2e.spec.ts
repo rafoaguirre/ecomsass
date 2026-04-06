@@ -220,4 +220,67 @@ describe('Products (e2e)', () => {
         .expect(401);
     });
   });
+
+  // ── Public endpoint: GET /api/v1/products (search) ────────────────────────
+
+  describe('GET /api/v1/products', () => {
+    it('returns 200 with paginated product list', async () => {
+      const product = buildProduct({ name: 'Widget', storeId: 'store-1' });
+      testApp.supabaseClient.__setQueryResult([toProductRow(product)], null, 1);
+
+      const res = await request(testApp.app.getHttpServer()).get('/api/v1/products').expect(200);
+
+      expect(res.body).toMatchObject({
+        products: [expect.objectContaining({ name: 'Widget' })],
+        totalCount: 1,
+        hasMore: false,
+      });
+    });
+
+    it('returns empty list when no products match', async () => {
+      testApp.supabaseClient.__setQueryResult([], null, 0);
+
+      const res = await request(testApp.app.getHttpServer()).get('/api/v1/products').expect(200);
+
+      expect(res.body).toMatchObject({
+        products: [],
+        totalCount: 0,
+        hasMore: false,
+      });
+    });
+
+    it('passes search and filter params through to Supabase client', async () => {
+      testApp.supabaseClient.__setQueryResult([], null, 0);
+
+      await request(testApp.app.getHttpServer())
+        .get(
+          '/api/v1/products?q=widget&storeId=s1&availability=AVAILABLE&minPrice=10&maxPrice=100&sortBy=price&sortDirection=desc'
+        )
+        .expect(200);
+
+      expect(testApp.supabaseClient.__queryBuilder.ilike).toHaveBeenCalledWith('name', '%widget%');
+      expect(testApp.supabaseClient.__queryBuilder.eq).toHaveBeenCalledWith('store_id', 's1');
+      expect(testApp.supabaseClient.__queryBuilder.eq).toHaveBeenCalledWith(
+        'availability',
+        'AVAILABLE'
+      );
+      expect(testApp.supabaseClient.__queryBuilder.gte).toHaveBeenCalledWith('price_amount', '10');
+      expect(testApp.supabaseClient.__queryBuilder.lte).toHaveBeenCalledWith('price_amount', '100');
+      expect(testApp.supabaseClient.__queryBuilder.order).toHaveBeenCalledWith('price_amount', {
+        ascending: false,
+      });
+    });
+
+    it('returns hasMore=true when more results exist', async () => {
+      const product = buildProduct();
+      testApp.supabaseClient.__setQueryResult([toProductRow(product)], null, 100);
+
+      const res = await request(testApp.app.getHttpServer())
+        .get('/api/v1/products?offset=0&limit=20')
+        .expect(200);
+
+      expect(res.body.hasMore).toBe(true);
+      expect(res.body.totalCount).toBe(100);
+    });
+  });
 });

@@ -142,4 +142,62 @@ describe('Stores (e2e)', () => {
         .expect(403);
     });
   });
+
+  // ── Public endpoint: GET /api/v1/stores (search/list) ──────────────
+
+  describe('GET /api/v1/stores', () => {
+    it('returns 200 with paginated store list', async () => {
+      const store = buildStore({ name: 'Cool Store', isActive: true });
+      const row = toStoreRow(store);
+      testApp.supabaseClient.__setQueryResult([row], null, 1);
+
+      const res = await request(testApp.app.getHttpServer()).get('/api/v1/stores').expect(200);
+
+      expect(res.body).toMatchObject({
+        stores: [expect.objectContaining({ name: 'Cool Store' })],
+        totalCount: 1,
+        hasMore: false,
+      });
+    });
+
+    it('returns empty list when no stores match', async () => {
+      testApp.supabaseClient.__setQueryResult([], null, 0);
+
+      const res = await request(testApp.app.getHttpServer()).get('/api/v1/stores').expect(200);
+
+      expect(res.body).toMatchObject({
+        stores: [],
+        totalCount: 0,
+        hasMore: false,
+      });
+    });
+
+    it('passes query params through to Supabase client', async () => {
+      testApp.supabaseClient.__setQueryResult([], null, 0);
+
+      await request(testApp.app.getHttpServer())
+        .get(
+          '/api/v1/stores?q=coffee&storeType=RETAIL&sortBy=name&sortDirection=asc&offset=10&limit=5'
+        )
+        .expect(200);
+
+      expect(testApp.supabaseClient.__queryBuilder.ilike).toHaveBeenCalledWith('name', '%coffee%');
+      expect(testApp.supabaseClient.__queryBuilder.eq).toHaveBeenCalledWith('store_type', 'RETAIL');
+      expect(testApp.supabaseClient.__queryBuilder.order).toHaveBeenCalledWith('name', {
+        ascending: true,
+      });
+    });
+
+    it('returns hasMore=true when more results exist', async () => {
+      const store = buildStore({ isActive: true });
+      testApp.supabaseClient.__setQueryResult([toStoreRow(store)], null, 50);
+
+      const res = await request(testApp.app.getHttpServer())
+        .get('/api/v1/stores?offset=0&limit=20')
+        .expect(200);
+
+      expect(res.body.hasMore).toBe(true);
+      expect(res.body.totalCount).toBe(50);
+    });
+  });
 });

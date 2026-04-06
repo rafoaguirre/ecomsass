@@ -1,4 +1,9 @@
-import type { ProductResponse, ProductListResponse } from '@ecomsaas/contracts';
+import type {
+  ProductResponse,
+  ProductListResponse,
+  ProductSummary,
+  ProductSearchResponse,
+} from '@ecomsaas/contracts';
 import type { ProductModel } from '@ecomsaas/domain';
 
 export function toProductResponse(product: ProductModel): ProductResponse {
@@ -36,5 +41,32 @@ export function toProductListResponse(products: ProductModel[]): ProductListResp
   return {
     products: products.map(toProductResponse),
     totalCount: products.length,
+  };
+}
+
+export function toProductSummary(product: ProductModel): ProductSummary {
+  return {
+    id: product.id,
+    name: product.name,
+    slug: product.slug,
+    price: {
+      amount: product.price.amount.toString(),
+      currency: product.price.currency,
+    },
+    mainImage: product.images?.[0]?.src,
+    availability: product.availability,
+  };
+}
+
+export function toProductSearchResponse(
+  products: ProductModel[],
+  total: number,
+  offset: number,
+  limit: number
+): ProductSearchResponse {
+  return {
+    products: products.map(toProductSummary),
+    totalCount: total,
+    hasMore: offset + limit < total,
   };
 }

@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -21,6 +22,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -28,9 +30,11 @@ import type {
   CreateStoreRequest,
   PublicStoreResponse,
   StoreResponse,
-  StoreSummary,
+  StoreListResponse,
   UpdateStoreRequest,
 } from '@ecomsaas/contracts';
+import { StoreType } from '@ecomsaas/domain';
+import type { SortDirection } from '@ecomsaas/contracts/common';
 import { CreateStoreRequestSchema, UpdateStoreRequestSchema } from '@ecomsaas/validation/schemas';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -49,10 +53,30 @@ export class StoresController {
   // ── Public endpoints ────────────────────────────────────────────────
 
   @Get()
-  @ApiOperation({ summary: 'List active stores for marketplace' })
-  @ApiOkResponse({ description: 'List of active store summaries' })
-  async list(): Promise<StoreSummary[]> {
-    return this.storesService.listForMarketplace();
+  @ApiOperation({ summary: 'List/search active stores for marketplace' })
+  @ApiOkResponse({ description: 'Paginated list of active store summaries' })
+  @ApiQuery({ name: 'q', required: false, description: 'Search by store name' })
+  @ApiQuery({ name: 'storeType', required: false, enum: StoreType })
+  @ApiQuery({ name: 'sortBy', required: false, enum: ['name', 'createdAt'] })
+  @ApiQuery({ name: 'sortDirection', required: false, enum: ['asc', 'desc'] })
+  @ApiQuery({ name: 'offset', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async list(
+    @Query('q') q?: string,
+    @Query('storeType') storeType?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortDirection') sortDirection?: string,
+    @Query('offset') offset?: string,
+    @Query('limit') limit?: string
+  ): Promise<StoreListResponse> {
+    return this.storesService.listForMarketplace({
+      q,
+      storeType: storeType as StoreType | undefined,
+      sortBy: sortBy as 'name' | 'createdAt' | undefined,
+      sortDirection: sortDirection as SortDirection | undefined,
+      offset: offset ? parseInt(offset, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
   }
 
   @Get(':id')

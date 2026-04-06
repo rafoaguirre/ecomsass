@@ -41,6 +41,7 @@ describe('StoresService', () => {
       findBySlug: vi.fn(),
       findByVendorId: vi.fn(),
       findActive: vi.fn(),
+      searchActive: vi.fn(),
       save: vi.fn(),
       delete: vi.fn(),
       slugExists: vi.fn(),
@@ -185,11 +186,32 @@ describe('StoresService', () => {
 
   it('lists active stores for marketplace', async () => {
     const store = StoreModel.fromData(baseStore);
-    vi.mocked(storeRepository.findActive).mockResolvedValue([store]);
+    vi.mocked(storeRepository.searchActive).mockResolvedValue({ data: [store], total: 1 });
 
     const result = await service.listForMarketplace();
 
-    expect(result).toHaveLength(1);
-    expect(storeRepository.findActive).toHaveBeenCalled();
+    expect(result.stores).toHaveLength(1);
+    expect(result.totalCount).toBe(1);
+    expect(storeRepository.searchActive).toHaveBeenCalled();
+  });
+
+  it('passes search params through to repository', async () => {
+    vi.mocked(storeRepository.searchActive).mockResolvedValue({ data: [], total: 0 });
+
+    const result = await service.listForMarketplace({
+      q: 'pizza',
+      storeType: 'RESTAURANT' as never,
+      sortBy: 'name',
+      sortDirection: 'asc',
+      offset: 10,
+      limit: 5,
+    });
+
+    expect(result.stores).toHaveLength(0);
+    expect(result.totalCount).toBe(0);
+    expect(result.hasMore).toBe(false);
+    expect(storeRepository.searchActive).toHaveBeenCalledWith(
+      expect.objectContaining({ q: 'pizza', storeType: 'RESTAURANT' })
+    );
   });
 });

@@ -12,13 +12,20 @@ import type {
   UpdateProductRequest,
   ProductResponse,
   ProductListResponse,
+  ProductSearchQuery,
+  ProductSearchResponse,
 } from '@ecomsaas/contracts';
 import type { ProductModel, CurrencyCode } from '@ecomsaas/domain';
 import type { AuthUser } from '../auth/types/auth-user';
 import { PRODUCT_REPOSITORY, PRODUCT_STORAGE } from './product.tokens';
 import { STORE_REPOSITORY } from '../stores/store.tokens';
-import { toProductResponse, toProductListResponse } from './dto/product.mapper';
+import {
+  toProductResponse,
+  toProductListResponse,
+  toProductSearchResponse,
+} from './dto/product.mapper';
 import { createIdGenerator } from '@ecomsaas/infrastructure/id-generator';
+import { clampOffset, clampPageSize } from '../common/database';
 
 const idGenerator = createIdGenerator();
 
@@ -142,6 +149,24 @@ export class ProductsService {
   ): Promise<ProductListResponse> {
     const products = await this.productRepository.findByStoreId(storeId, options);
     return toProductListResponse(products);
+  }
+
+  async search(query: ProductSearchQuery): Promise<ProductSearchResponse> {
+    const offset = clampOffset(query.offset);
+    const limit = clampPageSize(query.limit);
+    const { data, total } = await this.productRepository.searchActive({
+      q: query.q,
+      storeId: query.storeId,
+      categoryId: query.categoryId,
+      availability: query.availability,
+      minPrice: query.minPrice,
+      maxPrice: query.maxPrice,
+      sortBy: query.sortBy,
+      sortDirection: query.sortDirection,
+      offset,
+      limit,
+    });
+    return toProductSearchResponse(data, total, offset, limit);
   }
 
   async getPresignedUploadUrl(

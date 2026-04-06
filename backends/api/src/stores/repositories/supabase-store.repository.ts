@@ -3,7 +3,7 @@ import type { StoreRepository } from '@ecomsaas/application/ports';
 import { NotFoundError, StoreModel, err, ok, type Result } from '@ecomsaas/domain';
 import type { SupabaseClient } from '@ecomsaas/infrastructure/database';
 import { SUPABASE_CLIENT } from '../../database';
-import { asRecord } from '../../common/database';
+import { applyPagination, asRecord } from '../../common/database';
 
 type StoreRow = {
   id: string;
@@ -116,6 +116,47 @@ export class SupabaseStoreRepository implements StoreRepository {
     }
 
     return (data ?? []).map((row) => this.toStoreModel(row));
+  }
+
+  async searchActive(options: {
+    q?: string;
+    storeType?: string;
+    sortBy?: string;
+    sortDirection?: 'asc' | 'desc';
+    offset?: number;
+    limit?: number;
+  }): Promise<{ data: StoreModel[]; total: number }> {
+    let query = this.supabase
+      .from('stores')
+      .select('*, vendor_profiles!inner(business_name)', { count: 'exact' })
+      .eq('is_active', true);
+
+    if (options.q) {
+      query = query.ilike('name', `%${options.q}%`);
+    }
+
+    if (options.storeType) {
+      query = query.eq('store_type', options.storeType);
+    }
+
+    const sortField = options.sortBy === 'name' ? 'name' : 'created_at';
+    query = query.order(sortField, { ascending: options.sortDirection === 'asc' });
+
+    ({ query } = applyPagination(query, {
+      offset: options.offset,
+      limit: options.limit,
+    }));
+
+    const { data, error, count } = await query.returns<StoreRow[]>();
+
+    if (error) {
+      throw new Error(`Failed to search stores: ${error.message}`);
+    }
+
+    return {
+      data: (data ?? []).map((row) => this.toStoreModel(row)),
+      total: count ?? 0,
+    };
   }
 
   async save(store: StoreModel): Promise<Result<StoreModel, Error>> {

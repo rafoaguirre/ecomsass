@@ -8,11 +8,23 @@ import {
 } from '@ecomsaas/application/use-cases';
 import { NotFoundError } from '@ecomsaas/domain';
 import type { StoreModel } from '@ecomsaas/domain';
-import type { PublicStoreResponse, StoreResponse, StoreSummary } from '@ecomsaas/contracts';
+import type {
+  PublicStoreResponse,
+  StoreResponse,
+  StoreSummary,
+  StoreListResponse,
+  StoreSearchQuery,
+} from '@ecomsaas/contracts';
 import type { StoreRepository } from '@ecomsaas/application/ports';
 import type { AuthUser } from '../auth/types/auth-user';
 import { STORE_REPOSITORY } from './store.tokens';
-import { toPublicStoreResponse, toStoreResponse, toStoreSummary } from './dto/store.mapper';
+import {
+  toPublicStoreResponse,
+  toStoreResponse,
+  toStoreSummary,
+  toStoreListResponse,
+} from './dto/store.mapper';
+import { clampOffset, clampPageSize } from '../common/database';
 
 @Injectable()
 export class StoresService {
@@ -79,9 +91,18 @@ export class StoresService {
     }
   }
 
-  async listForMarketplace(): Promise<StoreSummary[]> {
-    const stores = await this.storeRepository.findActive();
-    return stores.map(toStoreSummary);
+  async listForMarketplace(query?: StoreSearchQuery): Promise<StoreListResponse> {
+    const offset = clampOffset(query?.offset);
+    const limit = clampPageSize(query?.limit);
+    const { data, total } = await this.storeRepository.searchActive({
+      q: query?.q,
+      storeType: query?.storeType,
+      sortBy: query?.sortBy,
+      sortDirection: query?.sortDirection,
+      offset,
+      limit,
+    });
+    return toStoreListResponse(data, total, offset, limit);
   }
 
   async listByVendor(vendorProfileId: string): Promise<StoreSummary[]> {

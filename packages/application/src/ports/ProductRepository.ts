@@ -56,6 +56,22 @@ export interface ProductRepository {
   ): Promise<ProductModel[]>;
 
   /**
+   * Search active products with filtering, sorting, and pagination.
+   */
+  searchActive(options: {
+    q?: string;
+    storeId?: string;
+    categoryId?: string;
+    availability?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    sortBy?: string;
+    sortDirection?: 'asc' | 'desc';
+    offset?: number;
+    limit?: number;
+  }): Promise<{ data: ProductModel[]; total: number }>;
+
+  /**
    * Save a product (create or update).
    *
    * @param product - ProductModel instance to persist
