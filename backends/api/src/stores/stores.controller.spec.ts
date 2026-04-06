@@ -95,12 +95,24 @@ describe('StoresController', () => {
   });
 
   it('delegates list to service', async () => {
-    vi.mocked(storesService.listForMarketplace).mockResolvedValue([
-      { id: 'store-1', name: 'Store', slug: 'store', isActive: true },
-    ]);
+    vi.mocked(storesService.listForMarketplace).mockResolvedValue({
+      stores: [
+        {
+          id: 'store-1',
+          name: 'Store',
+          slug: 'store',
+          storeType: 'GENERAL' as never,
+          isActive: true,
+          vendorName: 'Vendor',
+        },
+      ],
+      totalCount: 1,
+      hasMore: false,
+    });
 
     const result = await controller.list();
 
-    expect(result).toHaveLength(1);
+    expect(result.stores).toHaveLength(1);
+    expect(result.totalCount).toBe(1);
   });
 });

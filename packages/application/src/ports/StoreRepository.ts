@@ -39,6 +39,18 @@ export interface StoreRepository {
   findActive(): Promise<StoreModel[]>;
 
   /**
+   * Search active stores with filtering, sorting, and pagination.
+   */
+  searchActive(options: {
+    q?: string;
+    storeType?: string;
+    sortBy?: string;
+    sortDirection?: 'asc' | 'desc';
+    offset?: number;
+    limit?: number;
+  }): Promise<{ data: StoreModel[]; total: number }>;
+
+  /**
    * Save a store (create or update).
    *
    * @param store - StoreModel instance to persist

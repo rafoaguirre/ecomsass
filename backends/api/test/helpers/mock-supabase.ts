@@ -43,7 +43,11 @@ export function createMockSupabaseClient(options: MockSupabaseOptions = {}) {
   });
 
   // Chainable query builder mock for .from().select().eq().limit().maybeSingle()
-  const queryResult = { data: null as unknown, error: null as unknown };
+  const queryResult = {
+    data: null as unknown,
+    error: null as unknown,
+    count: null as number | null,
+  };
 
   const queryBuilder = {
     select: vi.fn().mockReturnThis(),
@@ -53,6 +57,9 @@ export function createMockSupabaseClient(options: MockSupabaseOptions = {}) {
     delete: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     neq: vi.fn().mockReturnThis(),
+    ilike: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
+    lte: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
     range: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
@@ -68,9 +75,10 @@ export function createMockSupabaseClient(options: MockSupabaseOptions = {}) {
     auth: { getUser },
     from,
     /** Escape hatch: set the next query result */
-    __setQueryResult(data: unknown, error: unknown = null) {
+    __setQueryResult(data: unknown, error: unknown = null, count: number | null = null) {
       queryResult.data = data;
       queryResult.error = error;
+      queryResult.count = count;
     },
     /** Access the chainable builder for more targeted assertions */
     __queryBuilder: queryBuilder,

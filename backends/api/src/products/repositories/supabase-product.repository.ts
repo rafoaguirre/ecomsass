@@ -118,6 +118,72 @@ export class SupabaseProductRepository implements ProductRepository {
     return (data ?? []).map((row) => this.toProductModel(row));
   }
 
+  async searchActive(options: {
+    q?: string;
+    storeId?: string;
+    categoryId?: string;
+    availability?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    sortBy?: string;
+    sortDirection?: 'asc' | 'desc';
+    offset?: number;
+    limit?: number;
+  }): Promise<{ data: ProductModel[]; total: number }> {
+    let query = this.supabase
+      .from('products')
+      .select('*', { count: 'exact' })
+      .eq('is_active', true);
+
+    if (options.q) {
+      query = query.ilike('name', `%${options.q}%`);
+    }
+
+    if (options.storeId) {
+      query = query.eq('store_id', options.storeId);
+    }
+
+    if (options.categoryId) {
+      query = query.eq('category_id', options.categoryId);
+    }
+
+    if (options.availability) {
+      query = query.eq('availability', options.availability);
+    }
+
+    if (options.minPrice !== undefined) {
+      query = query.gte('price_amount', options.minPrice.toString());
+    }
+
+    if (options.maxPrice !== undefined) {
+      query = query.lte('price_amount', options.maxPrice.toString());
+    }
+
+    const sortFieldMap: Record<string, string> = {
+      name: 'name',
+      price: 'price_amount',
+      createdAt: 'created_at',
+    };
+    const sortField = sortFieldMap[options.sortBy ?? ''] ?? 'created_at';
+    query = query.order(sortField, { ascending: options.sortDirection === 'asc' });
+
+    ({ query } = applyPagination(query, {
+      offset: options.offset,
+      limit: options.limit,
+    }));
+
+    const { data, error, count } = await query.returns<ProductRow[]>();
+
+    if (error) {
+      throw new Error(`Failed to search products: ${error.message}`);
+    }
+
+    return {
+      data: (data ?? []).map((row) => this.toProductModel(row)),
+      total: count ?? 0,
+    };
+  }
+
   async save(product: ProductModel): Promise<Result<ProductModel, Error>> {
     const payload = {
       id: product.id,

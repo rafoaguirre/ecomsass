@@ -66,6 +66,8 @@ describe('ProductsService', () => {
       findById: vi.fn(),
       findBySlug: vi.fn(),
       findByStoreId: vi.fn(),
+      findByCategoryId: vi.fn(),
+      searchActive: vi.fn(),
       save: vi.fn(),
       delete: vi.fn(),
       slugExists: vi.fn(),
@@ -75,6 +77,7 @@ describe('ProductsService', () => {
       findBySlug: vi.fn(),
       findByVendorId: vi.fn(),
       findActive: vi.fn(),
+      searchActive: vi.fn(),
       save: vi.fn(),
       delete: vi.fn(),
       slugExists: vi.fn(),
@@ -314,6 +317,60 @@ describe('ProductsService', () => {
 
       expect(result.key).toMatch(/^products\/.+\.png$/);
       expect(result.uploadUrl).toBe('https://s3.example.com/signed');
+    });
+  });
+
+  // ── search ─────────────────────────────────────────────────────────────────
+
+  describe('search', () => {
+    it('returns paginated product summaries', async () => {
+      const product = ProductModel.fromData({
+        ...baseProductInput,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      vi.mocked(productRepository.searchActive).mockResolvedValue({
+        data: [product],
+        total: 1,
+      });
+
+      const result = await service.search({ q: 'widget' });
+
+      expect(result.products).toHaveLength(1);
+      expect(result.totalCount).toBe(1);
+      expect(result.hasMore).toBe(false);
+      expect(productRepository.searchActive).toHaveBeenCalledWith(
+        expect.objectContaining({ q: 'widget' })
+      );
+    });
+
+    it('passes all filters through to repository', async () => {
+      vi.mocked(productRepository.searchActive).mockResolvedValue({ data: [], total: 0 });
+
+      await service.search({
+        q: 'test',
+        storeId: 'store-1',
+        categoryId: 'cat-1',
+        availability: ProductAvailability.Available,
+        minPrice: 100,
+        maxPrice: 5000,
+        sortBy: 'price',
+        sortDirection: 'asc',
+        offset: 20,
+        limit: 10,
+      });
+
+      expect(productRepository.searchActive).toHaveBeenCalledWith(
+        expect.objectContaining({
+          q: 'test',
+          storeId: 'store-1',
+          categoryId: 'cat-1',
+          minPrice: 100,
+          maxPrice: 5000,
+          sortBy: 'price',
+          sortDirection: 'asc',
+        })
+      );
     });
   });
 });

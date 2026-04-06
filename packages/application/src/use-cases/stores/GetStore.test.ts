@@ -25,6 +25,7 @@ describe('GetStore Use Case', () => {
       save: vi.fn(),
       delete: vi.fn(),
       slugExists: vi.fn(),
+      searchActive: vi.fn(),
     };
 
     getStore = new GetStore(mockStoreRepository);

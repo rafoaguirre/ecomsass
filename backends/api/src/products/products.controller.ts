@@ -31,7 +31,10 @@ import type {
   UpdateProductRequest,
   ProductResponse,
   ProductListResponse,
+  ProductSearchResponse,
 } from '@ecomsaas/contracts';
+import { ProductAvailability } from '@ecomsaas/domain';
+import type { SortDirection } from '@ecomsaas/contracts/common';
 import {
   CreateProductRequestSchema,
   UpdateProductRequestSchema,
@@ -50,6 +53,45 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   // ── Public endpoints ──────────────────────────────────────────────────────
+
+  @Get('products')
+  @ApiOperation({ summary: 'Search/list active products across all stores' })
+  @ApiOkResponse({ description: 'Paginated list of product summaries' })
+  @ApiQuery({ name: 'q', required: false, description: 'Search by product name' })
+  @ApiQuery({ name: 'storeId', required: false, type: String })
+  @ApiQuery({ name: 'categoryId', required: false, type: String })
+  @ApiQuery({ name: 'availability', required: false, enum: ProductAvailability })
+  @ApiQuery({ name: 'minPrice', required: false, type: Number })
+  @ApiQuery({ name: 'maxPrice', required: false, type: Number })
+  @ApiQuery({ name: 'sortBy', required: false, enum: ['name', 'price', 'createdAt'] })
+  @ApiQuery({ name: 'sortDirection', required: false, enum: ['asc', 'desc'] })
+  @ApiQuery({ name: 'offset', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async search(
+    @Query('q') q?: string,
+    @Query('storeId') storeId?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('availability') availability?: string,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortDirection') sortDirection?: string,
+    @Query('offset') offset?: string,
+    @Query('limit') limit?: string
+  ): Promise<ProductSearchResponse> {
+    return this.productsService.search({
+      q,
+      storeId,
+      categoryId,
+      availability: availability as ProductAvailability | undefined,
+      minPrice: minPrice ? parseInt(minPrice, 10) : undefined,
+      maxPrice: maxPrice ? parseInt(maxPrice, 10) : undefined,
+      sortBy: sortBy as 'name' | 'price' | 'createdAt' | undefined,
+      sortDirection: sortDirection as SortDirection | undefined,
+      offset: offset ? parseInt(offset, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
+  }
 
   @Get('products/:id')
   @ApiOperation({ summary: 'Get product by ID' })

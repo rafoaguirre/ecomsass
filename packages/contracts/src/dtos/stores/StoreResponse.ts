@@ -44,11 +44,14 @@ export interface StoreResponse {
 }
 
 /**
- * Store summary for lists
+ * Store summary for lists / marketplace
  */
 export interface StoreSummary {
   id: string;
   name: string;
+  description?: string;
   slug: string;
+  storeType: StoreType;
   isActive: boolean;
+  vendorName: string;
 }

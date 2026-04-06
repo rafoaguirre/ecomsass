@@ -13,6 +13,7 @@ describe('CreateStore', () => {
     save: vi.fn(),
     delete: vi.fn(),
     slugExists: vi.fn(),
+    searchActive: vi.fn(),
   };
 
   const mockIdGen: IdGenerator = {

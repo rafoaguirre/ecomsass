@@ -66,6 +66,7 @@ describe('PlaceOrder Use Case', () => {
       save: vi.fn(),
       delete: vi.fn(),
       slugExists: vi.fn(),
+      searchActive: vi.fn(),
     };
 
     mockStoreRepository = {
@@ -76,6 +77,7 @@ describe('PlaceOrder Use Case', () => {
       save: vi.fn(),
       delete: vi.fn(),
       slugExists: vi.fn(),
+      searchActive: vi.fn(),
     };
 
     mockIdGenerator = {
