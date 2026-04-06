@@ -9,7 +9,7 @@ export default defineConfig({
     'native/index': 'src/native/index.ts',
     'shadcn/index': 'src/shadcn/index.ts',
   },
-  format: ['esm'],
+  format: ['esm', 'cjs'],
   dts: true,
   sourcemap: true,
   clean: true,

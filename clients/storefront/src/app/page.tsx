@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { ShadcnButton } from '@ecomsaas/ui/shadcn';
 import { logout } from './(auth)/actions';
 
 export default async function HomePage() {
@@ -8,35 +9,30 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="border-b bg-white px-6 py-4">
+    <main className="min-h-screen bg-background">
+      <header className="border-b bg-surface px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <h1 className="text-xl font-bold">EcomSaaS Marketplace</h1>
           {user ? (
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{user.email}</span>
+              <span className="text-sm text-muted">{user.email}</span>
               <form action={logout}>
-                <button
-                  type="submit"
-                  className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
-                >
+                <ShadcnButton type="submit" variant="secondary" size="sm">
                   Sign Out
-                </button>
+                </ShadcnButton>
               </form>
             </div>
           ) : (
             <div className="flex gap-2">
-              <a
-                href="/login"
-                className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                Sign In
+              <a href="/login">
+                <ShadcnButton variant="secondary" size="sm">
+                  Sign In
+                </ShadcnButton>
               </a>
-              <a
-                href="/register"
-                className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
-              >
-                Register
+              <a href="/register">
+                <ShadcnButton variant="primary" size="sm">
+                  Register
+                </ShadcnButton>
               </a>
             </div>
           )}
@@ -45,7 +41,7 @@ export default async function HomePage() {
 
       <div className="mx-auto max-w-5xl px-6 py-12">
         <h2 className="text-3xl font-bold">Discover Stores</h2>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-2 text-muted">
           Browse our marketplace of vendor stores. Store listings coming soon.
         </p>
       </div>

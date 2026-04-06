@@ -8,27 +8,33 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./tokens": {
       "types": "./dist/tokens.d.ts",
-      "import": "./dist/tokens.js"
+      "import": "./dist/tokens.js",
+      "require": "./dist/tokens.cjs"
     },
     "./core": {
       "types": "./dist/core/index.d.ts",
-      "import": "./dist/core/index.js"
+      "import": "./dist/core/index.js",
+      "require": "./dist/core/index.cjs"
     },
     "./web": {
       "types": "./dist/web/index.d.ts",
-      "import": "./dist/web/index.js"
+      "import": "./dist/web/index.js",
+      "require": "./dist/web/index.cjs"
     },
     "./native": {
       "types": "./dist/native/index.d.ts",
-      "import": "./dist/native/index.js"
+      "import": "./dist/native/index.js",
+      "require": "./dist/native/index.cjs"
     },
     "./shadcn": {
       "types": "./dist/shadcn/index.d.ts",
-      "import": "./dist/shadcn/index.js"
+      "import": "./dist/shadcn/index.js",
+      "require": "./dist/shadcn/index.cjs"
     },
     "./styles.css": "./src/styles/theme.css",
     "./tailwind.css": "./src/styles/tailwind.css"

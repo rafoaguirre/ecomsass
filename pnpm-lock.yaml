@@ -131,6 +131,9 @@ importers:
 
   clients/storefront:
     dependencies:
+      '@ecomsaas/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@supabase/ssr':
         specifier: ^0.10.0
         version: 0.10.0(@supabase/supabase-js@2.100.0)
@@ -186,6 +189,9 @@ importers:
 
   clients/vendor:
     dependencies:
+      '@ecomsaas/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@supabase/ssr':
         specifier: ^0.10.0
         version: 0.10.0(@supabase/supabase-js@2.100.0)

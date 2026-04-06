@@ -1,3 +1,12 @@
+import {
+  ShadcnButton,
+  ShadcnCard,
+  ShadcnCardContent,
+  ShadcnCardDescription,
+  ShadcnCardHeader,
+  ShadcnCardTitle,
+  ShadcnInput,
+} from '@ecomsaas/ui/shadcn';
 import { register } from '../actions';
 
 export default async function RegisterPage({
@@ -8,62 +17,47 @@ export default async function RegisterPage({
   const { error } = await searchParams;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Create Account</h1>
-          <p className="mt-1 text-sm text-gray-600">Join EcomSaaS marketplace</p>
-        </div>
+    <main className="flex min-h-screen items-center justify-center bg-background p-4">
+      <ShadcnCard className="w-full max-w-sm">
+        <ShadcnCardHeader className="text-center">
+          <ShadcnCardTitle>Create Account</ShadcnCardTitle>
+          <ShadcnCardDescription>Join EcomSaaS marketplace</ShadcnCardDescription>
+        </ShadcnCardHeader>
+        <ShadcnCardContent className="space-y-6">
+          {error && (
+            <div className="rounded-[--radius-md] border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
 
-        {error && (
-          <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {error}
-          </div>
-        )}
+          <form action={register} className="space-y-4">
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="text-sm font-semibold text-foreground">
+                Email
+              </label>
+              <ShadcnInput id="email" name="email" type="email" required />
+            </div>
 
-        <form action={register} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
+            <div className="space-y-1.5">
+              <label htmlFor="password" className="text-sm font-semibold text-foreground">
+                Password
+              </label>
+              <ShadcnInput id="password" name="password" type="password" required minLength={6} />
+            </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              minLength={6}
-              className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
+            <ShadcnButton type="submit" variant="primary" className="w-full">
+              Create Account
+            </ShadcnButton>
+          </form>
 
-          <button
-            type="submit"
-            className="w-full rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            Create Account
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <a href="/login" className="font-medium text-blue-600 hover:underline">
-            Sign In
-          </a>
-        </p>
-      </div>
+          <p className="text-center text-sm text-muted">
+            Already have an account?{' '}
+            <a href="/login" className="font-medium text-brand-500 hover:underline">
+              Sign In
+            </a>
+          </p>
+        </ShadcnCardContent>
+      </ShadcnCard>
     </main>
   );
 }
