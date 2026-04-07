@@ -1,3 +1,7 @@
+'use client';
+
+import { useActionState, useEffect } from 'react';
+import { toast } from 'sonner';
 import {
   ShadcnButton,
   ShadcnCard,
@@ -9,12 +13,12 @@ import {
 } from '@ecomsaas/ui/shadcn';
 import { register } from '../actions';
 
-export default async function RegisterPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
-  const { error } = await searchParams;
+export default function RegisterPage() {
+  const [state, formAction, isPending] = useActionState(register, null);
+
+  useEffect(() => {
+    if (state?.error) toast.error(state.error);
+  }, [state]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -24,13 +28,7 @@ export default async function RegisterPage({
           <ShadcnCardDescription>Join EcomSaaS marketplace</ShadcnCardDescription>
         </ShadcnCardHeader>
         <ShadcnCardContent className="space-y-6">
-          {error && (
-            <div className="rounded-[--radius-md] border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-
-          <form action={register} className="space-y-4">
+          <form action={formAction} className="space-y-4">
             <div className="space-y-1.5">
               <label htmlFor="email" className="text-sm font-semibold text-foreground">
                 Email
@@ -45,8 +43,8 @@ export default async function RegisterPage({
               <ShadcnInput id="password" name="password" type="password" required minLength={6} />
             </div>
 
-            <ShadcnButton type="submit" variant="primary" className="w-full">
-              Create Account
+            <ShadcnButton type="submit" variant="primary" className="w-full" disabled={isPending}>
+              {isPending ? 'Creating account…' : 'Create Account'}
             </ShadcnButton>
           </form>
 
