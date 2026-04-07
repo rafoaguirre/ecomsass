@@ -10,7 +10,7 @@ export type { SupabaseClientType as SupabaseClient };
  * Configuration for creating a Supabase client.
  */
 export interface SupabaseClientOptions {
-  /** Supabase project URL (e.g., http://127.0.0.1:54321 for local dev). */
+  /** Supabase project URL (e.g., https://abc123.supabase.co). */
   url: string;
 
   /**

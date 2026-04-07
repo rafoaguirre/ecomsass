@@ -30,7 +30,7 @@ create table public.products (
   images                  jsonb not null default '[]',
   category_id             uuid,
   supplier_id             uuid,
-  availability            public.product_availability not null default 'Available',
+  availability            public.product_availability not null default 'AVAILABLE',
   inventory               jsonb,
   variants                jsonb,
   tags                    text[] not null default '{}',

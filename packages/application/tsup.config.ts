@@ -6,7 +6,7 @@ export default defineConfig({
     ports: 'src/ports/index.ts',
     'use-cases': 'src/use-cases/index.ts',
   },
-  format: ['esm'],
+  format: ['esm', 'cjs'],
   dts: true,
   sourcemap: true,
   clean: true,

@@ -10,7 +10,7 @@ export default defineConfig({
     'value-objects': 'src/value-objects/index.ts',
     models: 'src/models/index.ts',
   },
-  format: ['esm'],
+  format: ['esm', 'cjs'],
   dts: true,
   sourcemap: true,
   clean: true,

@@ -8,15 +8,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./dtos": {
       "types": "./dist/dtos.d.ts",
-      "import": "./dist/dtos.js"
+      "import": "./dist/dtos.js",
+      "require": "./dist/dtos.cjs"
     },
     "./common": {
       "types": "./dist/common.d.ts",
-      "import": "./dist/common.js"
+      "import": "./dist/common.js",
+      "require": "./dist/common.cjs"
     }
   },
   "files": [

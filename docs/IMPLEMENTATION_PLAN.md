@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** In Progress — Phase 2 (core backend nearly complete)  
+> **Status:** In Progress — Phase 3 (frontend implementation)  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -426,14 +426,17 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 **Goal:** Product and store search functionality
 
+**Status:** Complete — search via query params on existing list endpoints using PostgreSQL ilike + exact count pagination.
+
 **Deliverables:**
 
-- [ ] `GET /api/v1/search/products?q=...`
-- [ ] `GET /api/v1/search/stores?q=...`
-- [ ] Filtering by category, price range
-- [ ] Sorting options
-- [ ] Pagination
-- [ ] Consider: PostgreSQL full-text search or Algolia
+- [x] `GET /api/v1/stores?q=...&storeType=...&sortBy=...&offset=...&limit=...`
+- [x] `GET /api/v1/products?q=...&storeId=...&categoryId=...&availability=...&minPrice=...&maxPrice=...`
+- [x] Filtering by store type, category, price range, availability
+- [x] Sorting options (name, price, createdAt; asc/desc)
+- [x] Pagination with exact total count (`{ count: 'exact' }`)
+- [x] PostgreSQL `ilike` for text search via Supabase PostgREST
+- [x] Tests (92 unit, 54 e2e)
 
 **Completion Criteria:**
 
@@ -454,26 +457,28 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 **Deliverables:**
 
-- [ ] HTTP client implementation (from `packages/infrastructure/http`)
-- [ ] Auth token injection
-- [ ] Error handling
-- [ ] Retry logic
-- [ ] TanStack Query setup for data fetching
-- [ ] Example API call from frontend
+- [x] HTTP client implementation (custom `api` client in each app — lightweight fetch wrapper; shared-package adapter deferred)
+- [x] Auth token injection (Bearer token from Supabase session)
+- [x] Error handling (`ApiError` class with status/message)
+- [ ] Retry logic _(deferred — TanStack Query handles retries at query level)_
+- [x] TanStack Query setup for data fetching (`QueryProvider` in layout)
+- [x] Example API call from frontend (home pages fetch session/user)
 
-**Example:**
+**Example (actual):**
 
 ```typescript
 // clients/vendor/src/lib/api-client.ts
-import { createHttpClient } from '@ecomsaas/infrastructure-http';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-export const apiClient = createHttpClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  getToken: async () => {
-    const session = await supabase.auth.getSession();
-    return session.data.session?.access_token;
-  },
-});
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const supabase = createBrowserClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
+  // ... fetch with error handling
+}
 ```
 
 ### 3.2 Authentication UI
@@ -482,12 +487,12 @@ export const apiClient = createHttpClient({
 
 **Deliverables:**
 
-- [ ] Login page (both apps)
-- [ ] Registration page (vendor app)
-- [ ] Password reset flow
-- [ ] Protected route wrapper
-- [ ] Auth state management (Zustand)
-- [ ] Redirect logic after auth
+- [x] Login page (both apps)
+- [x] Registration page (both apps — vendor includes `businessName` field)
+- [ ] Password reset flow _(deferred to Phase 3.3)_
+- [x] Protected route wrapper (Next.js middleware + server-side session check)
+- [x] Auth state management (Supabase SSR — server/browser clients, no Zustand needed)
+- [x] Redirect logic after auth (vendor → dashboard, storefront → home)
 
 **Completion Criteria:**
 
