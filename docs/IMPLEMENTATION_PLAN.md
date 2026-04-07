@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** In Progress — Phase 3 (frontend implementation)  
+> **Status:** In Progress — Phase 5 (marketplace development)  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -447,7 +447,9 @@ and implemented by infrastructure adapter(s), preserving clean boundaries and SR
 
 ---
 
-## Phase 3: Frontend Implementation (Week 9-10)
+## Phase 3: Frontend Implementation (Week 9-10) ✅
+
+**Status:** Complete — Supabase SSR auth, API clients, login/register pages, protected routes, and shared UI wiring delivered across both apps.
 
 > **Note:** Next.js shells were scaffolded in Phase 0.4. This phase adds Supabase auth, API integration, layouts, and routing. Moved after core backend so frontends have real endpoints to consume.
 
@@ -503,73 +505,75 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 ---
 
-## Phase 4: Vendor App Development (Week 11-12)
+## Phase 4: Vendor App Development (Week 11-12) ✅
+
+**Status:** Complete — vendor onboarding, dashboard, product CRUD, and store settings. Deferred items: Stripe Connect, image upload, charts with real data.
 
 ### 4.1 Vendor Registration Flow
 
 **Goal:** Complete vendor onboarding
 
+**Status:** Complete — 2-step onboarding wizard with defensive profile creation for pre-trigger accounts.
+
 **Deliverables:**
 
-- [ ] Multi-step registration form
-- [ ] Business information collection
-- [ ] Store creation wizard
-- [ ] Stripe Connect onboarding
-- [ ] Email verification
-- [ ] Success page with next steps
-
-**Steps:**
-
-1. Create account (Supabase Auth)
-2. Business information
-3. Store configuration (name, slug, description)
-4. Stripe Connect setup
-5. Confirmation
+- [x] Multi-step registration form (2-step: store info → business details)
+- [x] Business information collection (store type, description)
+- [x] Store creation wizard (name, slug, description, type)
+- [ ] Stripe Connect onboarding _(deferred to payment integration phase)_
+- [x] Email verification (Supabase Auth built-in)
+- [x] Redirect to dashboard on success
 
 ### 4.2 Store Dashboard
 
 **Goal:** Vendor home page with overview
 
+**Status:** Complete — dashboard shell with sidebar, topbar, stats cards, and store info.
+
 **Deliverables:**
 
-- [ ] Store statistics (orders, revenue, products)
-- [ ] Recent orders list
-- [ ] Quick actions (add product, etc.)
-- [ ] Store status indicator
-- [ ] Charts (revenue over time)
+- [x] Store statistics (orders, revenue, products) — placeholder data
+- [ ] Recent orders list _(deferred to order system phase)_
+- [x] Quick actions (add product, etc.)
+- [x] Store status indicator
+- [ ] Charts (revenue over time) _(deferred — needs real order data)_
 
 ### 4.3 Product Management UI
 
 **Goal:** Full product CRUD in vendor app
 
+**Status:** Complete — unified ProductForm component for create/edit, listing table, delete action.
+
 **Deliverables:**
 
-- [ ] Product list page
-- [ ] Add product form (multi-step)
-- [ ] Edit product page
-- [ ] Delete product confirmation
-- [ ] Image upload interface
-- [ ] Inventory management UI
-- [ ] Product variants (future)
+- [x] Product list page (table with availability badges, formatted prices)
+- [x] Add product form (unified ProductForm component)
+- [x] Edit product page (shared ProductForm with pre-populated data)
+- [x] Delete product confirmation
+- [ ] Image upload interface _(deferred — needs S3 wiring end-to-end)_
+- [ ] Inventory management UI _(deferred)_
+- [ ] Product variants _(future)_
 
 ### 4.4 Store Settings
 
 **Goal:** Store configuration interface
 
+**Status:** Complete — tabbed settings page (General, Contact, Address).
+
 **Deliverables:**
 
-- [ ] Store information editor
-- [ ] Branding settings (logo, colors)
-- [ ] Domain/slug management
-- [ ] Notification preferences
-- [ ] Integration settings (Stripe, etc.)
+- [x] Store information editor (name, slug, description, type)
+- [ ] Branding settings (logo, colors) _(deferred — needs asset upload)_
+- [x] Domain/slug management (display, not editable yet)
+- [ ] Notification preferences _(deferred)_
+- [ ] Integration settings (Stripe, etc.) _(deferred)_
 
 **Completion Criteria:**
 
-- Vendor can fully manage store
-- All forms validated
-- Good UX (loading states, errors)
-- Mobile responsive
+- ✅ Vendor can fully manage store
+- ✅ All forms validated
+- ✅ Good UX (loading states, toast feedback, errors)
+- ⬜ Mobile responsive (basic layout works, polish deferred)
 
 ---
 

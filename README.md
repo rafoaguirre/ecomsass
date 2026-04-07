@@ -26,6 +26,28 @@ A modern, scalable multi-tenant e-commerce platform enabling vendors to create a
 - **AI-Powered Management**: MCP server for natural language store configuration
 - **Clean Architecture**: Shared domain and application layers across all services
 
+## 📋 What's Implemented
+
+> See [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) for the full roadmap with deliverable checklists.
+
+### ✅ Complete
+
+| Phase                    | Description                                         | Highlights                                                                                                                                                                                                                     |
+| ------------------------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **0 — Foundation**       | Shared packages, domain models, infrastructure      | DDD entities (Store, Product, Order, Subscription), value objects (Money, Address), 280+ domain tests, shared validation (Zod), infrastructure adapters (cache, queue, storage, logger), shared UI library (shadcn + Tailwind) |
+| **1 — API Foundation**   | NestJS API with Supabase auth & database            | Supabase JWT auth, RLS propagation, repository pattern, stores slug endpoint, e2e test framework                                                                                                                               |
+| **2 — Core Backend**     | Full CRUD APIs for stores, products, users, vendors | Store management, product catalog, user/vendor management, search & filtering, S3 storage adapter, security hardening (CORS, Helmet, rate limiting)                                                                            |
+| **3 — Frontend Auth**    | Supabase SSR auth for both frontends                | Login/register (vendor + storefront), session middleware, API client with token injection, shared UI components wired in                                                                                                       |
+| **4 — Vendor Dashboard** | Full vendor management experience                   | 2-step onboarding wizard, dashboard with stats, product CRUD (create/edit/delete), store settings (general/contact/address), shared TagInput component                                                                         |
+
+### 🔜 Up Next
+
+| Phase                     | Description                                                          |
+| ------------------------- | -------------------------------------------------------------------- |
+| **5 — Marketplace**       | Storefront discovery, store pages, product detail, multi-vendor cart |
+| **6 — Orders & Payments** | Checkout flow, Stripe Connect, order management                      |
+| **7 — Blockchain**        | Crypto payments, token fundraising, rewards (Polygon)                |
+
 ## 🏗️ Architecture
 
 This monorepo contains multiple applications and shared packages following clean architecture principles.
