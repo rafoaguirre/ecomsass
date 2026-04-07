@@ -2,8 +2,15 @@
  * Server-side API helper for fetching public data from the NestJS backend.
  * Used in React Server Components — do NOT import in client components.
  */
+import 'server-only';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  (process.env.NODE_ENV === 'production'
+    ? (() => {
+        throw new Error('NEXT_PUBLIC_API_URL is required in production');
+      })()
+    : 'http://localhost:3000');
 
 // ── Response types ──────────────────────────────────────────────
 
@@ -140,8 +147,8 @@ export function fetchStores(params: StoreQueryParams = {}): Promise<StoreListRes
   if (params.storeType) qs.set('storeType', params.storeType);
   if (params.sortBy) qs.set('sortBy', params.sortBy);
   if (params.sortDirection) qs.set('sortDirection', params.sortDirection);
-  if (params.offset) qs.set('offset', String(params.offset));
-  if (params.limit) qs.set('limit', String(params.limit));
+  if (params.offset != null) qs.set('offset', String(params.offset));
+  if (params.limit != null) qs.set('limit', String(params.limit));
 
   const query = qs.toString();
   return fetchApi<StoreListResponse>(`/api/v1/stores${query ? `?${query}` : ''}`);
@@ -158,8 +165,8 @@ export function fetchStoreProducts(
   params: { offset?: number; limit?: number } = {}
 ): Promise<ProductListResponse> {
   const qs = new URLSearchParams();
-  if (params.offset) qs.set('offset', String(params.offset));
-  if (params.limit) qs.set('limit', String(params.limit));
+  if (params.offset != null) qs.set('offset', String(params.offset));
+  if (params.limit != null) qs.set('limit', String(params.limit));
 
   const query = qs.toString();
   return fetchApi<ProductListResponse>(

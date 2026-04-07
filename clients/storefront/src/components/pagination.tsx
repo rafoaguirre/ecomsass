@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 interface PaginationProps {
   basePath: string;
   q?: string;
@@ -29,20 +31,20 @@ export function Pagination({
   return (
     <div className="mt-10 flex items-center justify-center gap-4">
       {offset > 0 && (
-        <a
+        <Link
           href={buildHref(basePath, { ...shared, offset: String(Math.max(0, offset - pageSize)) })}
           className="rounded-[--radius-md] border border-border bg-white px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-neutral-50"
         >
           &larr; Previous
-        </a>
+        </Link>
       )}
       {hasMore && (
-        <a
+        <Link
           href={buildHref(basePath, { ...shared, offset: String(offset + pageSize) })}
           className="rounded-[--radius-md] border border-border bg-white px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-neutral-50"
         >
           Next &rarr;
-        </a>
+        </Link>
       )}
     </div>
   );

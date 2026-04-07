@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useRef } from 'react';
+import { useEffect, useRef, type ChangeEvent } from 'react';
 import { ShadcnInput } from '@ecomsaas/ui/shadcn';
 
 export function SearchBar({
@@ -15,7 +15,13 @@ export function SearchBar({
   const searchParams = useSearchParams();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
     if (timerRef.current) clearTimeout(timerRef.current);
 
@@ -27,7 +33,8 @@ export function SearchBar({
         params.delete('q');
       }
       params.delete('offset');
-      router.push(`${basePath}?${params.toString()}`);
+      const qs = params.toString();
+      router.push(qs ? `${basePath}?${qs}` : basePath);
     }, 350);
   }
 

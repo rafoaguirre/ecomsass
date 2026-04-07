@@ -40,6 +40,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
     store = null;
   }
 
+  // Validate product belongs to this store
+  if (store && product.storeId !== store.id) {
+    notFound();
+  }
+
   const availability = AVAILABILITY[product.availability] ?? {
     label: product.availability,
     variant: 'secondary' as const,

@@ -22,14 +22,17 @@ export function StoreTypeFilter({
       params.delete('storeType');
     }
     params.delete('offset');
-    router.push(`${basePath}?${params.toString()}`);
+    const qs = params.toString();
+    router.push(qs ? `${basePath}?${qs}` : basePath);
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by store type">
       {STORE_TYPE_OPTIONS.map((type) => (
         <button
           key={type.value}
+          type="button"
+          aria-pressed={activeType === type.value}
           onClick={() => handleClick(type.value)}
           className={cn(
             'cursor-pointer rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors',
