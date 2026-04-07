@@ -27,7 +27,6 @@ export async function register(_prev: ActionState, formData: FormData): Promise<
 
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
-  const businessName = formData.get('businessName') as string;
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -35,7 +34,6 @@ export async function register(_prev: ActionState, formData: FormData): Promise<
     options: {
       data: {
         role: 'Vendor',
-        business_name: businessName,
       },
     },
   });

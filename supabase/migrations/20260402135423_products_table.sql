@@ -9,8 +9,7 @@ create type public.product_availability as enum (
   'AVAILABLE',
   'OUT_OF_STOCK',
   'DISCONTINUED',
-  'COMING_SOON',
-  'PRE_ORDER'
+  'COMING_SOO
 );
 
 -- ============================================================

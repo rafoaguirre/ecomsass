@@ -30,13 +30,6 @@ export default function RegisterPage() {
         <ShadcnCardContent className="space-y-6">
           <form action={formAction} className="space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="businessName" className="text-sm font-semibold text-foreground">
-                Business Name
-              </label>
-              <ShadcnInput id="businessName" name="businessName" type="text" required />
-            </div>
-
-            <div className="space-y-1.5">
               <label htmlFor="email" className="text-sm font-semibold text-foreground">
                 Email
               </label>
