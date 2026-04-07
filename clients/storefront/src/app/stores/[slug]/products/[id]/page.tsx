@@ -1,10 +1,11 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ShadcnBadge, ShadcnButton } from '@ecomsaas/ui/shadcn';
+import { ShadcnBadge } from '@ecomsaas/ui/shadcn';
 import { fetchProduct, fetchStoreBySlug } from '@/lib/api';
 import { AVAILABILITY } from '@/lib/constants';
 import { formatPrice } from '@/lib/formatting';
+import { AddToCartButton } from '@/components/add-to-cart-button';
 
 interface PageProps {
   params: Promise<{ slug: string; id: string }>;
@@ -134,14 +135,22 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
             {/* Add to cart */}
             <div className="mt-8">
-              <ShadcnButton
-                variant="primary"
-                size="lg"
-                className="w-full sm:w-auto"
+              <AddToCartButton
+                product={{
+                  id: product.id,
+                  name: product.name,
+                  slug: product.slug,
+                  price: product.price,
+                  image: mainImage?.src,
+                }}
+                store={{
+                  id: store?.id ?? product.storeId,
+                  name: store?.name ?? slug,
+                  slug,
+                }}
                 disabled={!availability.canBuy}
-              >
-                {availability.canBuy ? 'Add to Cart' : availability.label}
-              </ShadcnButton>
+                disabledLabel={availability.label}
+              />
               {!availability.canBuy && (
                 <p className="mt-2 text-sm text-muted">
                   This product is currently not available for purchase.
