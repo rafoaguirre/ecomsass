@@ -8,6 +8,7 @@ import { DatabaseModule } from './database';
 import { HealthModule } from './health/health.module';
 import { StoresModule } from './stores';
 import { ProductsModule } from './products';
+import { OrdersModule } from './orders';
 import { UsersModule } from './users';
 import { VendorsModule } from './vendors';
 
@@ -24,6 +25,7 @@ import { VendorsModule } from './vendors';
     HealthModule,
     StoresModule,
     ProductsModule,
+    OrdersModule,
     UsersModule,
     VendorsModule,
   ],

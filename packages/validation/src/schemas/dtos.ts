@@ -1,5 +1,6 @@
 import {
   FulfillmentType,
+  OrderStatus,
   PaymentMethod,
   ProductAvailability,
   StoreType,
@@ -113,6 +114,12 @@ export const CreateOrderRequestSchema = z.object({
   }),
   notes: z.string().optional(),
   metadata: MetadataSchema.optional(),
+});
+
+export const UpdateOrderStatusRequestSchema = z.object({
+  status: z.nativeEnum(OrderStatus),
+  trackingNumber: z.string().optional(),
+  carrier: z.string().optional(),
 });
 
 export const CreateSubscriptionRequestSchema = z.object({

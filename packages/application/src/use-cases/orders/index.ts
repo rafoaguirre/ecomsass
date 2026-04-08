@@ -1,2 +1,8 @@
 export { PlaceOrder } from './PlaceOrder';
 export type { PlaceOrderInput } from './PlaceOrder';
+export { GetOrder } from './GetOrder';
+export type { GetOrderInput } from './GetOrder';
+export { ListOrders } from './ListOrders';
+export type { ListOrdersInput } from './ListOrders';
+export { UpdateOrderStatus } from './UpdateOrderStatus';
+export type { UpdateOrderStatusInput } from './UpdateOrderStatus';
