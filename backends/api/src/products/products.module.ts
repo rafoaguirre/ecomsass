@@ -53,6 +53,6 @@ import { SupabaseProductRepository } from './repositories/supabase-product.repos
       inject: [SupabaseProductRepository],
     },
   ],
-  exports: [ProductsService],
+  exports: [ProductsService, PRODUCT_REPOSITORY],
 })
 export class ProductsModule {}
