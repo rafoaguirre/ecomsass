@@ -3,6 +3,7 @@ import { ShadcnButton } from '@ecomsaas/ui/shadcn';
 import Link from 'next/link';
 import { logout } from '@/app/(auth)/actions';
 import { Logo } from '@/components/logo';
+import { CartButton } from '@/components/cart-button';
 
 export async function Header() {
   const supabase = await createClient();
@@ -31,8 +32,9 @@ export async function Header() {
           </Link>
         </nav>
 
-        {/* Auth */}
+        {/* Cart + Auth */}
         <div className="flex items-center gap-3">
+          <CartButton />
           {user ? (
             <>
               <span className="hidden text-sm text-muted sm:inline">{user.email}</span>
