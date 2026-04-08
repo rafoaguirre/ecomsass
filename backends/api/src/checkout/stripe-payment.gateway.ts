@@ -9,15 +9,17 @@ import type { CurrencyCode } from '@ecomsaas/domain';
 
 @Injectable()
 export class StripePaymentGateway implements PaymentGateway {
-  private readonly stripe: InstanceType<typeof Stripe>;
+  private _stripe: InstanceType<typeof Stripe> | undefined;
 
-  constructor() {
-    const secretKey = process.env.STRIPE_SECRET_KEY;
-    if (!secretKey) {
-      throw new Error('STRIPE_SECRET_KEY environment variable is required');
+  private get stripe(): InstanceType<typeof Stripe> {
+    if (!this._stripe) {
+      const secretKey = process.env.STRIPE_SECRET_KEY;
+      if (!secretKey) {
+        throw new Error('STRIPE_SECRET_KEY environment variable is required');
+      }
+      this._stripe = new Stripe(secretKey);
     }
-
-    this.stripe = new Stripe(secretKey);
+    return this._stripe;
   }
 
   async createPaymentIntent(input: CreatePaymentIntentInput): Promise<PaymentIntentResult> {
