@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth';
+import { CheckoutModule } from './checkout';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { DatabaseModule } from './database';
 import { HealthModule } from './health/health.module';
@@ -26,6 +27,7 @@ import { VendorsModule } from './vendors';
     StoresModule,
     ProductsModule,
     OrdersModule,
+    CheckoutModule,
     UsersModule,
     VendorsModule,
   ],

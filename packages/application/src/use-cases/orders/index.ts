@@ -6,3 +6,5 @@ export { ListOrders } from './ListOrders';
 export type { ListOrdersInput } from './ListOrders';
 export { UpdateOrderStatus } from './UpdateOrderStatus';
 export type { UpdateOrderStatusInput } from './UpdateOrderStatus';
+export { ConfirmOrder } from './ConfirmOrder';
+export type { ConfirmOrderInput } from './ConfirmOrder';
