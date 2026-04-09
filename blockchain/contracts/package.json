@@ -4,7 +4,7 @@
   "description": "EcomSaaS Smart Contracts — Foundry / Solidity",
   "private": true,
   "scripts": {
-    "prebuild": "forge install --no-git",
+    "prebuild": "forge install foundry-rs/forge-std --no-git",
     "build": "forge build",
     "test": "forge test",
     "lint": "forge fmt --check",
