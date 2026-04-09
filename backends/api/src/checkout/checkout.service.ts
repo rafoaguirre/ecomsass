@@ -10,6 +10,7 @@ import { StripePaymentGateway } from './stripe-payment.gateway';
 @Injectable()
 export class CheckoutService {
   private readonly logger = new Logger(CheckoutService.name);
+  private readonly processedEvents = new Set<string>();
 
   constructor(
     @Inject(PlaceOrder) private readonly placeOrder: PlaceOrder,
@@ -80,7 +81,13 @@ export class CheckoutService {
   async handleWebhookEvent(payload: Buffer, signature: string): Promise<void> {
     const event = this.paymentGateway.constructWebhookEvent(payload, signature);
 
-    this.logger.log(`Stripe webhook event: ${event.type}`);
+    // Idempotency: skip already-processed events
+    if (this.processedEvents.has(event.id)) {
+      this.logger.log(`Skipping already-processed webhook event: ${event.id}`);
+      return;
+    }
+
+    this.logger.log(`Stripe webhook event: ${event.type} (${event.id})`);
 
     switch (event.type) {
       case 'payment_intent.succeeded': {
@@ -89,7 +96,7 @@ export class CheckoutService {
 
         if (!orderId) {
           this.logger.warn('PaymentIntent succeeded without orderId in metadata');
-          return;
+          break;
         }
 
         const result = await this.confirmOrder.execute({
@@ -98,10 +105,11 @@ export class CheckoutService {
         });
 
         if (result.isErr()) {
-          this.logger.error(`Failed to confirm order ${orderId}: ${result.error.message}`);
-        } else {
-          this.logger.log(`Order ${orderId} confirmed via Stripe webhook`);
+          // Throw so Stripe retries the webhook for transient failures
+          throw new Error(`Failed to confirm order ${orderId}: ${result.error.message}`);
         }
+
+        this.logger.log(`Order ${orderId} confirmed via Stripe webhook`);
         break;
       }
 
@@ -119,6 +127,16 @@ export class CheckoutService {
 
       default:
         this.logger.debug(`Unhandled Stripe event type: ${event.type}`);
+    }
+
+    // Only mark as processed after successful handling.
+    // If we threw above, Stripe will retry the webhook.
+    this.processedEvents.add(event.id);
+
+    // Prevent memory leak: cap the set size
+    if (this.processedEvents.size > 10_000) {
+      const first = this.processedEvents.values().next().value;
+      if (first) this.processedEvents.delete(first);
     }
   }
 }

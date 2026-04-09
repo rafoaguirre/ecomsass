@@ -9,13 +9,12 @@ import {
   ShadcnCardDescription,
   ShadcnCardHeader,
   ShadcnCardTitle,
-  ShadcnInput,
 } from '@ecomsaas/ui/shadcn';
 import { PasswordInput } from '@/components/password-input';
-import { register } from '../actions';
+import { resetPassword } from '../actions';
 
-export default function RegisterPage() {
-  const [state, formAction, isPending] = useActionState(register, null);
+export default function ResetPasswordPage() {
+  const [state, formAction, isPending] = useActionState(resetPassword, null);
 
   useEffect(() => {
     if (state?.error) toast.error(state.error);
@@ -25,36 +24,29 @@ export default function RegisterPage() {
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
       <ShadcnCard className="w-full max-w-sm">
         <ShadcnCardHeader className="text-center">
-          <ShadcnCardTitle>Create Account</ShadcnCardTitle>
-          <ShadcnCardDescription>Join EcomSaaS marketplace</ShadcnCardDescription>
+          <ShadcnCardTitle>Set New Password</ShadcnCardTitle>
+          <ShadcnCardDescription>Enter your new password below</ShadcnCardDescription>
         </ShadcnCardHeader>
         <ShadcnCardContent className="space-y-6">
           <form action={formAction} className="space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-sm font-semibold text-foreground">
-                Email
-              </label>
-              <ShadcnInput id="email" name="email" type="email" required />
-            </div>
-
-            <div className="space-y-1.5">
               <label htmlFor="password" className="text-sm font-semibold text-foreground">
-                Password
+                New Password
               </label>
               <PasswordInput id="password" name="password" required minLength={6} />
             </div>
 
+            <div className="space-y-1.5">
+              <label htmlFor="confirmPassword" className="text-sm font-semibold text-foreground">
+                Confirm Password
+              </label>
+              <PasswordInput id="confirmPassword" name="confirmPassword" required minLength={6} />
+            </div>
+
             <ShadcnButton type="submit" variant="primary" className="w-full" disabled={isPending}>
-              {isPending ? 'Creating account…' : 'Create Account'}
+              {isPending ? 'Updating…' : 'Update Password'}
             </ShadcnButton>
           </form>
-
-          <p className="text-center text-sm text-muted">
-            Already have an account?{' '}
-            <a href="/login" className="font-medium text-brand-500 hover:underline">
-              Sign In
-            </a>
-          </p>
         </ShadcnCardContent>
       </ShadcnCard>
     </main>

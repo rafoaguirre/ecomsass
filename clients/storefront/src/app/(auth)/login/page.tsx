@@ -11,6 +11,7 @@ import {
   ShadcnCardTitle,
   ShadcnInput,
 } from '@ecomsaas/ui/shadcn';
+import { PasswordInput } from '@/components/password-input';
 import { login } from '../actions';
 
 export default function LoginPage() {
@@ -37,10 +38,15 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="text-sm font-semibold text-foreground">
-                Password
-              </label>
-              <ShadcnInput id="password" name="password" type="password" required minLength={6} />
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="text-sm font-semibold text-foreground">
+                  Password
+                </label>
+                <a href="/forgot-password" className="text-xs text-brand-500 hover:underline">
+                  Forgot password?
+                </a>
+              </div>
+              <PasswordInput id="password" name="password" required minLength={6} />
             </div>
 
             <ShadcnButton type="submit" variant="primary" className="w-full" disabled={isPending}>

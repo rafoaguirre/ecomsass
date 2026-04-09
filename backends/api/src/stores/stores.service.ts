@@ -52,6 +52,10 @@ export class StoresService {
       throw result.error;
     }
 
+    if (!result.value.isActive) {
+      throw new NotFoundError('Store', id);
+    }
+
     return toPublicStoreResponse(result.value);
   }
 

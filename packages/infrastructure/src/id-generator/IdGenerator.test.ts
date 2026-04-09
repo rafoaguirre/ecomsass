@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { SimpleIdGenerator, createIdGenerator } from './IdGenerator';
 import type { IdGenerator } from './index';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
 describe('IdGenerator', () => {
   let generator: IdGenerator;
 
@@ -10,34 +12,23 @@ describe('IdGenerator', () => {
   });
 
   describe('generate', () => {
-    it('should generate a unique ID without prefix', () => {
+    it('should generate a valid UUID', () => {
       const id = generator.generate();
       expect(id).toBeTruthy();
       expect(typeof id).toBe('string');
-      // Format: timestamp-random (e.g., 1711234567890-k3j2h9)
-      expect(id).toMatch(/^\d+-[a-f0-9]{6}$/);
+      expect(id).toMatch(UUID_RE);
     });
 
-    it('should generate a unique ID with prefix', () => {
+    it('should accept prefix parameter for interface compatibility', () => {
       const id = generator.generate('order');
       expect(id).toBeTruthy();
-      expect(id).toMatch(/^order-\d+-[a-f0-9]{6}$/);
+      expect(id).toMatch(UUID_RE);
     });
 
     it('should generate different IDs on consecutive calls', () => {
       const id1 = generator.generate();
       const id2 = generator.generate();
       expect(id1).not.toBe(id2);
-    });
-
-    it('should support various prefix types', () => {
-      const orderId = generator.generate('order');
-      const productId = generator.generate('product');
-      const userId = generator.generate('user');
-
-      expect(orderId).toContain('order-');
-      expect(productId).toContain('product-');
-      expect(userId).toContain('user-');
     });
   });
 
@@ -51,10 +42,10 @@ describe('IdGenerator', () => {
       expect(uniqueIds.size).toBe(5);
     });
 
-    it('should generate batch with prefix', () => {
+    it('should generate batch of valid UUIDs', () => {
       const ids = generator.generateBatch(3, 'item');
       expect(ids).toHaveLength(3);
-      expect(ids.every((id: string) => id.startsWith('item-'))).toBe(true);
+      expect(ids.every((id: string) => UUID_RE.test(id))).toBe(true);
     });
 
     it('should handle large batch sizes', () => {
@@ -63,19 +54,6 @@ describe('IdGenerator', () => {
 
       const uniqueIds = new Set(ids);
       expect(uniqueIds.size).toBe(100);
-    });
-
-    it('should generate IDs with counter for uniqueness in same millisecond', () => {
-      const ids = generator.generateBatch(3, 'test');
-
-      // All IDs should be unique despite same timestamp
-      const uniqueIds = new Set(ids);
-      expect(uniqueIds.size).toBe(3);
-
-      // Pattern: prefix-timestamp-counter-random
-      expect(ids[0]).toMatch(/^test-\d+-0-[a-f0-9]{6}$/);
-      expect(ids[1]).toMatch(/^test-\d+-1-[a-f0-9]{6}$/);
-      expect(ids[2]).toMatch(/^test-\d+-2-[a-f0-9]{6}$/);
     });
   });
 
@@ -92,7 +70,7 @@ describe('IdGenerator', () => {
     it('should create functional generator', () => {
       const gen = createIdGenerator();
       const id = gen.generate('test');
-      expect(id).toMatch(/^test-\d+-[a-f0-9]{6}$/);
+      expect(id).toMatch(UUID_RE);
     });
   });
 });

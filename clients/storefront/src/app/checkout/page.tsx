@@ -109,7 +109,7 @@ export default function CheckoutPage() {
               address: {
                 street: shipping.street,
                 city: shipping.city,
-                state: shipping.state,
+                province: shipping.state,
                 postalCode: shipping.postalCode,
                 country: shipping.country,
               },

@@ -1,4 +1,4 @@
-import { PaymentStatus, err } from '@ecomsaas/domain';
+import { PaymentStatus, OrderStatus, err, ok } from '@ecomsaas/domain';
 import type { OrderModel, Result } from '@ecomsaas/domain';
 import type { OrderRepository } from '../../ports';
 
@@ -12,6 +12,9 @@ export interface ConfirmOrderInput {
  *
  * Called when a payment is successfully completed (e.g. via Stripe webhook).
  * Confirms the order and updates the payment status to PAID.
+ *
+ * This use case is idempotent: if the order is already confirmed (or beyond),
+ * it returns the current state without error — safe for webhook redelivery.
  */
 export class ConfirmOrder {
   constructor(private readonly orderRepository: OrderRepository) {}
@@ -22,17 +25,22 @@ export class ConfirmOrder {
       return err(findResult.error);
     }
 
-    let order = findResult.value;
+    const order = findResult.value;
+
+    // Idempotent: if already confirmed or further along, return current state
+    if (order.status !== OrderStatus.Placed) {
+      return ok(order);
+    }
 
     // Update payment info with the confirmed payment intent
-    order = order.updatePayment({
+    let updated = order.updatePayment({
       status: PaymentStatus.Paid,
       stripePaymentIntentId: input.paymentIntentId,
     });
 
     // Transition order status from PLACED → CONFIRMED
-    order = order.confirm();
+    updated = updated.confirm();
 
-    return this.orderRepository.save(order);
+    return this.orderRepository.save(updated);
   }
 }
