@@ -4,7 +4,7 @@
 
 If you discover a security vulnerability in this project, please report it responsibly.
 
-**Email:** [rafoaguirre@gmail.com](mailto:rafoaguirre@gmail.com)
+**Email:** [hey@rafaeloaguirre.com](mailto:hey@rafaeloaguirre.com)
 
 Please include:
 
