@@ -42,18 +42,18 @@ export class SupabaseAuthGuard implements CanActivate {
     request.user = {
       id: data.user.id,
       email: data.user.email ?? null,
-      role: this.extractRole(data.user.app_metadata),
+      role: this.extractRole(data.user.app_metadata) ?? UserRole.Customer,
     };
 
     return true;
   }
 
-  private extractRole(appMetadata: Record<string, unknown> | undefined): string | null {
-    if (!appMetadata) {
+  private extractRole(metadata: Record<string, unknown> | undefined): string | null {
+    if (!metadata) {
       return null;
     }
 
-    const role = appMetadata['role'];
+    const role = metadata['role'];
     if (typeof role !== 'string' || !VALID_ROLES.has(role)) {
       return null;
     }

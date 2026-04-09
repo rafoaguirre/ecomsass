@@ -56,7 +56,10 @@ async function bootstrap() {
 
   // 2. Create the NestJS application.
   //    ConfigModule (global) reads the now-populated process.env values.
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    // Preserve raw body for Stripe webhook signature verification
+    rawBody: true,
+  });
 
   // Security headers
   app.use(helmet());

@@ -16,7 +16,8 @@
     "audit": "pnpm audit --audit-level=moderate",
     "prepare": "husky",
     "start": "turbo start",
-    "test": "turbo test"
+    "test": "turbo test",
+    "full-check": "pnpm run build && turbo run lint && turbo run type-check && pnpm run test && pnpm audit"
   },
   "keywords": [
     "ecommerce",

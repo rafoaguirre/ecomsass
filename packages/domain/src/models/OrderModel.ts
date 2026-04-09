@@ -357,6 +357,13 @@ export class OrderModel extends AggregateRoot<Order> implements Order {
     return this.withUpdates({ notes: [...this.notes, note] });
   }
 
+  /** Update payment info (e.g. after a successful payment). */
+  updatePayment(patch: Partial<PaymentInfo>): OrderModel {
+    return this.withUpdates({
+      payment: { ...this.payment, ...patch },
+    });
+  }
+
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------

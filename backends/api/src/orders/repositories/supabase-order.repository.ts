@@ -249,7 +249,7 @@ export class SupabaseOrderRepository implements OrderRepository {
   }
 
   async save(order: OrderModel): Promise<Result<OrderModel, Error>> {
-    // Upsert the order row
+    // Build JSON payloads for the atomic RPC function
     const orderPayload = {
       id: order.id,
       store_id: order.storeId,
@@ -274,47 +274,32 @@ export class SupabaseOrderRepository implements OrderRepository {
       updated_at: order.updatedAt.toISOString(),
     };
 
-    const { error: orderError } = await this.supabase.from('orders').upsert(orderPayload);
+    const itemPayloads = order.items.map((item) => ({
+      id: item.id,
+      product_id: item.productId,
+      product_name: item.productName,
+      variant_id: item.variantId ?? null,
+      variant_name: item.variantName ?? null,
+      quantity: item.quantity,
+      unit_price_amount: item.unitPrice.amount.toString(),
+      unit_price_currency: item.unitPrice.currency,
+      subtotal_amount: item.subtotal.amount.toString(),
+      subtotal_currency: item.subtotal.currency,
+      discount_amount: item.discount?.amount.toString() ?? null,
+      discount_currency: item.discount?.currency ?? null,
+      total_amount: item.total.amount.toString(),
+      total_currency: item.total.currency,
+      metadata: item.metadata ?? {},
+    }));
 
-    if (orderError) {
-      return err(new Error(`Failed to save order: ${orderError.message}`));
-    }
+    // Atomic upsert: order + items in a single transaction via RPC
+    const { error } = await this.supabase.rpc('save_order_atomic', {
+      p_order: orderPayload,
+      p_items: itemPayloads,
+    });
 
-    // Delete existing items and re-insert (simplest upsert strategy for order items)
-    const { error: deleteError } = await this.supabase
-      .from('order_items')
-      .delete()
-      .eq('order_id', order.id);
-
-    if (deleteError) {
-      return err(new Error(`Failed to clear order items: ${deleteError.message}`));
-    }
-
-    if (order.items.length > 0) {
-      const itemPayloads = order.items.map((item) => ({
-        id: item.id,
-        order_id: order.id,
-        product_id: item.productId,
-        product_name: item.productName,
-        variant_id: item.variantId ?? null,
-        variant_name: item.variantName ?? null,
-        quantity: item.quantity,
-        unit_price_amount: item.unitPrice.amount.toString(),
-        unit_price_currency: item.unitPrice.currency,
-        subtotal_amount: item.subtotal.amount.toString(),
-        subtotal_currency: item.subtotal.currency,
-        discount_amount: item.discount?.amount.toString() ?? null,
-        discount_currency: item.discount?.currency ?? null,
-        total_amount: item.total.amount.toString(),
-        total_currency: item.total.currency,
-        metadata: item.metadata ?? {},
-      }));
-
-      const { error: insertError } = await this.supabase.from('order_items').insert(itemPayloads);
-
-      if (insertError) {
-        return err(new Error(`Failed to save order items: ${insertError.message}`));
-      }
+    if (error) {
+      return err(new Error(`Failed to save order: ${error.message}`));
     }
 
     // Re-fetch the full order to return consistent data
@@ -332,18 +317,15 @@ export class SupabaseOrderRepository implements OrderRepository {
   }
 
   async generateReferenceId(storeId: string): Promise<string> {
-    // Count existing orders for this store and generate the next reference
-    const { count, error } = await this.supabase
-      .from('orders')
-      .select('id', { count: 'exact', head: true })
-      .eq('store_id', storeId);
+    const { data, error } = await this.supabase.rpc('next_order_reference', {
+      p_store_id: storeId,
+    });
 
     if (error) {
       throw new Error(`Failed to generate reference ID: ${error.message}`);
     }
 
-    const nextNum = (count ?? 0) + 1;
-    return `ORD-${nextNum.toString().padStart(6, '0')}`;
+    return data as string;
   }
 
   // ---------------------------------------------------------------------------

@@ -13,8 +13,10 @@ A modern, scalable multi-tenant e-commerce platform enabling vendors to create a
 - **[Architecture Overview](docs/ARCHITECTURE.md)** - System design, technology stack, and architectural decisions
 - **[Implementation Plan](docs/IMPLEMENTATION_PLAN.md)** - Detailed phased development roadmap
 - **[Technical Decisions](docs/DECISIONS.md)** - Quick reference for all key technical decisions
+- **[Stripe Setup](docs/STRIPE_SETUP.md)** - Stripe integration, webhook setup, and local testing
 - **[Commit Guide](docs/COMMIT_GUIDE.md)** - Commit message conventions and guidelines
 - **[TypeScript Config Examples](docs/TSCONFIG_EXAMPLES.md)** - Package configuration patterns
+- **[Security Policy](SECURITY.md)** - Vulnerability reporting and security practices
 
 ## ✨ Key Features
 
@@ -32,21 +34,21 @@ A modern, scalable multi-tenant e-commerce platform enabling vendors to create a
 
 ### ✅ Complete
 
-| Phase                    | Description                                         | Highlights                                                                                                                                                                                                                     |
-| ------------------------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **0 — Foundation**       | Shared packages, domain models, infrastructure      | DDD entities (Store, Product, Order, Subscription), value objects (Money, Address), 280+ domain tests, shared validation (Zod), infrastructure adapters (cache, queue, storage, logger), shared UI library (shadcn + Tailwind) |
-| **1 — API Foundation**   | NestJS API with Supabase auth & database            | Supabase JWT auth, RLS propagation, repository pattern, stores slug endpoint, e2e test framework                                                                                                                               |
-| **2 — Core Backend**     | Full CRUD APIs for stores, products, users, vendors | Store management, product catalog, user/vendor management, search & filtering, S3 storage adapter, security hardening (CORS, Helmet, rate limiting)                                                                            |
-| **3 — Frontend Auth**    | Supabase SSR auth for both frontends                | Login/register (vendor + storefront), session middleware, API client with token injection, shared UI components wired in                                                                                                       |
-| **4 — Vendor Dashboard** | Full vendor management experience                   | 2-step onboarding wizard, dashboard with stats, product CRUD (create/edit/delete), store settings (general/contact/address), shared TagInput component                                                                         |
+| Phase                     | Description                                         | Highlights                                                                                                                                                                                                                     |
+| ------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **0 — Foundation**        | Shared packages, domain models, infrastructure      | DDD entities (Store, Product, Order, Subscription), value objects (Money, Address), 280+ domain tests, shared validation (Zod), infrastructure adapters (cache, queue, storage, logger), shared UI library (shadcn + Tailwind) |
+| **1 — API Foundation**    | NestJS API with Supabase auth & database            | Supabase JWT auth, RLS propagation, repository pattern, stores slug endpoint, e2e test framework                                                                                                                               |
+| **2 — Core Backend**      | Full CRUD APIs for stores, products, users, vendors | Store management, product catalog, user/vendor management, search & filtering, S3 storage adapter, security hardening (CORS, Helmet, rate limiting)                                                                            |
+| **3 — Frontend Auth**     | Supabase SSR auth for both frontends                | Login/register (vendor + storefront), session middleware, API client with token injection, shared UI components wired in                                                                                                       |
+| **4 — Vendor Dashboard**  | Full vendor management experience                   | 2-step onboarding wizard, dashboard with stats, product CRUD (create/edit/delete), store settings (general/contact/address), shared TagInput component                                                                         |
+| **5 — Marketplace**       | Storefront discovery and shopping                   | Store listing & detail pages, product catalog with search, product detail, multi-vendor cart with Zustand                                                                                                                      |
+| **6 — Orders & Payments** | Checkout flow with Stripe                           | Multi-step checkout (review → shipping → payment), Stripe PaymentIntent integration, order placement & confirmation via webhooks, order management API, atomic order persistence                                               |
 
 ### 🔜 Up Next
 
-| Phase                     | Description                                                          |
-| ------------------------- | -------------------------------------------------------------------- |
-| **5 — Marketplace**       | Storefront discovery, store pages, product detail, multi-vendor cart |
-| **6 — Orders & Payments** | Checkout flow, Stripe Connect, order management                      |
-| **7 — Blockchain**        | Crypto payments, token fundraising, rewards (Polygon)                |
+| Phase              | Description                                           |
+| ------------------ | ----------------------------------------------------- |
+| **7 — Blockchain** | Crypto payments, token fundraising, rewards (Polygon) |
 
 ## 🏗️ Architecture
 
@@ -71,9 +73,10 @@ ecomsaas/
 
 ### Prerequisites
 
-- **Node.js**: v24.2.0 (see `.nvmrc`)
+- **Node.js**: v24.10.0 (see `.nvmrc`)
 - **pnpm**: 10.24.0+
-- **Git**: Latest version
+- **Supabase CLI**: For local database or migration management — [install guide](https://supabase.com/docs/guides/cli/getting-started)
+- **Stripe CLI** _(optional)_: For testing webhooks locally — `brew install stripe/stripe-cli/stripe`
 
 ### Installation
 
@@ -86,6 +89,73 @@ pnpm install
 
 # Build all packages
 pnpm build
+```
+
+### Environment Setup
+
+Copy each `.env.example` and fill in your values:
+
+```bash
+# API server
+cp backends/api/.env.example backends/api/.env
+
+# Storefront client
+cp clients/storefront/.env.example clients/storefront/.env.local
+
+# Vendor dashboard (optional — only if working on vendor features)
+cp clients/vendor/.env.example clients/vendor/.env.local
+```
+
+**Where to get the values:**
+
+| Variable                                                         | Source                                                                                                |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase project → Settings → API                                                                     |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`      | Same as above (public-safe keys)                                                                      |
+| `STRIPE_SECRET_KEY`                                              | [Stripe Dashboard → API keys](https://dashboard.stripe.com/test/apikeys) — Secret key (`sk_test_...`) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`                             | Same page — Publishable key (`pk_test_...`)                                                           |
+| `STRIPE_WEBHOOK_SECRET`                                          | Output of `stripe listen` CLI command (`whsec_...`)                                                   |
+
+### Database Setup
+
+```bash
+# Apply all migrations to your Supabase database
+npx supabase db push
+```
+
+### Running Services
+
+```bash
+# Start everything (API + storefront + vendor dashboard)
+pnpm dev
+```
+
+Or run services individually:
+
+```bash
+pnpm --filter @ecomsaas/api dev        # API        → http://localhost:3000
+pnpm --filter @ecomsaas/storefront dev # Storefront → http://localhost:3001
+pnpm --filter @ecomsaas/vendor dev     # Vendor     → http://localhost:3002
+```
+
+### Stripe Webhooks (Local Dev)
+
+To receive payment confirmations locally, run in a separate terminal:
+
+```bash
+stripe listen --forward-to localhost:3000/api/v1/webhooks/stripe
+```
+
+Copy the `whsec_...` secret it prints into `backends/api/.env` as `STRIPE_WEBHOOK_SECRET`.
+
+### Verify Everything Works
+
+```bash
+# Health check
+curl http://localhost:3000/health
+
+# Run all checks
+pnpm type-check && pnpm lint && pnpm test
 ```
 
 ## 📦 Development
@@ -119,10 +189,10 @@ pnpm test
 
 ```bash
 # Add a dependency to a specific workspace
-pnpm --filter @ecomsaas/backend add express
+pnpm --filter @ecomsaas/api add stripe
 
 # Run a command in a specific workspace
-pnpm --filter @ecomsaas/web dev
+pnpm --filter @ecomsaas/storefront dev
 
 # Add a dev dependency to the root
 pnpm add -D -w <package-name>

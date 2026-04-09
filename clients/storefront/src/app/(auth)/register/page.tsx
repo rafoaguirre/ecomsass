@@ -11,6 +11,7 @@ import {
   ShadcnCardTitle,
   ShadcnInput,
 } from '@ecomsaas/ui/shadcn';
+import { PasswordInput } from '@/components/password-input';
 import { register } from '../actions';
 
 export default function RegisterPage() {
@@ -40,7 +41,7 @@ export default function RegisterPage() {
               <label htmlFor="password" className="text-sm font-semibold text-foreground">
                 Password
               </label>
-              <ShadcnInput id="password" name="password" type="password" required minLength={6} />
+              <PasswordInput id="password" name="password" required minLength={6} />
             </div>
 
             <ShadcnButton type="submit" variant="primary" className="w-full" disabled={isPending}>

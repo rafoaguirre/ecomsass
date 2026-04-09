@@ -5,6 +5,11 @@ import type {
   ProductSearchResponse,
 } from '@ecomsaas/contracts';
 import type { ProductModel } from '@ecomsaas/domain';
+import type { Money } from '@ecomsaas/domain';
+
+function toMoneyResponse(money: Money) {
+  return { amount: money.amount.toString(), currency: money.currency };
+}
 
 export function toProductResponse(product: ProductModel): ProductResponse {
   return {
@@ -13,26 +18,25 @@ export function toProductResponse(product: ProductModel): ProductResponse {
     name: product.name,
     slug: product.slug,
     description: product.description,
-    price: {
-      amount: Number(product.price.amount),
-      currency: product.price.currency,
-    } as unknown as ProductModel['price'],
-    compareAtPrice: product.compareAtPrice
-      ? ({
-          amount: Number(product.compareAtPrice.amount),
-          currency: product.compareAtPrice.currency,
-        } as unknown as ProductModel['compareAtPrice'])
-      : undefined,
+    price: toMoneyResponse(product.price),
+    compareAtPrice: product.compareAtPrice ? toMoneyResponse(product.compareAtPrice) : undefined,
     images: product.images,
     categoryId: product.categoryId,
     supplierId: product.supplierId,
     availability: product.availability,
     inventory: product.inventory,
-    variants: product.variants,
+    variants: product.variants?.map((v) => ({
+      id: v.id,
+      name: v.name,
+      sku: v.sku,
+      price: v.price ? toMoneyResponse(v.price) : undefined,
+      inventory: v.inventory,
+      attributes: v.attributes,
+    })),
     tags: product.tags,
     metadata: product.metadata,
-    createdAt: product.createdAt,
-    updatedAt: product.updatedAt,
+    createdAt: product.createdAt.toISOString(),
+    updatedAt: product.updatedAt.toISOString(),
     isLowStock: product.isLowStock(),
   };
 }
