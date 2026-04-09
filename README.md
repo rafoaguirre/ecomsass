@@ -77,6 +77,7 @@ ecomsaas/
 - **pnpm**: 10.24.0+
 - **Supabase CLI**: For local database or migration management — [install guide](https://supabase.com/docs/guides/cli/getting-started)
 - **Stripe CLI** _(optional)_: For testing webhooks locally — `brew install stripe/stripe-cli/stripe`
+- **Foundry** _(optional)_: For smart contract development — [install guide](https://book.getfoundry.sh/getting-started/installation)
 
 ### Installation
 
@@ -86,6 +87,9 @@ nvm use
 
 # Install dependencies
 pnpm install
+
+# Install Foundry dependencies (only needed for smart contract work)
+cd blockchain/contracts && forge install && cd ../..
 
 # Build all packages
 pnpm build
