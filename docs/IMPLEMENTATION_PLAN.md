@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** In Progress — Phase 6 complete (order & payment system); Phase 7+ pending  
+> **Status:** In Progress — Phase 6 complete; Phase 7.0 in progress (package audit)  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -762,69 +762,135 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 ---
 
-## Phase 7: Background Jobs & Worker (Week 17)
+## Phase 7: Background Jobs, Scalability & Code Quality (Week 17-18)
 
-### 7.1 Message Queue Setup
+### 7.0 Package Audit & Vulnerability Remediation ✅
 
-**Goal:** Setup BullMQ for async job processing
+**Goal:** Resolve all critical/high dependency vulnerabilities, update packages to latest stable.
 
-**Deliverables:**
-
-- [ ] Redis setup (production)
-- [ ] **Redis Cache Adapter** for `@ecomsaas/infrastructure` (ioredis client, TTL support)
-- [ ] **BullMQ Queue Adapter** for `@ecomsaas/infrastructure` (producer/consumer, job retry)
-- [ ] BullMQ configuration
-- [ ] Job queue definitions
-- [ ] Queue monitoring UI (Bull Board)
-
-### 7.2 Background Worker App
-
-**Goal:** Lightweight worker for job submission
+**Status:** Complete — 47 → 0 vulnerabilities. All packages updated within semver ranges.
 
 **Deliverables:**
 
-- [ ] Create `backends/worker/` (simple Node.js app)
-- [ ] Job submission utilities
-- [ ] Scheduled task triggers (cron)
-- [ ] Shared queue configuration (`packages/infrastructure/queue`)
-- [ ] Logging integration
+- [x] Run `pnpm audit` — found 47 vulns (2 critical, 23 high, 22 moderate)
+- [x] `pnpm update --recursive` — updated all packages within semver ranges (47 → 8 vulns)
+- [x] Add `vite@7.3.2` as explicit root devDependency — fixes 3 high + 1 moderate vite vulns
+- [x] Add `pnpm.overrides` for `vite` and `file-type` — forces patched versions in transitive deps
+- [x] Verify: `pnpm build` (10/10), `pnpm test`, `pnpm lint` (16/16), `pnpm type-check` (15/15) pass
+- [x] Zero critical/high/moderate vulnerabilities in `pnpm audit`
 
-**Architecture Note:**
+**Notable updates:**
 
-- Worker submits jobs to queue (producer)
-- API processes jobs (consumer) with registered handlers
-- Keeps worker lightweight, business logic in API
-- Alternative approach: API could handle both producing and consuming
+- NestJS ecosystem: 11.1.14 → 11.1.18 (fixes `@nestjs/core` injection vuln GHSA-36xv-jgw5-4q75)
+- React: 19.2.4 → 19.2.5
+- Supabase: 2.100.0 → 2.103.0
+- Turbo: 2.7.5 → 2.9.6
+- Vitest: 4.0.18 → 4.1.4
+- @typescript-eslint: 8.53.1 → 8.58.1
+- axios (transitive via @infisical/sdk): patched via update (SSRF + header injection)
+- minimatch (transitive via eslint): patched via update (ReDoS)
+- rollup (transitive via unplugin-swc): patched via update (path traversal)
 
-### 7.3 Job Implementations
+**Major version bumps deferred (documented):**
 
-**Goal:** Implement critical background jobs
+- ESLint 9 → 10 (breaking config format changes)
+- Next.js 15 → 16 (breaking — `next lint` removal, API changes)
+- TypeScript 5 → 6 (breaking — new strictness checks)
+- Storybook 8 → 10 (major overhaul, vite peer dep mismatch)
+- Pino 9 → 10 (breaking API changes)
+
+**Dependencies:** None
+
+### 7.1 Code Quality Review & Standards Compliance
+
+**Goal:** Address Clean Architecture drift, SOLID/DRY violations, and scalability impediments identified during Phase 6 review.
+
+**Status:** Not started
 
 **Deliverables:**
 
-- [ ] Email sending job
-- [ ] Payment reconciliation job
-- [ ] Order sync job (if needed)
-- [ ] Inventory update job
-- [ ] Report generation job
-- [ ] Scheduled jobs (cron)
+**High Priority:**
 
-**Example Job:**
+- [ ] Route vendor mutations through API instead of direct Supabase writes (orders/actions.ts, products/actions.ts bypass domain validation and future job hooks)
+- [ ] Move Stripe webhook idempotency from process-local `Set<string>` to durable storage (Redis key with TTL or DB unique event log)
 
-```typescript
-// Email job
-queueJobs.process('send-email', async (job) => {
-  const { to, subject, body } = job.data;
-  await emailService.send(to, subject, body);
-});
+**Medium Priority:**
+
+- [ ] Redesign Queue port interface from SQS-shaped to BullMQ-shaped (`JobQueue.enqueue(jobName, payload, opts)` + processor registration)
+- [ ] Add atomic stock reservation in PlaceOrder (`UPDATE ... WHERE stock >= $qty RETURNING *`)
+
+**Low Priority:**
+
+- [ ] Extract duplicated `api-client.ts` to shared package
+- [ ] Replace placeholder customer name in `enrichOrder` with profile lookup
+- [ ] Address lint warnings (`next lint` deprecation, storefront `<img>`, UI non-null assertion)
+
+**Dependencies:** Phase 7.0
+
+### 7.2 Redis + BullMQ Infrastructure + Docker Compose
+
+**Goal:** Replace in-memory queue/cache with production Redis/BullMQ adapters. Add Docker Compose for local development.
+
+**Status:** Not started
+
+**Deliverables:**
+
+- [ ] Design new `JobQueue` port interface (enqueue, processor registration, typed job names, lifecycle hooks)
+- [ ] Implement BullMQ adapter for `JobQueue` port (retry/backoff, delayed jobs, priorities, DLQ)
+- [ ] Implement Redis cache adapter for existing `Cache` interface (ioredis, key namespacing, safe `clear`)
+- [ ] `docker-compose.yml` with Redis service (DB 0 cache, DB 1 BullMQ)
+- [ ] Mount Bull Board at `/admin/queues` behind admin auth guard
+- [ ] Redis connection config via secrets/env
+- [ ] Health check endpoints for Redis connectivity
+
+**Dependencies:** Phase 7.1 (queue port redesign)
+
+### 7.3 Email Infrastructure & Notifications
+
+**Goal:** Add email sending capability. Define port, implement adapter, create templates, wire to order events.
+
+**Status:** Not started
+
+**Deliverables:**
+
+- [ ] `EmailSender` interface in `packages/application/src/ports/`
+- [ ] Production adapter (Resend, SES, or SMTP) + dev adapter (console/Ethereal)
+- [ ] HTML email templates: order confirmation, status update, base layout
+- [ ] Enqueue email jobs from API use cases (order placed, status changed)
+- [ ] Idempotent job handlers (skip if already sent)
+
+**Dependencies:** Phase 7.2
+
+### 7.4 Background Worker & Scheduled Jobs
+
+**Goal:** Create worker application, implement cron jobs for reconciliation, alerts, and cleanup.
+
+**Status:** Not started
+
+**Deliverables:**
+
+- [ ] Create `backends/worker/` — lightweight Node.js process
+- [ ] Connect to same Redis, share `@ecomsaas/infrastructure` and `@ecomsaas/application`
+- [ ] Cron: payment reconciliation (hourly), low-stock alerts (daily), stale order cleanup (daily)
+- [ ] BullMQ Worker processors with structured logging, retry/backoff, graceful shutdown
+- [ ] Add to Turborepo pipeline and Docker Compose
+
+**Architecture:**
+
 ```
+API (producer) → Redis/BullMQ → Worker (consumer)
+Worker (scheduler) → Redis/BullMQ → Worker (consumer)
+```
+
+**Dependencies:** Phase 7.2, Phase 7.3
 
 **Completion Criteria:**
 
-- Worker processing jobs reliably
-- Failed jobs retry appropriately
-- Monitoring dashboard accessible
-- Critical paths offloaded from API
+- Zero audit vulnerabilities (7.0)
+- Clean Architecture drift resolved; all mutations through API (7.1)
+- Redis + BullMQ operational, Bull Board accessible (7.2)
+- Order emails sending end-to-end (7.3)
+- Worker running cron jobs reliably (7.4)
 
 ---
 

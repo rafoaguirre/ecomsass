@@ -66,8 +66,21 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
+      - name: Detect dependency changes
+        id: deps-changed
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            deps:
+              - 'pnpm-lock.yaml'
+              - '**/package.json'
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Audit dependencies
+        if: steps.deps-changed.outputs.deps == 'true'
+        run: pnpm audit --audit-level=moderate
 
       - name: Build
         run: pnpm build
