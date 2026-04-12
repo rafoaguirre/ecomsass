@@ -1,6 +1,6 @@
 /**
  * Re-export shared order display utilities from @ecomsaas/ui,
- * plus vendor-specific constants.
+ * plus storefront-specific constants.
  */
 
 export {
@@ -11,8 +11,12 @@ export {
   formatAddress,
 } from '@ecomsaas/ui/order-utils';
 
-/** Statuses shown in the vendor filter bar (excludes terminal refund states for cleaner UX). */
-export const FILTERABLE_STATUSES = [
+/**
+ * Ordered list of statuses used for the tracking timeline.
+ * Terminal negative states (Cancelled, Refunded) are excluded —
+ * they are handled separately.
+ */
+export const TIMELINE_STATUSES = [
   'PLACED',
   'CONFIRMED',
   'PROCESSING',
@@ -20,5 +24,4 @@ export const FILTERABLE_STATUSES = [
   'IN_TRANSIT',
   'DELIVERED',
   'COMPLETED',
-  'CANCELLED',
 ] as const;

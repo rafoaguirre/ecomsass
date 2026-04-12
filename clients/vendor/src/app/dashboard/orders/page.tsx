@@ -22,9 +22,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
 
   let query = supabase
     .from('orders')
-    .select(
-      'id, reference_id, status, total_amount, total_currency, created_at, user_id, profiles!inner(display_name, email)'
-    )
+    .select('id, reference_id, status, total_amount, total_currency, created_at, user_id')
     .eq('store_id', storeId)
     .order('created_at', { ascending: false })
     .limit(100);
@@ -44,11 +42,10 @@ export default async function OrdersPage({ searchParams }: PageProps) {
       total_currency: string;
       created_at: string;
       user_id: string;
-      profiles: { display_name: string | null; email: string | null }[];
     }>
   ).map((o) => ({
     ...o,
-    profile: o.profiles[0] ?? { display_name: null, email: null },
+    profile: { display_name: null, email: null },
   }));
 
   return (

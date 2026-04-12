@@ -85,11 +85,14 @@ function ConfirmationContent() {
           <code className="rounded bg-neutral-100 px-1 py-0.5">{paymentIntentId}</code>
         </p>
       )}
-      <Link href="/">
-        <ShadcnButton variant="primary" className="mt-6">
-          Continue Shopping
-        </ShadcnButton>
-      </Link>
+      <div className="mt-6 flex items-center justify-center gap-3">
+        <Link href="/orders">
+          <ShadcnButton variant="primary">View My Orders</ShadcnButton>
+        </Link>
+        <Link href="/">
+          <ShadcnButton variant="secondary">Continue Shopping</ShadcnButton>
+        </Link>
+      </div>
     </section>
   );
 }

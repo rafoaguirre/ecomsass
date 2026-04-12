@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** In Progress — Phase 6.4 complete (vendor order UI); customer order UI deferred  
+> **Status:** In Progress — Phase 6 complete (order & payment system); Phase 7+ pending  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -731,16 +731,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 **Goal:** Order views for customers and vendors
 
-**Status:** Complete — vendor-side order management shipped. Customer-side and analytics deferred.
+**Status:** Complete — vendor-side and customer-side order management shipped.
 
 **Deliverables:**
 
-**Customer Side (Marketplace) — deferred to Phase 8:**
+**Customer Side (Marketplace):**
 
-- [ ] Order history page
-- [ ] Order detail page
-- [ ] Order tracking
-- [ ] Download invoice
+- [x] Order history page — `/orders` with store name, status badges, total
+- [x] Order detail page — `/orders/:id` with items table, totals, shipping info
+- [x] Order tracking — status timeline component showing order progression
+- [x] Download invoice — print-friendly invoice page with `@media print` CSS
 
 **Vendor Side (Vendor App):**
 
@@ -749,7 +749,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 - [x] Update order status action — server action with DB trigger enforcement, shipping form with tracking
 - [x] Dashboard stats — live order count + revenue
 - [x] Sidebar navigation — Orders nav item
-- [ ] Print packing slip (deferred)
+- [x] Print packing slip — print-friendly packing slip page with item checklist (no prices)
 - [ ] Order analytics (deferred)
 
 **Completion Criteria:**

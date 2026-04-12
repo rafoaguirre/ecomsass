@@ -36,6 +36,11 @@
       "import": "./dist/shadcn/index.js",
       "require": "./dist/shadcn/index.cjs"
     },
+    "./order-utils": {
+      "types": "./dist/lib/order-utils.d.ts",
+      "import": "./dist/lib/order-utils.js",
+      "require": "./dist/lib/order-utils.cjs"
+    },
     "./styles.css": "./src/styles/theme.css",
     "./tailwind.css": "./src/styles/tailwind.css"
   },
