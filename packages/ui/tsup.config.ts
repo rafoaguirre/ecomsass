@@ -8,6 +8,7 @@ export default defineConfig({
     'web/index': 'src/web/index.ts',
     'native/index': 'src/native/index.ts',
     'shadcn/index': 'src/shadcn/index.ts',
+    'lib/order-utils': 'src/lib/order-utils.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

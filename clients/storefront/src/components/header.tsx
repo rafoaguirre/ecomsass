@@ -30,6 +30,14 @@ export async function Header() {
           >
             All Stores
           </Link>
+          {user && (
+            <Link
+              href="/orders"
+              className="text-sm font-medium text-muted transition-colors hover:text-foreground"
+            >
+              My Orders
+            </Link>
+          )}
         </nav>
 
         {/* Cart + Auth */}
