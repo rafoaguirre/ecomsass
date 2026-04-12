@@ -52,7 +52,7 @@ export function formatDate(date: string): string {
 
 /** Date with time — e.g. "Apr 12, 2026, 3:45 PM" */
 export function formatDateTime(date: string): string {
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -66,8 +66,15 @@ export function formatAddress(
   address: Record<string, string | undefined> | null | undefined
 ): string | null {
   if (!address) return null;
-  const parts = [address.street, address.city, address.state, address.zip, address.country].filter(
-    Boolean
-  );
+  const stateOrProvince = address.state ?? address.province;
+  const zipOrPostalCode = address.zip ?? address.postalCode;
+  const parts = [
+    address.street,
+    address.street2,
+    address.city,
+    stateOrProvince,
+    zipOrPostalCode,
+    address.country,
+  ].filter(Boolean);
   return parts.length > 0 ? parts.join(', ') : null;
 }

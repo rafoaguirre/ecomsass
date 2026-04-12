@@ -19,7 +19,7 @@ export default async function InvoicePage({ params }: PageProps) {
 
   const { data: order } = await supabase
     .from('orders')
-    .select('*, order_items(*), stores!inner(name, email, address)')
+    .select('*, order_items(*), stores(name, email, address)')
     .eq('id', id)
     .eq('user_id', user.id)
     .single();

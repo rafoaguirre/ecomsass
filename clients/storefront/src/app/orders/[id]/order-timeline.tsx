@@ -1,4 +1,4 @@
-import { TIMELINE_STATUSES, ORDER_STATUS_CONFIG } from '@/lib/order-utils';
+import { TIMELINE_STATUSES, ORDER_STATUS_CONFIG, formatDateTime } from '@/lib/order-utils';
 
 interface OrderTimelineProps {
   currentStatus: string;
@@ -36,24 +36,10 @@ export function OrderTimeline({ currentStatus, createdAt, updatedAt }: OrderTime
                   {cfg?.label ?? status}
                 </p>
                 {isCurrent && (
-                  <span className="text-xs text-muted">
-                    {new Date(updatedAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  </span>
+                  <span className="text-xs text-muted">{formatDateTime(updatedAt)}</span>
                 )}
                 {idx === 0 && !isCurrent && isPast && (
-                  <span className="text-xs text-muted">
-                    {new Date(createdAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  </span>
+                  <span className="text-xs text-muted">{formatDateTime(createdAt)}</span>
                 )}
               </div>
             </li>
@@ -67,15 +53,7 @@ export function OrderTimeline({ currentStatus, createdAt, updatedAt }: OrderTime
           <p className="text-sm font-medium text-red-800">
             {ORDER_STATUS_CONFIG[currentStatus]?.label ?? currentStatus}
           </p>
-          <p className="mt-0.5 text-xs text-red-600">
-            {new Date(updatedAt).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit',
-            })}
-          </p>
+          <p className="mt-0.5 text-xs text-red-600">{formatDateTime(updatedAt)}</p>
         </div>
       )}
     </div>

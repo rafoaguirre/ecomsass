@@ -15,7 +15,7 @@ export default async function OrderHistoryPage() {
   const { data: orders } = await supabase
     .from('orders')
     .select(
-      'id, reference_id, status, total_amount, total_currency, created_at, store_id, stores!inner(name)'
+      'id, reference_id, status, total_amount, total_currency, created_at, store_id, stores(name)'
     )
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
