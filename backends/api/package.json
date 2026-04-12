@@ -21,11 +21,11 @@
     "@ecomsaas/domain": "workspace:^",
     "@ecomsaas/infrastructure": "workspace:^",
     "@ecomsaas/validation": "workspace:^",
-    "@nestjs/common": "^11.1.14",
-    "@nestjs/config": "^4.0.3",
-    "@nestjs/core": "^11.1.14",
-    "@nestjs/platform-express": "^11.1.14",
-    "@nestjs/swagger": "^11.2.6",
+    "@nestjs/common": "^11.1.18",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.18",
+    "@nestjs/platform-express": "^11.1.18",
+    "@nestjs/swagger": "^11.2.7",
     "@nestjs/throttler": "^6.5.0",
     "helmet": "^8.1.0",
     "reflect-metadata": "^0.2.2",
@@ -33,15 +33,15 @@
     "stripe": "^22.0.1"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.16",
-    "@nestjs/testing": "^11.1.14",
-    "@swc/cli": "^0.7.7",
-    "@swc/core": "^1.15.13",
+    "@nestjs/cli": "^11.0.19",
+    "@nestjs/testing": "^11.1.18",
+    "@swc/cli": "^0.7.10",
+    "@swc/core": "^1.15.24",
     "@types/express": "^5.0.6",
-    "@types/node": "^22.19.11",
+    "@types/node": "^22.19.17",
     "@types/supertest": "^7.2.0",
     "supertest": "^7.2.2",
     "unplugin-swc": "^1.5.9",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.4"
   }
 }
