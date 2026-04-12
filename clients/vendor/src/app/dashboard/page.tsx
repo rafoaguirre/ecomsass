@@ -40,6 +40,26 @@ export default async function DashboardPage() {
     .select('id', { count: 'exact', head: true })
     .eq('store_id', store.id);
 
+  // Count orders
+  const { count: orderCount } = await supabase
+    .from('orders')
+    .select('id', { count: 'exact', head: true })
+    .eq('store_id', store.id);
+
+  // Sum revenue from completed/confirmed orders
+  const { data: revenueData } = await supabase
+    .from('orders')
+    .select('total_amount')
+    .eq('store_id', store.id)
+    .in('status', ['CONFIRMED', 'PROCESSING', 'PACKED', 'IN_TRANSIT', 'DELIVERED', 'COMPLETED']);
+
+  const totalRevenue = (revenueData ?? []).reduce((sum, row) => sum + Number(row.total_amount), 0);
+
+  const formattedRevenue =
+    totalRevenue > 0
+      ? (totalRevenue / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+      : '$0';
+
   const stats = [
     {
       label: 'Products',
@@ -63,8 +83,8 @@ export default async function DashboardPage() {
     },
     {
       label: 'Orders',
-      value: 0,
-      description: 'Coming soon',
+      value: orderCount ?? 0,
+      description: 'Total orders',
       icon: (
         <svg
           className="h-5 w-5 text-brand-500"
@@ -83,8 +103,8 @@ export default async function DashboardPage() {
     },
     {
       label: 'Revenue',
-      value: '$0',
-      description: 'Coming soon',
+      value: formattedRevenue,
+      description: 'Confirmed orders',
       icon: (
         <svg
           className="h-5 w-5 text-brand-500"

@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** In Progress — Phase 6 (checkout & payments)  
+> **Status:** In Progress — Phase 6.4 complete (vendor order UI); customer order UI deferred  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -577,65 +577,71 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 ---
 
-## Phase 5: Marketplace Development (Week 13-14)
+## Phase 5: Marketplace Development (Week 13-14) ✅
 
-### 5.1 Marketplace Home Page
+**Status:** Complete — marketplace storefront with store pages, product detail, and multi-vendor shopping cart.
+
+### 5.1 Marketplace Home Page ✅
 
 **Goal:** Storefront discovery and browsing
 
-**Deliverables:**
-
-- [ ] Featured stores carousel
-- [ ] Store listings with filters
-- [ ] Search bar
-- [ ] Category navigation
-- [ ] Responsive design
-- [ ] SEO optimization
-
-### 5.2 Individual Store View (Subdomain)
-
-**Goal:** Render vendor stores on subdomains
+**Status:** Complete — featured stores, store listings, search, category filters, responsive layout.
 
 **Deliverables:**
 
-- [ ] Store page with branding
-- [ ] Product grid/list
-- [ ] Product detail page
-- [ ] Store information section
-- [ ] Search within store
-- [ ] SSG/ISR for performance
+- [x] Featured stores carousel
+- [x] Store listings with filters
+- [x] Search bar
+- [x] Category navigation
+- [x] Responsive design
+- [ ] SEO optimization (deferred to Phase 10)
 
-**Example:** `acme-store.oursite.com`
+### 5.2 Individual Store View ✅
 
-### 5.3 Product Detail Pages
+**Goal:** Render vendor store pages
+
+**Status:** Complete — store page with branding, product grid, store info. Subdomain routing deferred.
+
+**Deliverables:**
+
+- [x] Store page with branding
+- [x] Product grid/list
+- [x] Store information section
+- [x] Search within store
+- [ ] Subdomain routing (deferred)
+- [ ] SSG/ISR for performance (deferred to Phase 10)
+
+### 5.3 Product Detail Pages ✅
 
 **Goal:** Rich product presentation
 
+**Status:** Complete — product info, pricing, add-to-cart, variant selection.
+
 **Deliverables:**
 
-- [ ] Image gallery
-- [ ] Product information
-- [ ] Price and availability
-- [ ] Add to cart button
-- [ ] Related products
-- [ ] Vendor information
-- [ ] Basic meta tags
+- [x] Product information
+- [x] Price and availability
+- [x] Add to cart button
+- [x] Vendor information
+- [x] Basic meta tags
+- [ ] Image gallery (deferred — uses placeholder)
+- [ ] Related products (deferred)
 
-**Note:** Advanced SEO optimization (Open Graph, structured data, sitemaps) deferred to later phase
-
-### 5.4 Shopping Cart
+### 5.4 Shopping Cart ✅
 
 **Goal:** Multi-vendor cart implementation
 
+**Status:** Complete — Zustand cart with multi-vendor grouping, localStorage persistence, quantity controls.
+
 **Deliverables:**
 
-- [ ] Cart state management (Zustand)
-- [ ] Add/remove items
-- [ ] Quantity updates
-- [ ] Cart grouping by vendor
-- [ ] Cart persistence (localStorage + sync to backend)
-- [ ] Cart preview (dropdown/sidebar)
-- [ ] Empty cart state
+- [x] Cart state management (Zustand)
+- [x] Add/remove items
+- [x] Quantity updates
+- [x] Cart grouping by vendor
+- [x] Cart persistence (localStorage)
+- [x] Cart preview (sidebar)
+- [x] Empty cart state
 
 **Multi-Vendor Cart Structure:**
 
@@ -670,64 +676,66 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 ## Phase 6: Order & Payment System (Week 15-16)
 
-### 6.1 Checkout Flow
+### 6.1 Checkout Flow ✅
 
 **Goal:** Complete checkout implementation
 
-**Deliverables:**
-
-- [ ] Checkout page
-- [ ] Shipping information form
-- [ ] Payment method selection
-- [ ] Order summary
-- [ ] Multi-vendor order splitting
-- [ ] Loading and error states
-- [ ] Order confirmation page
-
-### 6.2 Stripe Payment Integration
-
-**Goal:** Payment processing with Stripe Connect
+**Status:** Complete — 3-step checkout (Review → Shipping → Payment), multi-vendor order splitting, Stripe PaymentElement.
 
 **Deliverables:**
 
-- [ ] Stripe Connect setup for vendors
-- [ ] Payment Intent creation (split per vendor)
-- [ ] Platform fee calculation
-- [ ] Payment confirmation
-- [ ] Webhook handling (payment succeeded, failed)
-- [ ] Refund capability
-- [ ] Tests with Stripe test mode
+- [x] Checkout page (3-step flow)
+- [x] Shipping information form
+- [x] Payment method selection (Stripe Elements)
+- [x] Order summary
+- [x] Multi-vendor order splitting
+- [x] Loading and error states
+- [x] Order confirmation page (handles Stripe redirect)
 
-**Flow:**
+### 6.2 Stripe Payment Integration ✅
 
-1. Customer submits order
-2. API creates PaymentIntent for each vendor
-3. Frontend collects payment (Stripe Elements)
-4. Webhooks confirm payment
-5. Order marked as paid
+**Goal:** Payment processing with Stripe
 
-### 6.3 Order Management API
+**Status:** Complete — PaymentIntent per vendor, webhook handling with idempotency, signature verification. Stripe Connect (platform fees) deferred.
+
+**Deliverables:**
+
+- [x] Payment Intent creation (split per vendor)
+- [x] Payment confirmation (Stripe Elements)
+- [x] Webhook handling (payment_intent.succeeded, payment_intent.payment_failed)
+- [x] Idempotent ConfirmOrder use case
+- [x] Tests with Stripe test mode
+- [ ] Stripe Connect setup for vendors (deferred)
+- [ ] Platform fee calculation (deferred)
+- [ ] Refund capability (deferred)
+
+### 6.3 Order Management API ✅
 
 **Goal:** Order CRUD and status management
 
+**Status:** Complete — atomic order persistence, domain state machine, RLS hardening, vendor access control. 4 rounds of security review applied.
+
 **Deliverables:**
 
-- [ ] `POST /api/v1/orders` - Create order
-- [ ] `GET /api/v1/orders/:id` - Get order
-- [ ] `GET /api/v1/orders` - List orders (customer view)
-- [ ] `GET /api/v1/vendors/:id/orders` - Vendor orders
-- [ ] `PUT /api/v1/orders/:id/status` - Update status
-- [ ] Order state machine (pending → paid → fulfilled → completed)
-- [ ] Email notifications (order confirmation, shipping)
-- [ ] Tests
+- [x] `POST /api/v1/stores/:storeId/orders` — Place order
+- [x] `GET /api/v1/orders/:id` — Get order detail
+- [x] `GET /api/v1/orders` — List customer orders
+- [x] `GET /api/v1/stores/:storeId/orders` — Vendor store orders
+- [x] `PUT /api/v1/orders/:id/status` — Update status (vendor)
+- [x] Order state machine (domain VALID_TRANSITIONS + DB trigger enforcement)
+- [x] Atomic order save RPC with sequence-based reference IDs
+- [x] Security hardening: RLS, vendor update trigger, RPC lockdown
+- [ ] Email notifications (deferred to Phase 7 — background jobs)
 
-### 6.4 Order Management UI
+### 6.4 Order Management UI ✅
 
 **Goal:** Order views for customers and vendors
 
+**Status:** Complete — vendor-side order management shipped. Customer-side and analytics deferred.
+
 **Deliverables:**
 
-**Customer Side (Marketplace):**
+**Customer Side (Marketplace) — deferred to Phase 8:**
 
 - [ ] Order history page
 - [ ] Order detail page
@@ -736,11 +744,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 **Vendor Side (Vendor App):**
 
-- [ ] Orders list (filterable)
-- [ ] Order detail page
-- [ ] Fulfill order action
-- [ ] Print packing slip
-- [ ] Order analytics
+- [x] Orders list (filterable by status) — status pill filter, table with customer join
+- [x] Order detail page — items table, totals breakdown, payment/fulfillment/customer info
+- [x] Update order status action — server action with DB trigger enforcement, shipping form with tracking
+- [x] Dashboard stats — live order count + revenue
+- [x] Sidebar navigation — Orders nav item
+- [ ] Print packing slip (deferred)
+- [ ] Order analytics (deferred)
 
 **Completion Criteria:**
 
