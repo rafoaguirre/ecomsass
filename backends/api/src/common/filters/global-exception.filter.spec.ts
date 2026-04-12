@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { HttpException, HttpStatus, Logger } from '@nestjs/common';
 import {
   NotFoundError,
   ValidationError,
@@ -35,6 +35,12 @@ describe('GlobalExceptionFilter', () => {
 
   beforeEach(() => {
     filter = new GlobalExceptionFilter();
+    // Suppress logger output in tests that intentionally trigger 500s
+    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('maps HttpException to its status', () => {
