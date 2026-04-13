@@ -1,8 +1,8 @@
 # EcomSaaS
 
-A modern, scalable multi-tenant e-commerce platform enabling vendors to create and manage online stores with integrated blockchain features.
+A modern, scalable multi-tenant e-commerce platform enabling vendors to create and manage online stores with Stripe payments, clean architecture, and a pluggable payment gateway designed for future crypto integration.
 
-> **Portfolio Project**: This project demonstrates modern full-stack development practices, clean architecture, monorepo organization, and integration of cutting-edge technologies including TypeScript, blockchain (Polygon), and AI-powered features.
+> **Portfolio Project**: This project demonstrates modern full-stack development practices, clean architecture, monorepo organization, and integration of production technologies including TypeScript, NestJS, Next.js, Supabase, and Stripe.
 
 > **🤖 AI-Assisted Development**: This project leverages generative AI (GitHub Copilot, Claude) as development tools for code generation and documentation. All AI-generated code is reviewed, refined, tested, and supervised by the developer. Architectural decisions, system design, and implementation strategies are human-driven. This approach demonstrates effective collaboration with modern AI development tools while maintaining code quality and understanding.
 
@@ -23,10 +23,10 @@ A modern, scalable multi-tenant e-commerce platform enabling vendors to create a
 - **Multi-Tenant Stores**: Vendors create branded stores accessible via subdomains
 - **Marketplace**: Central discovery platform for all vendor stores
 - **Multi-Vendor Cart**: Customers shop from multiple stores in one transaction
-- **Stripe Connect**: Automated payment splitting with platform fees
-- **Blockchain Integration**: Crypto payments, fundraising, and rewards system (Polygon)
-- **AI-Powered Management**: MCP server for natural language store configuration
-- **Clean Architecture**: Shared domain and application layers across all services
+- **Stripe Payments**: Payment processing with provider-neutral gateway abstraction
+- **Clean Architecture**: Shared domain and application layers with ports & adapters
+- **Security Hardening**: Auth guards, ownership verification, body size limits, config validation
+- **Blockchain Ready**: Foundry scaffold and pluggable `PaymentGateway` port for future crypto payments (Polygon)
 
 ## 📋 What's Implemented
 
@@ -43,12 +43,17 @@ A modern, scalable multi-tenant e-commerce platform enabling vendors to create a
 | **4 — Vendor Dashboard**  | Full vendor management experience                   | 2-step onboarding wizard, dashboard with stats, product CRUD (create/edit/delete), store settings (general/contact/address), shared TagInput component                                                                         |
 | **5 — Marketplace**       | Storefront discovery and shopping                   | Store listing & detail pages, product catalog with search, product detail, multi-vendor cart with Zustand                                                                                                                      |
 | **6 — Orders & Payments** | Checkout flow with Stripe                           | Multi-step checkout (review → shipping → payment), Stripe PaymentIntent integration, order placement & confirmation via webhooks, order management API, atomic order persistence                                               |
+| **7.0 — Package Audit**   | Dependency and build health                         | Audit all workspace packages, fix version mismatches, ensure clean builds                                                                                                                                                      |
+| **7.1 — Code Quality**    | Standards compliance and hardening                  | OwnershipVerifier extraction, payment provider abstraction (web3 prep), durable webhook idempotency, atomic stock reservation, shared `@ecomsaas/api-client`, onboarding API routing, security hardening, config hygiene       |
 
 ### 🔜 Up Next
 
-| Phase              | Description                                           |
-| ------------------ | ----------------------------------------------------- |
-| **7 — Blockchain** | Crypto payments, token fundraising, rewards (Polygon) |
+| Phase                         | Description                                                      |
+| ----------------------------- | ---------------------------------------------------------------- |
+| **7.2 — Redis + BullMQ**      | Production queue/cache adapters, Docker Compose for local dev    |
+| **7.3 — Email Notifications** | Email port, adapter, templates, order event wiring               |
+| **7.4 — Background Worker**   | Worker process, cron jobs (reconciliation, alerts, cleanup)      |
+| **8 — Blockchain**            | Smart contracts, crypto payments, fundraising, rewards (Polygon) |
 
 ## 🏗️ Architecture
 
@@ -61,8 +66,13 @@ ecomsaas/
 ├── backends/          # Backend services (APIs, microservices)
 ├── clients/           # Frontend applications (web, mobile, admin)
 ├── packages/          # Shared TypeScript packages
-│   ├── domain/        # Core entities, value objects, enums (implemented)
-│   └── contracts/     # DTOs, API protocol types (implemented)
+│   ├── domain/        # Core entities, value objects, enums
+│   ├── contracts/     # DTOs, API protocol types
+│   ├── application/   # Use cases and port interfaces
+│   ├── infrastructure/# Shared infra adapters (cache, queue, storage, logger)
+│   ├── validation/    # Shared Zod schemas
+│   ├── api-client/    # Shared HTTP client factory
+│   └── ui/            # Shared UI components (shadcn + Tailwind)
 ├── blockchain/        # Smart contracts and blockchain integrations
 ├── infra/            # Infrastructure as Code (Terraform, K8s manifests)
 ├── docs/             # Documentation

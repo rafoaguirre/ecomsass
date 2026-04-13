@@ -1,12 +1,12 @@
 # EcomSaaS Architecture
 
 > **Version:** 1.0.0  
-> **Last Updated:** April 8, 2026  
-> **Status:** Active Development — Phase 6
+> **Last Updated:** April 13, 2026  
+> **Status:** Active Development — Phase 7.1 complete
 
 ## Overview
 
-EcomSaaS is a multi-tenant e-commerce platform that enables vendors to create and manage their own online stores with integrated blockchain features for crypto payments and fundraising.
+EcomSaaS is a multi-tenant e-commerce platform that enables vendors to create and manage their own online stores with Stripe payments, clean architecture, and a pluggable payment gateway designed for future crypto integration.
 
 ## Core Features
 
@@ -209,6 +209,7 @@ This project follows Clean Architecture principles with clear separation between
 - `packages/domain/` - Core domain layer: entities, value objects, enums (zero dependencies)
 - `packages/contracts/` - API contracts, DTOs, shared protocol types (depends on domain)
 - `packages/application/` - Business use cases (depends on domain)
+- `packages/api-client/` - Shared HTTP client factory for frontend apps
 - `packages/utils/` - Pure utility functions _(planned)_
 - `packages/config/` - Shared configuration _(planned)_
 - `packages/validation/` - Shared validation schemas (Zod)
@@ -240,6 +241,7 @@ ecomsaas/
 │   ├── domain/                 # Core domain layer (entities, value objects, enums)
 │   ├── contracts/              # API contracts, DTOs, shared protocol types
 │   ├── application/            # Shared use cases
+│   ├── api-client/             # Shared HTTP client factory
 │   ├── ui/                     # Shared UI tokens and adapters (web/native)
 │   ├── utils/                  # Shared utilities (planned)
 │   ├── config/                 # Shared configurations (planned)
@@ -575,18 +577,21 @@ src/
 
 ### Current Security Measures
 
-- Supabase Auth for authentication
+- Supabase Auth for authentication (local JWT verification via `jose`)
 - HTTPS everywhere
-- Environment variable management
-- Input validation (Zod schemas)
-- SQL injection prevention (ORM)
+- Environment variable management via ConfigService with startup validation
+- Input validation (Zod schemas via `ZodValidationPipe`)
+- SQL injection prevention (Supabase PostgREST)
+- CORS, Helmet, rate limiting
+- Body size limits (1MB JSON/URL-encoded)
+- Ownership verification (centralized `OwnershipVerifier`)
+- Graceful shutdown hooks
+- CI secret scanning (Gitleaks)
 
 ### Future Security Enhancements
 
-- Rate limiting and DDoS protection
 - Advanced RBAC (Role-Based Access Control)
 - JWT validation hardening options:
-  - Local JWT verification via Supabase JWKS (`jose`) for lower latency
   - Gateway/edge JWT verification for centralized policy enforcement
   - Request-scoped auth context propagation for strict RLS (`auth.uid()`) flows
 - Security audit and penetration testing

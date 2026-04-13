@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** In Progress — Phase 6 complete; Phase 7.0 in progress (package audit)  
+> **Status:** In Progress — Phase 7.1 complete; Phase 7.2 up next  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -805,25 +805,25 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 **Goal:** Address Clean Architecture drift, SOLID/DRY violations, and scalability impediments identified during Phase 6 review.
 
-**Status:** Not started
+**Status:** Complete — all 7 findings resolved. OwnershipVerifier extraction, payment architecture hardening (provider-neutral model, durable webhook idempotency, atomic stock reservation, amount verification), security hardening (ConfigService, body limits, graceful shutdown), payment provider abstraction (web3 prep), shared `@ecomsaas/api-client` package, onboarding API routing, customer name enrichment, storefront `<img>` → `<Image>` migration.
 
 **Deliverables:**
 
 **High Priority:**
 
-- [ ] Route vendor mutations through API instead of direct Supabase writes (orders/actions.ts, products/actions.ts bypass domain validation and future job hooks)
-- [ ] Move Stripe webhook idempotency from process-local `Set<string>` to durable storage (Redis key with TTL or DB unique event log)
+- [x] Route vendor mutations through API instead of direct Supabase writes (onboarding/actions.ts rewritten to call API; products/orders/settings already routed in Phase 4/6)
+- [x] Move Stripe webhook idempotency from process-local `Set<string>` to durable storage (`WebhookEventLog` port + Supabase adapter backed by `webhook_events` table with unique constraint)
 
 **Medium Priority:**
 
-- [ ] Redesign Queue port interface from SQS-shaped to BullMQ-shaped (`JobQueue.enqueue(jobName, payload, opts)` + processor registration)
-- [ ] Add atomic stock reservation in PlaceOrder (`UPDATE ... WHERE stock >= $qty RETURNING *`)
+- [x] Redesign Queue port interface from SQS-shaped to BullMQ-shaped (`JobQueue.enqueue(jobName, payload, opts)` + processor registration)
+- [x] Add atomic stock reservation in PlaceOrder (`reserve_stock_batch` RPC with positive-quantity validation guard)
 
 **Low Priority:**
 
-- [ ] Extract duplicated `api-client.ts` to shared package
-- [ ] Replace placeholder customer name in `enrichOrder` with profile lookup
-- [ ] Address lint warnings (`next lint` deprecation, storefront `<img>`, UI non-null assertion)
+- [x] Extract duplicated `api-client.ts` to shared package (`@ecomsaas/api-client` with `createApiClient()` factory)
+- [x] Replace placeholder customer name in `enrichOrder` with profile lookup (UserRepository injection)
+- [x] Address lint warnings (storefront `<img>` → `next/image`)
 
 **Dependencies:** Phase 7.0
 
