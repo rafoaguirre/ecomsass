@@ -4,6 +4,8 @@ import type {
   PaymentGateway,
   CreatePaymentIntentInput,
   PaymentIntentResult,
+  WebhookEvent,
+  PaymentEvent,
 } from '@ecomsaas/application/ports';
 import type { CurrencyCode } from '@ecomsaas/domain';
 
@@ -59,12 +61,51 @@ export class StripePaymentGateway implements PaymentGateway {
   /**
    * Verify a webhook signature and parse the event.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructWebhookEvent(payload: Buffer, signature: string): any {
+  constructWebhookEvent(payload: Uint8Array, signature: string): WebhookEvent {
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!webhookSecret) {
       throw new Error('STRIPE_WEBHOOK_SECRET environment variable is required');
     }
-    return this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    const event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+    return event as unknown as WebhookEvent;
+  }
+
+  /**
+   * Verify signature and map Stripe events to a normalized PaymentEvent.
+   */
+  parseWebhookEvent(payload: Uint8Array, signature: string): PaymentEvent {
+    const event = this.constructWebhookEvent(payload, signature);
+
+    switch (event.type) {
+      case 'payment_intent.succeeded': {
+        const pi = event.data.object;
+        return {
+          kind: 'PaymentConfirmed',
+          providerEventId: event.id,
+          providerPaymentId: pi.id,
+          orderId: pi.metadata?.orderId ?? '',
+          amount: pi.amount ?? 0,
+          currency: pi.currency ?? '',
+        };
+      }
+
+      case 'payment_intent.payment_failed': {
+        const pi = event.data.object;
+        return {
+          kind: 'PaymentFailed',
+          providerEventId: event.id,
+          providerPaymentId: pi.id,
+          orderId: pi.metadata?.orderId,
+          reason: pi.last_payment_error?.message ?? 'unknown',
+        };
+      }
+
+      default:
+        return {
+          kind: 'Unknown',
+          providerEventId: event.id,
+          rawType: event.type,
+        };
+    }
   }
 }

@@ -22,7 +22,8 @@ export interface PaymentInfoResponse {
   status: PaymentStatus;
   amount: MoneyResponse;
   transactionId?: string;
-  stripePaymentIntentId?: string;
+  provider?: string;
+  providerPaymentId?: string;
   metadata?: Record<string, unknown>;
 }
 

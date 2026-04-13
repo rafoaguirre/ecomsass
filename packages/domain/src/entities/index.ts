@@ -3,6 +3,7 @@ export * from './Store';
 export * from './Product';
 export * from './Subscription';
 export * from './Order';
+export * from './Payment';
 export * from './Category';
 export * from './Supplier';
 export * from './Invite';

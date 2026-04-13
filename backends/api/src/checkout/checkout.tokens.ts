@@ -1,2 +1,4 @@
 export const STRIPE_CLIENT = Symbol('STRIPE_CLIENT');
 export const PAYMENT_GATEWAY = Symbol('PAYMENT_GATEWAY');
+export const WEBHOOK_EVENT_LOG = Symbol('WEBHOOK_EVENT_LOG');
+export const PAYMENT_REPOSITORY = Symbol('PAYMENT_REPOSITORY');

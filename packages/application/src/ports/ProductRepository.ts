@@ -96,4 +96,14 @@ export interface ProductRepository {
    * @returns True if slug exists, false otherwise
    */
   slugExists(storeId: string, slug: string, excludeId?: string): Promise<boolean>;
+
+  /**
+   * Atomically reserve stock for a batch of products.
+   * Products that don't track inventory are silently skipped.
+   * If any product has insufficient stock, the entire batch is rolled back.
+   *
+   * @param items - Array of product IDs and quantities to reserve
+   * @returns Result with void on success, Error if any reservation fails
+   */
+  reserveStock(items: Array<{ productId: string; quantity: number }>): Promise<Result<void, Error>>;
 }

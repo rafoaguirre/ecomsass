@@ -255,6 +255,25 @@ export class SupabaseProductRepository implements ProductRepository {
     return (data ?? []).length > 0;
   }
 
+  async reserveStock(
+    items: Array<{ productId: string; quantity: number }>
+  ): Promise<Result<void, Error>> {
+    const payload = items.map((i) => ({
+      product_id: i.productId,
+      quantity: i.quantity,
+    }));
+
+    const { error } = await this.supabase.rpc('reserve_stock_batch', {
+      p_items: payload,
+    });
+
+    if (error) {
+      return err(new Error(`Stock reservation failed: ${error.message}`));
+    }
+
+    return ok(undefined);
+  }
+
   private toProductModel(row: ProductRow): ProductModel {
     const compareAtPrice =
       row.compare_at_price_amount && row.compare_at_price_currency

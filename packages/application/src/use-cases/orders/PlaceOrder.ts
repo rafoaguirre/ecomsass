@@ -174,10 +174,18 @@ export class PlaceOrder {
       MoneyVO.zero(currency)
     );
 
-    // 4. Generate reference ID
+    // 4. Atomically reserve stock
+    const reserveResult = await this.productRepository.reserveStock(
+      input.items.map((item) => ({ productId: item.productId, quantity: item.quantity }))
+    );
+    if (reserveResult.isErr()) {
+      return err(reserveResult.error);
+    }
+
+    // 5. Generate reference ID
     const referenceId = await this.orderRepository.generateReferenceId(input.storeId);
 
-    // 5. Create order
+    // 6. Create order
     const orderData: CreateOrderInput = {
       id: this.idGenerator.generate(),
       storeId: input.storeId,
@@ -206,7 +214,7 @@ export class PlaceOrder {
 
     const order = OrderModel.create(orderData);
 
-    // 6. Persist the order
+    // 7. Persist the order
     return this.orderRepository.save(order);
   }
 }

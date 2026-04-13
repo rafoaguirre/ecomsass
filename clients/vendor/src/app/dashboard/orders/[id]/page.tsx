@@ -55,7 +55,8 @@ export default async function OrderDetailPage({ params }: PageProps) {
     method?: string;
     status?: string;
     transactionId?: string;
-    stripePaymentIntentId?: string;
+    provider?: string;
+    providerPaymentId?: string;
   };
 
   const fulfillment = (order.fulfillment ?? {}) as {

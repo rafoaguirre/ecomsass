@@ -85,7 +85,8 @@ function asPaymentInfo(raw: unknown): PaymentInfo {
       currency: (obj.amount_currency ?? obj.currency ?? 'CAD') as CurrencyCode,
     },
     transactionId: obj.transactionId as string | undefined,
-    stripePaymentIntentId: obj.stripePaymentIntentId as string | undefined,
+    provider: obj.provider as string | undefined,
+    providerPaymentId: obj.providerPaymentId as string | undefined,
     metadata: obj.metadata as Record<string, unknown> | undefined,
   };
 }
@@ -120,7 +121,8 @@ function serializePaymentInfo(payment: PaymentInfo): Record<string, unknown> {
     amount_value: payment.amount.amount.toString(),
     amount_currency: payment.amount.currency,
     transactionId: payment.transactionId,
-    stripePaymentIntentId: payment.stripePaymentIntentId,
+    provider: payment.provider,
+    providerPaymentId: payment.providerPaymentId,
     metadata: payment.metadata,
   };
 }
@@ -248,7 +250,7 @@ export class SupabaseOrderRepository implements OrderRepository {
     return (data ?? []).map((row) => this.toOrderModel(row));
   }
 
-  async save(order: OrderModel): Promise<Result<OrderModel, Error>> {
+  async save(order: OrderModel, expectedStatus?: OrderStatus): Promise<Result<OrderModel, Error>> {
     // Build JSON payloads for the atomic RPC function
     const orderPayload = {
       id: order.id,
@@ -296,6 +298,7 @@ export class SupabaseOrderRepository implements OrderRepository {
     const { error } = await this.supabase.rpc('save_order_atomic', {
       p_order: orderPayload,
       p_items: itemPayloads,
+      p_expected_status: expectedStatus ?? null,
     });
 
     if (error) {

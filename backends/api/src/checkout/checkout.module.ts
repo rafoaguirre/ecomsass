@@ -13,7 +13,9 @@ import { CheckoutController } from './checkout.controller';
 import { WebhookController } from './webhook.controller';
 import { CheckoutService } from './checkout.service';
 import { StripePaymentGateway } from './stripe-payment.gateway';
-import { PAYMENT_GATEWAY } from './checkout.tokens';
+import { SupabaseWebhookEventLog } from './supabase-webhook-event-log';
+import { SupabasePaymentRepository } from './supabase-payment.repository';
+import { PAYMENT_GATEWAY, WEBHOOK_EVENT_LOG, PAYMENT_REPOSITORY } from './checkout.tokens';
 
 @Module({
   imports: [OrdersModule, StoresModule, ProductsModule],
@@ -21,9 +23,19 @@ import { PAYMENT_GATEWAY } from './checkout.tokens';
   providers: [
     CheckoutService,
     StripePaymentGateway,
+    SupabaseWebhookEventLog,
+    SupabasePaymentRepository,
     {
       provide: PAYMENT_GATEWAY,
       useExisting: StripePaymentGateway,
+    },
+    {
+      provide: WEBHOOK_EVENT_LOG,
+      useExisting: SupabaseWebhookEventLog,
+    },
+    {
+      provide: PAYMENT_REPOSITORY,
+      useExisting: SupabasePaymentRepository,
     },
     {
       provide: PlaceOrder,

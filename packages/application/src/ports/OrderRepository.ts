@@ -59,9 +59,12 @@ export interface OrderRepository {
    * Save an order (create or update).
    *
    * @param order - OrderModel instance to persist
+   * @param expectedStatus - When provided, the save only succeeds if the
+   *   current DB status matches (optimistic concurrency guard).
+   *   A concurrency conflict returns an Error result.
    * @returns Result with saved OrderModel
    */
-  save(order: OrderModel): Promise<Result<OrderModel, Error>>;
+  save(order: OrderModel, expectedStatus?: OrderStatus): Promise<Result<OrderModel, Error>>;
 
   /**
    * Delete an order by ID.
