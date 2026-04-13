@@ -1,7 +1,7 @@
 import { type INestApplication } from '@nestjs/common';
 import { Test, type TestingModuleBuilder } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
-import { SUPABASE_CLIENT, SUPABASE_ANON_CLIENT, SUPABASE_REQUEST_CLIENT } from '../../src/database';
+import { SUPABASE_CLIENT, SUPABASE_ANON_CLIENT } from '../../src/database';
 import {
   createMockSupabaseClient,
   type MockSupabaseClient,
@@ -19,6 +19,7 @@ import {
 process.env.SUPABASE_URL ??= 'http://localhost:54321';
 process.env.SUPABASE_ANON_KEY ??= 'test-anon-key';
 process.env.SUPABASE_SERVICE_ROLE_KEY ??= 'test-service-role-key';
+process.env.SUPABASE_JWT_SECRET ??= 'test-jwt-secret-at-least-32-chars-long';
 
 export interface TestApp {
   app: INestApplication;
@@ -62,8 +63,6 @@ export async function createTestApp(options: CreateTestAppOptions = {}): Promise
     .overrideProvider(SUPABASE_CLIENT)
     .useValue(supabaseClient)
     .overrideProvider(SUPABASE_ANON_CLIENT)
-    .useValue(supabaseAnonClient)
-    .overrideProvider(SUPABASE_REQUEST_CLIENT)
     .useValue(supabaseAnonClient);
 
   if (options.customize) {

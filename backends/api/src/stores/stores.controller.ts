@@ -42,8 +42,12 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 import type { AuthUser } from '../auth/types/auth-user';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { ParseOptionalEnumPipe } from '../common/pipes/parse-optional-enum.pipe';
 import { ParseSlugPipe } from './pipes/parse-slug.pipe';
 import { StoresService } from './stores.service';
+
+const StoreSortBy = { name: 'name', createdAt: 'createdAt' } as const;
+const SortDirectionEnum = { asc: 'asc', desc: 'desc' } as const;
 
 @ApiTags('stores')
 @Controller('api/v1/stores')
@@ -63,17 +67,19 @@ export class StoresController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async list(
     @Query('q') q?: string,
-    @Query('storeType') storeType?: string,
-    @Query('sortBy') sortBy?: string,
-    @Query('sortDirection') sortDirection?: string,
+    @Query('storeType', new ParseOptionalEnumPipe(StoreType, 'storeType')) storeType?: StoreType,
+    @Query('sortBy', new ParseOptionalEnumPipe(StoreSortBy, 'sortBy'))
+    sortBy?: 'name' | 'createdAt',
+    @Query('sortDirection', new ParseOptionalEnumPipe(SortDirectionEnum, 'sortDirection'))
+    sortDirection?: SortDirection,
     @Query('offset') offset?: string,
     @Query('limit') limit?: string
   ): Promise<StoreListResponse> {
     return this.storesService.listForMarketplace({
       q,
-      storeType: storeType as StoreType | undefined,
-      sortBy: sortBy as 'name' | 'createdAt' | undefined,
-      sortDirection: sortDirection as SortDirection | undefined,
+      storeType,
+      sortBy,
+      sortDirection,
       offset: offset ? parseInt(offset, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
     });

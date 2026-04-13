@@ -9,6 +9,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { CreateOrderRequest, CheckoutSessionResponse } from '@ecomsaas/contracts';
 import { CreateOrderRequestSchema } from '@ecomsaas/validation/schemas';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -29,8 +30,9 @@ export class CheckoutController {
 
   @Post('stores/:storeId/checkout')
   @Roles('Customer', 'Buyer', 'Admin')
-  @ApiOperation({ summary: 'Create a checkout session with Stripe payment' })
-  @ApiCreatedResponse({ description: 'Checkout session created, returns client secret' })
+  @Throttle({ strict: { ttl: 60_000, limit: 5 } })
+  @ApiOperation({ summary: 'Create a checkout session' })
+  @ApiCreatedResponse({ description: 'Checkout session created' })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   @ApiNotFoundResponse({ description: 'Store or product not found' })
   @ApiForbiddenResponse({ description: 'Insufficient role' })

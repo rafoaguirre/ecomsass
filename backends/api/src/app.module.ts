@@ -19,7 +19,10 @@ import { VendorsModule } from './vendors';
       isGlobal: true,
     }),
     ThrottlerModule.forRoot({
-      throttlers: [{ ttl: 60_000, limit: 60 }],
+      throttlers: [
+        { name: 'default', ttl: 60_000, limit: 60 },
+        { name: 'strict', ttl: 60_000, limit: 10 },
+      ],
     }),
     AuthModule,
     DatabaseModule,

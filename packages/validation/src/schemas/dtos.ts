@@ -163,3 +163,22 @@ export const UpdateVendorProfileRequestSchema = z.object({
   addresses: z.array(TypedAddressSchema).optional(),
   metadata: MetadataSchema.optional(),
 });
+
+const ALLOWED_IMAGE_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif',
+  'image/avif',
+] as const;
+
+export const PresignedUploadRequestSchema = z.object({
+  contentType: z.string().refine((v) => (ALLOWED_IMAGE_TYPES as readonly string[]).includes(v), {
+    message: `Content type must be one of: ${ALLOWED_IMAGE_TYPES.join(', ')}`,
+  }),
+  filename: z
+    .string()
+    .min(1)
+    .max(255)
+    .regex(/^[a-zA-Z0-9._\- ]+$/, 'Filename contains invalid characters'),
+});

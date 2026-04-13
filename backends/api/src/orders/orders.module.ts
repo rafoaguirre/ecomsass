@@ -52,6 +52,6 @@ import { SupabaseOrderRepository } from './repositories/supabase-order.repositor
       inject: [SupabaseOrderRepository],
     },
   ],
-  exports: [OrdersService, ORDER_REPOSITORY],
+  exports: [OrdersService, ORDER_REPOSITORY, PlaceOrder],
 })
 export class OrdersModule {}

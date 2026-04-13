@@ -37,7 +37,7 @@ export interface OrderRepository {
       limit?: number;
       status?: OrderStatus;
     }
-  ): Promise<OrderModel[]>;
+  ): Promise<{ data: OrderModel[]; total: number }>;
 
   /**
    * Find all orders for a specific user.
@@ -53,7 +53,7 @@ export interface OrderRepository {
       limit?: number;
       status?: OrderStatus;
     }
-  ): Promise<OrderModel[]>;
+  ): Promise<{ data: OrderModel[]; total: number }>;
 
   /**
    * Save an order (create or update).

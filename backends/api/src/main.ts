@@ -1,5 +1,7 @@
 import { NestFactory } from '@nestjs/core';
+import { Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import {
   createSecretsManager,
@@ -69,10 +71,17 @@ async function bootstrap() {
 
   // 2. Create the NestJS application.
   //    ConfigModule (global) reads the now-populated process.env values.
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     // Preserve raw body for Stripe webhook signature verification
     rawBody: true,
   });
+
+  // Body size limit — prevent large payload attacks
+  app.useBodyParser('json', { limit: '1mb' });
+  app.useBodyParser('urlencoded', { limit: '1mb', extended: true });
+
+  // Enable graceful shutdown hooks (SIGTERM / SIGINT)
+  app.enableShutdownHooks();
 
   // Security headers
   app.use(helmet());
@@ -101,8 +110,9 @@ async function bootstrap() {
   const port = PORT ?? 3000;
   await app.listen(port);
 
-  console.log(`🚀 API running on http://localhost:${String(port)}`);
-  console.log(`📚 Swagger docs at http://localhost:${String(port)}/api/docs`);
+  const logger = new Logger('Bootstrap');
+  logger.log(`API running on http://localhost:${String(port)}`);
+  logger.log(`Swagger docs at http://localhost:${String(port)}/api/docs`);
 }
 
 void bootstrap();

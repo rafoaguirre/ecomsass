@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { CreateProduct, GetProduct, UpdateProduct } from '@ecomsaas/application/use-cases';
 import type { StoreRepository } from '@ecomsaas/application/ports';
 import { createStorage } from '@ecomsaas/infrastructure/storage';
@@ -22,20 +23,21 @@ import { SupabaseProductRepository } from './repositories/supabase-product.repos
     },
     {
       provide: PRODUCT_STORAGE,
-      useFactory: () =>
+      useFactory: (config: ConfigService) =>
         createStorage({
-          type: process.env.STORAGE_PROVIDER === 's3' ? 's3' : 'memory',
-          bucket: process.env.STORAGE_BUCKET ?? '',
+          type: config.get('STORAGE_PROVIDER') === 's3' ? 's3' : 'memory',
+          bucket: config.get('STORAGE_BUCKET', ''),
           s3: {
-            bucket: process.env.STORAGE_BUCKET ?? '',
-            region: process.env.STORAGE_REGION ?? 'us-east-1',
-            endpoint: process.env.STORAGE_ENDPOINT,
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-            forcePathStyle: process.env.STORAGE_FORCE_PATH_STYLE === 'true',
-            publicBaseUrl: process.env.STORAGE_PUBLIC_BASE_URL,
+            bucket: config.get('STORAGE_BUCKET', ''),
+            region: config.get('STORAGE_REGION', 'us-east-1'),
+            endpoint: config.get('STORAGE_ENDPOINT'),
+            accessKeyId: config.get('AWS_ACCESS_KEY_ID'),
+            secretAccessKey: config.get('AWS_SECRET_ACCESS_KEY'),
+            forcePathStyle: config.get('STORAGE_FORCE_PATH_STYLE') === 'true',
+            publicBaseUrl: config.get('STORAGE_PUBLIC_BASE_URL'),
           },
         }),
+      inject: [ConfigService],
     },
     {
       provide: GetProduct,

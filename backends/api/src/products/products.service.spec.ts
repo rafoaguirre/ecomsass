@@ -80,19 +80,18 @@ describe('ProductsService', () => {
         id: 'prod-uuid-0001',
         name: 'Widget',
       });
-      vi.mocked(getProductUC.execute).mockResolvedValue(ok(product));
+      vi.mocked(productRepository.findById).mockResolvedValue(ok(product));
 
       const result = await service.getById('prod-uuid-0001');
 
       expect(result.name).toBe('Widget');
-      expect(getProductUC.execute).toHaveBeenCalledWith({
-        identifier: 'prod-uuid-0001',
-        identifierType: 'id',
+      expect(productRepository.findById).toHaveBeenCalledWith('prod-uuid-0001', {
+        activeOnly: true,
       });
     });
 
     it('throws when product not found', async () => {
-      vi.mocked(getProductUC.execute).mockResolvedValue(
+      vi.mocked(productRepository.findById).mockResolvedValue(
         err(new NotFoundError('Product', 'missing-id'))
       );
 
@@ -234,7 +233,7 @@ describe('ProductsService', () => {
         ProductModel.create({ ...baseProductInput, id: 'prod-A', slug: 'product-a', name: 'A' }),
         ProductModel.create({ ...baseProductInput, id: 'prod-B', slug: 'product-b', name: 'B' }),
       ];
-      vi.mocked(productRepository.findByStoreId).mockResolvedValue(products);
+      vi.mocked(productRepository.findByStoreId).mockResolvedValue({ data: products, total: 2 });
 
       const result = await service.listByStore('store-1', { limit: 10, offset: 0 });
 

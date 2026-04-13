@@ -107,3 +107,12 @@ export interface OrderSummary {
   itemCount: number;
   createdAt: string;
 }
+
+/**
+ * Paginated order list response
+ */
+export interface OrderListResponse {
+  orders: OrderSummary[];
+  totalCount: number;
+  hasMore: boolean;
+}

@@ -41,10 +41,13 @@ export function toProductResponse(product: ProductModel): ProductResponse {
   };
 }
 
-export function toProductListResponse(products: ProductModel[]): ProductListResponse {
+export function toProductListResponse(
+  products: ProductModel[],
+  totalCount: number
+): ProductListResponse {
   return {
     products: products.map(toProductResponse),
-    totalCount: products.length,
+    totalCount,
   };
 }
 

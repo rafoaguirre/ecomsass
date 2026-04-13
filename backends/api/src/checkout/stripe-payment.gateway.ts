@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type {
   PaymentGateway,
   CreatePaymentIntentInput,
@@ -8,17 +9,19 @@ import type {
   PaymentEvent,
 } from '@ecomsaas/application/ports';
 import type { CurrencyCode } from '@ecomsaas/domain';
+import type { AppConfig } from '../config';
 
 @Injectable()
 export class StripePaymentGateway implements PaymentGateway {
+  readonly provider = 'stripe';
+
   private _stripe: InstanceType<typeof Stripe> | undefined;
+
+  constructor(private readonly config: ConfigService<AppConfig, true>) {}
 
   private get stripe(): InstanceType<typeof Stripe> {
     if (!this._stripe) {
-      const secretKey = process.env.STRIPE_SECRET_KEY;
-      if (!secretKey) {
-        throw new Error('STRIPE_SECRET_KEY environment variable is required');
-      }
+      const secretKey = this.config.get('STRIPE_SECRET_KEY', { infer: true });
       this._stripe = new Stripe(secretKey);
     }
     return this._stripe;
@@ -43,9 +46,9 @@ export class StripePaymentGateway implements PaymentGateway {
 
     return {
       paymentIntentId: paymentIntent.id,
-      clientSecret: paymentIntent.client_secret,
       amount: input.amount,
       currency: input.amount.currency as CurrencyCode,
+      providerData: { clientSecret: paymentIntent.client_secret },
     };
   }
 
@@ -62,10 +65,7 @@ export class StripePaymentGateway implements PaymentGateway {
    * Verify a webhook signature and parse the event.
    */
   constructWebhookEvent(payload: Uint8Array, signature: string): WebhookEvent {
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    if (!webhookSecret) {
-      throw new Error('STRIPE_WEBHOOK_SECRET environment variable is required');
-    }
+    const webhookSecret = this.config.get('STRIPE_WEBHOOK_SECRET', { infer: true });
     const event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
     return event as unknown as WebhookEvent;
   }
@@ -81,6 +81,7 @@ export class StripePaymentGateway implements PaymentGateway {
         const pi = event.data.object;
         return {
           kind: 'PaymentConfirmed',
+          provider: this.provider,
           providerEventId: event.id,
           providerPaymentId: pi.id,
           orderId: pi.metadata?.orderId ?? '',
@@ -93,6 +94,7 @@ export class StripePaymentGateway implements PaymentGateway {
         const pi = event.data.object;
         return {
           kind: 'PaymentFailed',
+          provider: this.provider,
           providerEventId: event.id,
           providerPaymentId: pi.id,
           orderId: pi.metadata?.orderId,
@@ -103,6 +105,7 @@ export class StripePaymentGateway implements PaymentGateway {
       default:
         return {
           kind: 'Unknown',
+          provider: this.provider,
           providerEventId: event.id,
           rawType: event.type,
         };

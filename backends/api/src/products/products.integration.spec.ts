@@ -35,18 +35,18 @@ describe('Products integration', () => {
     getSignedUrl: vi.fn(),
   };
 
-  it('wires service -> use case and returns mapped product response', async () => {
+  it('wires service -> repository and returns mapped product response', async () => {
     const product = ProductModel.create({
       ...baseProductInput,
       id: 'prod-1',
       name: 'Wired Product',
     });
-    const getProduct = { execute: vi.fn().mockResolvedValue(ok(product)) };
+    mockProductRepo.findById.mockResolvedValue(ok(product));
 
     const moduleRef = await Test.createTestingModule({
       providers: [
         ProductsService,
-        { provide: GetProduct, useValue: getProduct },
+        { provide: GetProduct, useValue: { execute: vi.fn() } },
         { provide: CreateProduct, useValue: { execute: vi.fn() } },
         { provide: UpdateProduct, useValue: { execute: vi.fn() } },
         { provide: PRODUCT_REPOSITORY, useValue: mockProductRepo },
@@ -68,10 +68,7 @@ describe('Products integration', () => {
     const result = await service.getById('prod-1');
 
     expect(result.name).toBe('Wired Product');
-    expect(getProduct.execute).toHaveBeenCalledWith({
-      identifier: 'prod-1',
-      identifierType: 'id',
-    });
+    expect(mockProductRepo.findById).toHaveBeenCalledWith('prod-1', { activeOnly: true });
   });
 
   it('wires listByStore through repository', async () => {
@@ -79,7 +76,7 @@ describe('Products integration', () => {
       ProductModel.create({ ...baseProductInput, id: 'prod-A', slug: 'product-a', name: 'A' }),
       ProductModel.create({ ...baseProductInput, id: 'prod-B', slug: 'product-b', name: 'B' }),
     ];
-    mockProductRepo.findByStoreId.mockResolvedValue(products);
+    mockProductRepo.findByStoreId.mockResolvedValue({ data: products, total: 2 });
 
     const moduleRef = await Test.createTestingModule({
       providers: [

@@ -12,7 +12,7 @@ export interface ListOrdersInput {
 export class ListOrders {
   constructor(private readonly orderRepository: OrderRepository) {}
 
-  async execute(input: ListOrdersInput): Promise<OrderModel[]> {
+  async execute(input: ListOrdersInput): Promise<{ data: OrderModel[]; total: number }> {
     const options = {
       offset: input.offset,
       limit: input.limit,
@@ -27,6 +27,6 @@ export class ListOrders {
       return this.orderRepository.findByUserId(input.userId, options);
     }
 
-    return [];
+    return { data: [], total: 0 };
   }
 }

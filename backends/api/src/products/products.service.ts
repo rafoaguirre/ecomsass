@@ -52,7 +52,7 @@ export class ProductsService {
   ) {}
 
   async getById(id: string): Promise<ProductResponse> {
-    const result = await this.getProduct.execute({ identifier: id, identifierType: 'id' });
+    const result = await this.productRepository.findById(id, { activeOnly: true });
 
     if (result.isErr()) {
       throw result.error;
@@ -147,8 +147,11 @@ export class ProductsService {
     storeId: string,
     options?: { offset?: number; limit?: number; categoryId?: string }
   ): Promise<ProductListResponse> {
-    const products = await this.productRepository.findByStoreId(storeId, options);
-    return toProductListResponse(products);
+    const { data: products, total } = await this.productRepository.findByStoreId(storeId, {
+      ...options,
+      activeOnly: true,
+    });
+    return toProductListResponse(products, total);
   }
 
   async search(query: ProductSearchQuery): Promise<ProductSearchResponse> {

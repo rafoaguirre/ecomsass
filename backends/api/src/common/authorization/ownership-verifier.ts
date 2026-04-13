@@ -19,12 +19,17 @@ export class OwnershipVerifier {
 
   /**
    * Resolve the vendor_profiles.id for a given auth user.
+   * Caches the result on the AuthUser object to avoid repeated DB lookups.
    */
   async resolveVendorProfileId(user: AuthUser): Promise<string> {
+    if (user.vendorProfileId) {
+      return user.vendorProfileId;
+    }
     const result = await this.vendorProfileRepository.findByUserId(user.id);
     if (result.isErr()) {
       throw new NotFoundException('Vendor profile not found for this user');
     }
+    user.vendorProfileId = result.value.id;
     return result.value.id;
   }
 

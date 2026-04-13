@@ -84,7 +84,7 @@ export class CheckoutService {
 
     // 3. Update the order with the payment provider ID — compensate by cancelling PaymentIntent on failure
     const updatedOrder = order.updatePayment({
-      provider: 'stripe',
+      provider: this.paymentGateway.provider,
       providerPaymentId: paymentResult.paymentIntentId,
     });
 
@@ -107,7 +107,7 @@ export class CheckoutService {
       id: idGen.generate(),
       orderId: order.id,
       storeId: order.storeId,
-      provider: 'stripe',
+      provider: this.paymentGateway.provider,
       providerPaymentId: paymentResult.paymentIntentId,
       method: order.payment.method,
       status: PaymentStatus.Initiated,
@@ -124,11 +124,12 @@ export class CheckoutService {
     }
 
     return {
-      clientSecret: paymentResult.clientSecret,
+      clientSecret: paymentResult.providerData.clientSecret as string | undefined,
       paymentIntentId: paymentResult.paymentIntentId,
       orderId: order.id,
       amount: order.total.amount.toString(),
       currency: order.total.currency,
+      providerData: paymentResult.providerData,
     };
   }
 
@@ -139,7 +140,7 @@ export class CheckoutService {
     const event = this.paymentGateway.parseWebhookEvent(payload, signature);
 
     // Durable idempotency: skip already-processed events
-    if (await this.webhookEventLog.isDuplicate('stripe', event.providerEventId)) {
+    if (await this.webhookEventLog.isDuplicate(event.provider, event.providerEventId)) {
       this.logger.log(`Duplicate webhook event skipped: ${event.kind} (${event.providerEventId})`);
       return;
     }
@@ -177,7 +178,7 @@ export class CheckoutService {
           id: idGen.generate(),
           orderId: event.orderId,
           storeId: confirmedOrder.storeId,
-          provider: 'stripe',
+          provider: event.provider,
           providerPaymentId: event.providerPaymentId,
           providerEventId: event.providerEventId,
           method: confirmedOrder.payment.method,
@@ -199,29 +200,24 @@ export class CheckoutService {
       case 'PaymentFailed': {
         // Record failure in payments table for audit trail
         if (event.orderId) {
+          // Look up the order first to get accurate storeId and amount
+          const orderResult = await this.orderRepository.findById(event.orderId);
+          const order = orderResult.isOk() ? orderResult.value : null;
+
           const failedPayment: Payment = {
             id: idGen.generate(),
             orderId: event.orderId,
-            storeId: '', // Not available from the event; will be empty for failed payments
-            provider: 'stripe',
+            storeId: order?.storeId ?? '',
+            provider: event.provider,
             providerPaymentId: event.providerPaymentId,
             providerEventId: event.providerEventId,
-            method: PaymentMethod.Card, // Default; overwritten below if order found
+            method: order?.payment.method ?? PaymentMethod.Card,
             status: PaymentStatus.Failed,
-            amount: { amount: BigInt(0), currency: 'USD' as CurrencyCode },
+            amount: order?.total ?? { amount: BigInt(0), currency: 'USD' as CurrencyCode },
             metadata: { reason: event.reason },
             createdAt: new Date(),
             updatedAt: new Date(),
           };
-
-          // Look up the order to get accurate storeId and amount
-          const orderResult = await this.orderRepository.findById(event.orderId);
-          if (orderResult.isOk()) {
-            const order = orderResult.value;
-            failedPayment.storeId = order.storeId;
-            failedPayment.amount = order.total;
-            failedPayment.method = order.payment.method;
-          }
 
           await this.paymentRepository.record(failedPayment);
           this.logger.warn(`Payment failed for order ${event.orderId}: ${event.reason}`);
@@ -229,12 +225,18 @@ export class CheckoutService {
         break;
       }
 
+      case 'PaymentPending':
+        this.logger.log(
+          `Payment pending for order ${event.orderId ?? 'unknown'} (${event.providerPaymentId})`
+        );
+        break;
+
       case 'Unknown':
         this.logger.debug(`Unhandled provider event type: ${event.rawType}`);
         break;
     }
 
     // Record event only after successful processing
-    await this.webhookEventLog.record('stripe', event.providerEventId, event.kind);
+    await this.webhookEventLog.record(event.provider, event.providerEventId, event.kind);
   }
 }

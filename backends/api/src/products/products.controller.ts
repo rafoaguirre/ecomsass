@@ -38,6 +38,7 @@ import type { SortDirection } from '@ecomsaas/contracts/common';
 import {
   CreateProductRequestSchema,
   UpdateProductRequestSchema,
+  PresignedUploadRequestSchema,
 } from '@ecomsaas/validation/schemas';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -45,7 +46,11 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 import type { AuthUser } from '../auth/types/auth-user';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { ParseOptionalEnumPipe } from '../common/pipes/parse-optional-enum.pipe';
 import { ProductsService } from './products.service';
+
+const ProductSortBy = { name: 'name', price: 'price', createdAt: 'createdAt' } as const;
+const SortDirectionEnum = { asc: 'asc', desc: 'desc' } as const;
 
 @ApiTags('products')
 @Controller('api/v1')
@@ -71,11 +76,14 @@ export class ProductsController {
     @Query('q') q?: string,
     @Query('storeId') storeId?: string,
     @Query('categoryId') categoryId?: string,
-    @Query('availability') availability?: string,
+    @Query('availability', new ParseOptionalEnumPipe(ProductAvailability, 'availability'))
+    availability?: ProductAvailability,
     @Query('minPrice') minPrice?: string,
     @Query('maxPrice') maxPrice?: string,
-    @Query('sortBy') sortBy?: string,
-    @Query('sortDirection') sortDirection?: string,
+    @Query('sortBy', new ParseOptionalEnumPipe(ProductSortBy, 'sortBy'))
+    sortBy?: 'name' | 'price' | 'createdAt',
+    @Query('sortDirection', new ParseOptionalEnumPipe(SortDirectionEnum, 'sortDirection'))
+    sortDirection?: SortDirection,
     @Query('offset') offset?: string,
     @Query('limit') limit?: string
   ): Promise<ProductSearchResponse> {
@@ -83,11 +91,11 @@ export class ProductsController {
       q,
       storeId,
       categoryId,
-      availability: availability as ProductAvailability | undefined,
+      availability,
       minPrice: minPrice ? parseInt(minPrice, 10) : undefined,
       maxPrice: maxPrice ? parseInt(maxPrice, 10) : undefined,
-      sortBy: sortBy as 'name' | 'price' | 'createdAt' | undefined,
-      sortDirection: sortDirection as SortDirection | undefined,
+      sortBy,
+      sortDirection,
       offset: offset ? parseInt(offset, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
     });
@@ -132,7 +140,11 @@ export class ProductsController {
   @ApiForbiddenResponse({ description: 'Insufficient role' })
   @HttpCode(HttpStatus.OK)
   async getPresignedUploadUrl(
-    @Body() body: { contentType: string; filename: string }
+    @Body(new ZodValidationPipe(PresignedUploadRequestSchema))
+    body: {
+      contentType: string;
+      filename: string;
+    }
   ): Promise<{ key: string; uploadUrl: string }> {
     return this.productsService.getPresignedUploadUrl(body.contentType, body.filename);
   }

@@ -1,8 +1,6 @@
-import { Module, Global, Scope } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
+import { Module, Global } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createSupabaseClient } from '@ecomsaas/infrastructure/database';
-import { extractBearerToken } from '../common/auth/extract-bearer-token';
 
 /**
  * Injection token for the Supabase client (service-role, bypasses RLS).
@@ -17,11 +15,6 @@ export const SUPABASE_CLIENT = Symbol('SUPABASE_CLIENT');
  * must be added before policies relying on `auth.uid()` will work.
  */
 export const SUPABASE_ANON_CLIENT = Symbol('SUPABASE_ANON_CLIENT');
-export const SUPABASE_REQUEST_CLIENT = Symbol('SUPABASE_REQUEST_CLIENT');
-
-interface RequestLike {
-  headers?: Record<string, string | string[] | undefined>;
-}
 
 /**
  * Global database module that provides Supabase client instances.
@@ -61,19 +54,7 @@ interface RequestLike {
       },
       inject: [ConfigService],
     },
-    {
-      provide: SUPABASE_REQUEST_CLIENT,
-      scope: Scope.REQUEST,
-      useFactory: (config: ConfigService, request: RequestLike) => {
-        const url = config.getOrThrow<string>('SUPABASE_URL');
-        const key = config.getOrThrow<string>('SUPABASE_ANON_KEY');
-        const accessToken = extractBearerToken(request.headers?.authorization) ?? undefined;
-
-        return createSupabaseClient({ url, key, accessToken });
-      },
-      inject: [ConfigService, REQUEST],
-    },
   ],
-  exports: [SUPABASE_CLIENT, SUPABASE_ANON_CLIENT, SUPABASE_REQUEST_CLIENT],
+  exports: [SUPABASE_CLIENT, SUPABASE_ANON_CLIENT],
 })
 export class DatabaseModule {}

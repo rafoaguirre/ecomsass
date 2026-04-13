@@ -9,9 +9,10 @@ export interface CreatePaymentIntentInput {
 
 export interface PaymentIntentResult {
   paymentIntentId: string;
-  clientSecret: string;
   amount: Money;
   currency: CurrencyCode;
+  /** Provider-specific data passed through to the client (e.g. Stripe clientSecret, crypto wallet address). */
+  providerData: Record<string, unknown>;
 }
 
 /** Provider-neutral webhook event representation. */
@@ -39,6 +40,7 @@ export interface WebhookEvent {
 export type PaymentEvent =
   | {
       kind: 'PaymentConfirmed';
+      provider: string;
       providerEventId: string;
       providerPaymentId: string;
       orderId: string;
@@ -47,18 +49,30 @@ export type PaymentEvent =
     }
   | {
       kind: 'PaymentFailed';
+      provider: string;
       providerEventId: string;
       providerPaymentId: string;
       orderId?: string;
       reason: string;
     }
   | {
+      kind: 'PaymentPending';
+      provider: string;
+      providerEventId: string;
+      providerPaymentId: string;
+      orderId?: string;
+    }
+  | {
       kind: 'Unknown';
+      provider: string;
       providerEventId: string;
       rawType: string;
     };
 
 export interface PaymentGateway {
+  /** Identifier for this payment provider (e.g. 'stripe', 'crypto'). */
+  readonly provider: string;
+
   createPaymentIntent(input: CreatePaymentIntentInput): Promise<PaymentIntentResult>;
   confirmPaymentIntent(paymentIntentId: string): Promise<{ status: string }>;
   cancelPaymentIntent(paymentIntentId: string): Promise<void>;

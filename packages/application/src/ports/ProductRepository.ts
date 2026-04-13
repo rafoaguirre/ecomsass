@@ -13,7 +13,10 @@ export interface ProductRepository {
    * @param id - Product unique identifier
    * @returns Result with ProductModel if found, NotFoundError if not found
    */
-  findById(id: string): Promise<Result<ProductModel, NotFoundError>>;
+  findById(
+    id: string,
+    options?: { activeOnly?: boolean }
+  ): Promise<Result<ProductModel, NotFoundError>>;
 
   /**
    * Find a product by its slug within a specific store.
@@ -37,8 +40,9 @@ export interface ProductRepository {
       offset?: number;
       limit?: number;
       categoryId?: string;
+      activeOnly?: boolean;
     }
-  ): Promise<ProductModel[]>;
+  ): Promise<{ data: ProductModel[]; total: number }>;
 
   /**
    * Find all products in a category.

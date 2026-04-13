@@ -9,7 +9,7 @@ import {
 } from '@ecomsaas/application/use-cases';
 import type { OrderRepository, StoreRepository } from '@ecomsaas/application/ports';
 import type { OrderModel, OrderStatus } from '@ecomsaas/domain';
-import type { OrderResponse, OrderSummary } from '@ecomsaas/contracts';
+import type { OrderResponse, OrderListResponse } from '@ecomsaas/contracts';
 import type { AuthUser } from '../auth/types/auth-user';
 import { ORDER_REPOSITORY } from './order.tokens';
 import { STORE_REPOSITORY } from '../stores/store.tokens';
@@ -62,32 +62,44 @@ export class OrdersService {
   async listForCustomer(
     user: AuthUser,
     options?: { status?: OrderStatus; offset?: number; limit?: number }
-  ): Promise<OrderSummary[]> {
-    const orders = await this.listOrders.execute({
+  ): Promise<OrderListResponse> {
+    const offset = clampOffset(options?.offset);
+    const limit = clampPageSize(options?.limit);
+    const { data: orders, total } = await this.listOrders.execute({
       userId: user.id,
       status: options?.status,
-      offset: clampOffset(options?.offset),
-      limit: clampPageSize(options?.limit),
+      offset,
+      limit,
     });
 
-    return orders.map(toOrderSummary);
+    return {
+      orders: orders.map(toOrderSummary),
+      totalCount: total,
+      hasMore: offset + limit < total,
+    };
   }
 
   async listForStore(
     storeId: string,
     user: AuthUser,
     options?: { status?: OrderStatus; offset?: number; limit?: number }
-  ): Promise<OrderSummary[]> {
+  ): Promise<OrderListResponse> {
     await this.ownership.verifyStoreOwnership(storeId, user);
 
-    const orders = await this.listOrders.execute({
+    const offset = clampOffset(options?.offset);
+    const limit = clampPageSize(options?.limit);
+    const { data: orders, total } = await this.listOrders.execute({
       storeId,
       status: options?.status,
-      offset: clampOffset(options?.offset),
-      limit: clampPageSize(options?.limit),
+      offset,
+      limit,
     });
 
-    return orders.map(toOrderSummary);
+    return {
+      orders: orders.map(toOrderSummary),
+      totalCount: total,
+      hasMore: offset + limit < total,
+    };
   }
 
   async updateStatus(
@@ -104,6 +116,13 @@ export class OrdersService {
     const order = findResult.value;
     await this.ownership.verifyStoreOwnership(order.storeId, user);
 
+    // Fetch store name now (before mutation) so enrichOrder doesn't re-fetch
+    let storeName: string | undefined;
+    const storeResult = await this.storeRepository.findById(order.storeId);
+    if (storeResult.isOk()) {
+      storeName = storeResult.value.name;
+    }
+
     const result = await this.updateOrderStatus.execute({
       orderId,
       ...input,
@@ -113,19 +132,24 @@ export class OrdersService {
       throw result.error;
     }
 
-    return this.enrichOrder(result.value);
+    return this.enrichOrder(result.value, storeName);
   }
 
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
 
-  private async enrichOrder(order: OrderModel): Promise<OrderResponse> {
-    // Fetch store name for the response
-    let storeName = 'Unknown Store';
-    const storeResult = await this.storeRepository.findById(order.storeId);
-    if (storeResult.isOk()) {
-      storeName = storeResult.value.name;
+  private async enrichOrder(
+    order: OrderModel,
+    preloadedStoreName?: string
+  ): Promise<OrderResponse> {
+    // Use preloaded store name if available, otherwise fetch
+    let storeName = preloadedStoreName ?? 'Unknown Store';
+    if (!preloadedStoreName) {
+      const storeResult = await this.storeRepository.findById(order.storeId);
+      if (storeResult.isOk()) {
+        storeName = storeResult.value.name;
+      }
     }
 
     // Customer name would come from user profile — for now use a placeholder

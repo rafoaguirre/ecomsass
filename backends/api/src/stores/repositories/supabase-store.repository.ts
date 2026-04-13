@@ -109,6 +109,7 @@ export class SupabaseStoreRepository implements StoreRepository {
       .select('*, vendor_profiles!inner(business_name)')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
+      .limit(100)
       .returns<StoreRow[]>();
 
     if (error) {
@@ -132,7 +133,8 @@ export class SupabaseStoreRepository implements StoreRepository {
       .eq('is_active', true);
 
     if (options.q) {
-      query = query.ilike('name', `%${options.q}%`);
+      const escaped = options.q.replace(/[%_\\]/g, '\\$&');
+      query = query.ilike('name', `%${escaped}%`);
     }
 
     if (options.storeType) {

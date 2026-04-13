@@ -1,13 +1,9 @@
 import { Module } from '@nestjs/common';
-import { PlaceOrder, ConfirmOrder } from '@ecomsaas/application/use-cases';
-import type { ProductRepository, StoreRepository } from '@ecomsaas/application/ports';
-import { createIdGenerator } from '@ecomsaas/infrastructure/id-generator';
+import { ConfirmOrder } from '@ecomsaas/application/use-cases';
 import { OrdersModule } from '../orders';
 import { StoresModule } from '../stores';
 import { ProductsModule } from '../products';
 import { ORDER_REPOSITORY } from '../orders/order.tokens';
-import { STORE_REPOSITORY } from '../stores/store.tokens';
-import { PRODUCT_REPOSITORY } from '../products/product.tokens';
 import { SupabaseOrderRepository } from '../orders/repositories/supabase-order.repository';
 import { CheckoutController } from './checkout.controller';
 import { WebhookController } from './webhook.controller';
@@ -36,15 +32,6 @@ import { PAYMENT_GATEWAY, WEBHOOK_EVENT_LOG, PAYMENT_REPOSITORY } from './checko
     {
       provide: PAYMENT_REPOSITORY,
       useExisting: SupabasePaymentRepository,
-    },
-    {
-      provide: PlaceOrder,
-      useFactory: (
-        orderRepo: SupabaseOrderRepository,
-        productRepo: ProductRepository,
-        storeRepo: StoreRepository
-      ) => new PlaceOrder(orderRepo, productRepo, storeRepo, createIdGenerator()),
-      inject: [ORDER_REPOSITORY, PRODUCT_REPOSITORY, STORE_REPOSITORY],
     },
     {
       provide: ConfirmOrder,

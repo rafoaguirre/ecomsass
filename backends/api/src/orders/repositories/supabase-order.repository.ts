@@ -197,10 +197,10 @@ export class SupabaseOrderRepository implements OrderRepository {
   async findByStoreId(
     storeId: string,
     options?: { offset?: number; limit?: number; status?: OrderStatus }
-  ): Promise<OrderModel[]> {
+  ): Promise<{ data: OrderModel[]; total: number }> {
     let query = this.supabase
       .from('orders')
-      .select('*, order_items(*)')
+      .select('*, order_items(*)', { count: 'exact' })
       .eq('store_id', storeId)
       .order('created_at', { ascending: false });
 
@@ -213,22 +213,25 @@ export class SupabaseOrderRepository implements OrderRepository {
       limit: options?.limit,
     }));
 
-    const { data, error } = await query.returns<OrderRow[]>();
+    const { data, error, count } = await query.returns<OrderRow[]>();
 
     if (error) {
       throw new Error(`Failed to query orders by store id: ${error.message}`);
     }
 
-    return (data ?? []).map((row) => this.toOrderModel(row));
+    return {
+      data: (data ?? []).map((row) => this.toOrderModel(row)),
+      total: count ?? 0,
+    };
   }
 
   async findByUserId(
     userId: string,
     options?: { offset?: number; limit?: number; status?: OrderStatus }
-  ): Promise<OrderModel[]> {
+  ): Promise<{ data: OrderModel[]; total: number }> {
     let query = this.supabase
       .from('orders')
-      .select('*, order_items(*)')
+      .select('*, order_items(*)', { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -241,13 +244,16 @@ export class SupabaseOrderRepository implements OrderRepository {
       limit: options?.limit,
     }));
 
-    const { data, error } = await query.returns<OrderRow[]>();
+    const { data, error, count } = await query.returns<OrderRow[]>();
 
     if (error) {
       throw new Error(`Failed to query orders by user id: ${error.message}`);
     }
 
-    return (data ?? []).map((row) => this.toOrderModel(row));
+    return {
+      data: (data ?? []).map((row) => this.toOrderModel(row)),
+      total: count ?? 0,
+    };
   }
 
   async save(order: OrderModel, expectedStatus?: OrderStatus): Promise<Result<OrderModel, Error>> {
