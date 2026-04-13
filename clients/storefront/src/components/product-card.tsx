@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import type { ProductResponse } from '@/lib/api';
 import { ShadcnBadge } from '@ecomsaas/ui/shadcn';
@@ -23,12 +24,14 @@ export function ProductCard({
       className="group block rounded-[--radius-md] border border-border bg-white shadow-sm transition-all hover:shadow-md hover:border-brand-200"
     >
       {/* Image / placeholder */}
-      <div className="flex h-48 items-center justify-center rounded-t-[--radius-md] bg-neutral-50">
+      <div className="relative flex h-48 items-center justify-center rounded-t-[--radius-md] bg-neutral-50">
         {mainImage ? (
-          <img
+          <Image
             src={mainImage.src}
             alt={mainImage.alt ?? product.name}
-            className="h-full w-full rounded-t-[--radius-md] object-cover"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="rounded-t-[--radius-md] object-cover"
           />
         ) : (
           <svg

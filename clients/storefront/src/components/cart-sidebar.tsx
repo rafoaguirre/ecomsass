@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ShadcnButton, ShadcnSeparator } from '@ecomsaas/ui/shadcn';
@@ -135,12 +136,14 @@ export function CartSidebar({ open, onClose }: CartSidebarProps) {
                           className="flex gap-4 rounded-lg border border-border bg-neutral-50/50 p-3"
                         >
                           {/* Thumbnail */}
-                          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-md border border-border bg-white">
+                          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-md border border-border bg-white">
                             {item.image ? (
-                              <img
+                              <Image
                                 src={item.image}
                                 alt={item.productName}
-                                className="h-full w-full rounded-md object-cover"
+                                fill
+                                sizes="80px"
+                                className="rounded-md object-cover"
                               />
                             ) : (
                               <svg

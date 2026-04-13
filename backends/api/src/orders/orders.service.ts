@@ -7,12 +7,13 @@ import {
   type PlaceOrderInput,
   type UpdateOrderStatusInput,
 } from '@ecomsaas/application/use-cases';
-import type { OrderRepository, StoreRepository } from '@ecomsaas/application/ports';
+import type { OrderRepository, StoreRepository, UserRepository } from '@ecomsaas/application/ports';
 import type { OrderModel, OrderStatus } from '@ecomsaas/domain';
 import type { OrderResponse, OrderListResponse } from '@ecomsaas/contracts';
 import type { AuthUser } from '../auth/types/auth-user';
 import { ORDER_REPOSITORY } from './order.tokens';
 import { STORE_REPOSITORY } from '../stores/store.tokens';
+import { USER_REPOSITORY } from '../users/user.tokens';
 import { OwnershipVerifier } from '../common/authorization/ownership-verifier';
 import { toOrderResponse, toOrderSummary } from './dto/order.mapper';
 import { clampOffset, clampPageSize } from '../common/database';
@@ -26,6 +27,7 @@ export class OrdersService {
     @Inject(UpdateOrderStatus) private readonly updateOrderStatus: UpdateOrderStatus,
     @Inject(ORDER_REPOSITORY) private readonly orderRepository: OrderRepository,
     @Inject(STORE_REPOSITORY) private readonly storeRepository: StoreRepository,
+    @Inject(USER_REPOSITORY) private readonly userRepository: UserRepository,
     private readonly ownership: OwnershipVerifier
   ) {}
 
@@ -152,9 +154,12 @@ export class OrdersService {
       }
     }
 
-    // Customer name would come from user profile — for now use a placeholder
-    // This avoids coupling to UserRepository until the user module is more mature
-    const customerName = 'Customer';
+    // Lookup customer name from profile
+    let customerName = 'Customer';
+    const userResult = await this.userRepository.findById(order.userId);
+    if (userResult.isOk() && userResult.value.fullName) {
+      customerName = userResult.value.fullName;
+    }
 
     return toOrderResponse(order, storeName, customerName);
   }

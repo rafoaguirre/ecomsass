@@ -3,6 +3,7 @@ import type {
   CreateVendorProfile,
   UpdateVendorProfile,
 } from '@ecomsaas/application/use-cases';
+import type { VendorProfileRepository } from '@ecomsaas/application/ports';
 import {
   NotFoundError,
   ValidationError,
@@ -36,6 +37,7 @@ describe('VendorsService', () => {
   let getVendorProfile: GetVendorProfile;
   let createVendorProfile: CreateVendorProfile;
   let updateVendorProfile: UpdateVendorProfile;
+  let vendorProfileRepository: VendorProfileRepository;
   const ownerUser = { id: 'user-1', email: 'v@test.com', role: 'Vendor' };
   const adminUser = { id: 'admin-1', email: 'a@test.com', role: 'Admin' };
   const otherUser = { id: 'user-2', email: 'other@test.com', role: 'Vendor' };
@@ -44,7 +46,17 @@ describe('VendorsService', () => {
     getVendorProfile = { execute: vi.fn() } as unknown as GetVendorProfile;
     createVendorProfile = { execute: vi.fn() } as unknown as CreateVendorProfile;
     updateVendorProfile = { execute: vi.fn() } as unknown as UpdateVendorProfile;
-    service = new VendorsService(getVendorProfile, createVendorProfile, updateVendorProfile);
+    vendorProfileRepository = {
+      findById: vi.fn(),
+      findByUserId: vi.fn(),
+      save: vi.fn(),
+    } as unknown as VendorProfileRepository;
+    service = new VendorsService(
+      getVendorProfile,
+      createVendorProfile,
+      updateVendorProfile,
+      vendorProfileRepository
+    );
   });
 
   it('creates a vendor profile', async () => {
