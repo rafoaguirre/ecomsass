@@ -4,6 +4,7 @@ import { CreateProduct, GetProduct, UpdateProduct } from '@ecomsaas/application/
 import { ProductAvailability, ProductModel, ok } from '@ecomsaas/domain';
 import { PRODUCT_REPOSITORY, PRODUCT_STORAGE } from './product.tokens';
 import { STORE_REPOSITORY } from '../stores/store.tokens';
+import { VENDOR_PROFILE_REPOSITORY } from '../vendors/vendor.tokens';
 import { ProductsService } from './products.service';
 
 const baseProductInput = {
@@ -61,6 +62,10 @@ describe('Products integration', () => {
         { provide: UpdateProduct, useValue: { execute: vi.fn() } },
         { provide: PRODUCT_REPOSITORY, useValue: mockProductRepo },
         { provide: STORE_REPOSITORY, useValue: mockStoreRepo },
+        {
+          provide: VENDOR_PROFILE_REPOSITORY,
+          useValue: { findById: vi.fn(), findByUserId: vi.fn(), save: vi.fn() },
+        },
         { provide: PRODUCT_STORAGE, useValue: mockStorage },
       ],
     }).compile();
@@ -90,6 +95,10 @@ describe('Products integration', () => {
         { provide: UpdateProduct, useValue: { execute: vi.fn() } },
         { provide: PRODUCT_REPOSITORY, useValue: mockProductRepo },
         { provide: STORE_REPOSITORY, useValue: mockStoreRepo },
+        {
+          provide: VENDOR_PROFILE_REPOSITORY,
+          useValue: { findById: vi.fn(), findByUserId: vi.fn(), save: vi.fn() },
+        },
         { provide: PRODUCT_STORAGE, useValue: mockStorage },
       ],
     }).compile();

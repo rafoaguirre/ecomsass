@@ -1,4 +1,4 @@
-import type { StoreRepository } from '@ecomsaas/application/ports';
+import type { StoreRepository, VendorProfileRepository } from '@ecomsaas/application/ports';
 import type { CreateStore, GetStore, UpdateStore } from '@ecomsaas/application/use-cases';
 import { NotFoundError, StoreModel, StoreType, ValidationError, err, ok } from '@ecomsaas/domain';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -29,6 +29,7 @@ describe('StoresService', () => {
   let createStore: CreateStore;
   let updateStore: UpdateStore;
   let storeRepository: StoreRepository;
+  let vendorProfileRepository: VendorProfileRepository;
   const vendorUser = { id: 'vendor-1', email: 'v@test.com', role: 'Vendor' };
   const adminUser = { id: 'admin-1', email: 'a@test.com', role: 'Admin' };
 
@@ -47,7 +48,19 @@ describe('StoresService', () => {
       slugExists: vi.fn(),
     } as unknown as StoreRepository;
 
-    service = new StoresService(getStore, createStore, updateStore, storeRepository);
+    vendorProfileRepository = {
+      findById: vi.fn(),
+      findByUserId: vi.fn().mockResolvedValue(ok({ id: 'vendor-1' })),
+      save: vi.fn(),
+    } as unknown as VendorProfileRepository;
+
+    service = new StoresService(
+      getStore,
+      createStore,
+      updateStore,
+      storeRepository,
+      vendorProfileRepository
+    );
   });
 
   it('returns active store for public endpoint without sensitive fields', async () => {
@@ -91,12 +104,14 @@ describe('StoresService', () => {
     const store = StoreModel.fromData(baseStore);
     vi.mocked(createStore.execute).mockResolvedValue(ok(store));
 
-    const result = await service.create({
-      vendorProfileId: 'vendor-1',
-      name: 'Demo Store',
-      slug: 'demo-store',
-      storeType: StoreType.General,
-    });
+    const result = await service.createForUser(
+      {
+        name: 'Demo Store',
+        slug: 'demo-store',
+        storeType: StoreType.General,
+      },
+      vendorUser
+    );
 
     expect(result.name).toBe('Demo Store');
     expect(createStore.execute).toHaveBeenCalled();
@@ -108,12 +123,14 @@ describe('StoresService', () => {
     );
 
     await expect(
-      service.create({
-        vendorProfileId: 'vendor-1',
-        name: 'Test',
-        slug: 'taken-slug',
-        storeType: StoreType.General,
-      })
+      service.createForUser(
+        {
+          name: 'Test',
+          slug: 'taken-slug',
+          storeType: StoreType.General,
+        },
+        vendorUser
+      )
     ).rejects.toBeInstanceOf(ValidationError);
   });
 

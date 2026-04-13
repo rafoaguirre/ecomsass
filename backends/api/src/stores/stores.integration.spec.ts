@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { GetStore, CreateStore, UpdateStore } from '@ecomsaas/application/use-cases';
 import { StoreModel, StoreType, ok } from '@ecomsaas/domain';
 import { STORE_REPOSITORY } from './store.tokens';
+import { VENDOR_PROFILE_REPOSITORY } from '../vendors/vendor.tokens';
 import { StoresService } from './stores.service';
 
 describe('Stores integration', () => {
@@ -47,6 +48,10 @@ describe('Stores integration', () => {
         { provide: CreateStore, useValue: { execute: vi.fn() } },
         { provide: UpdateStore, useValue: { execute: vi.fn() } },
         { provide: STORE_REPOSITORY, useValue: mockRepo },
+        {
+          provide: VENDOR_PROFILE_REPOSITORY,
+          useValue: { findById: vi.fn(), findByUserId: vi.fn(), save: vi.fn() },
+        },
       ],
     }).compile();
 

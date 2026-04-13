@@ -105,6 +105,30 @@ describe('Stores (e2e)', () => {
       });
       testApp.supabaseClient.__setQueryResult(toStoreRow(store));
 
+      // Vendor profile lookup for ownership check
+      testApp.supabaseClient.__queryBuilder.maybeSingle
+        .mockImplementationOnce(() => Promise.resolve({ data: toStoreRow(store), error: null }))
+        .mockImplementationOnce(() =>
+          Promise.resolve({
+            data: {
+              id: 'vendor-user-1',
+              user_id: 'vendor-user-1',
+              business_name: 'Test',
+              phone: null,
+              phone_country_code: null,
+              addresses: [],
+              verification_status: 'Pending',
+              stripe_connect_id: null,
+              agreement_accepted: false,
+              onboarding_completed: false,
+              metadata: {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            error: null,
+          })
+        );
+
       const res = await request(testApp.app.getHttpServer())
         .get('/api/v1/stores/vendor/vendor-store')
         .set('Authorization', authHeader('vendor-user-1'))

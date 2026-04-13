@@ -172,9 +172,29 @@ describe('Products (e2e)', () => {
       });
 
       // Store ownership lookup returns a store not owned by our vendor
-      testApp.supabaseClient.__queryBuilder.maybeSingle.mockImplementationOnce(() =>
-        Promise.resolve({ data: toStoreRow(store), error: null })
-      );
+      testApp.supabaseClient.__queryBuilder.maybeSingle
+        .mockImplementationOnce(() => Promise.resolve({ data: toStoreRow(store), error: null }))
+        // Vendor profile lookup returns a profile whose id differs from the store owner
+        .mockImplementationOnce(() =>
+          Promise.resolve({
+            data: {
+              id: VENDOR_ID,
+              user_id: VENDOR_ID,
+              business_name: 'Test',
+              phone: null,
+              phone_country_code: null,
+              addresses: [],
+              verification_status: 'Pending',
+              stripe_connect_id: null,
+              agreement_accepted: false,
+              onboarding_completed: false,
+              metadata: {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            error: null,
+          })
+        );
 
       await request(testApp.app.getHttpServer())
         .post('/api/v1/products')

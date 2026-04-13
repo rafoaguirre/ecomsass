@@ -10,7 +10,6 @@ import { StripePaymentGateway } from './stripe-payment.gateway';
 @Injectable()
 export class CheckoutService {
   private readonly logger = new Logger(CheckoutService.name);
-  private readonly processedEvents = new Set<string>();
 
   constructor(
     @Inject(PlaceOrder) private readonly placeOrder: PlaceOrder,
@@ -81,12 +80,6 @@ export class CheckoutService {
   async handleWebhookEvent(payload: Buffer, signature: string): Promise<void> {
     const event = this.paymentGateway.constructWebhookEvent(payload, signature);
 
-    // Idempotency: skip already-processed events
-    if (this.processedEvents.has(event.id)) {
-      this.logger.log(`Skipping already-processed webhook event: ${event.id}`);
-      return;
-    }
-
     this.logger.log(`Stripe webhook event: ${event.type} (${event.id})`);
 
     switch (event.type) {
@@ -127,16 +120,6 @@ export class CheckoutService {
 
       default:
         this.logger.debug(`Unhandled Stripe event type: ${event.type}`);
-    }
-
-    // Only mark as processed after successful handling.
-    // If we threw above, Stripe will retry the webhook.
-    this.processedEvents.add(event.id);
-
-    // Prevent memory leak: cap the set size
-    if (this.processedEvents.size > 10_000) {
-      const first = this.processedEvents.values().next().value;
-      if (first) this.processedEvents.delete(first);
     }
   }
 }

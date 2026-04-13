@@ -111,10 +111,7 @@ export class StoresController {
     @Body(new ZodValidationPipe(CreateStoreRequestSchema)) body: CreateStoreRequest,
     @CurrentUser() user: AuthUser
   ): Promise<StoreResponse> {
-    return this.storesService.create({
-      vendorProfileId: user.id,
-      ...body,
-    });
+    return this.storesService.createForUser(body, user);
   }
 
   @Put(':id')

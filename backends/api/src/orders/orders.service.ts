@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   PlaceOrder,
   GetOrder,
@@ -7,12 +7,17 @@ import {
   type PlaceOrderInput,
   type UpdateOrderStatusInput,
 } from '@ecomsaas/application/use-cases';
-import type { OrderRepository, StoreRepository } from '@ecomsaas/application/ports';
+import type {
+  OrderRepository,
+  StoreRepository,
+  VendorProfileRepository,
+} from '@ecomsaas/application/ports';
 import type { OrderModel, OrderStatus } from '@ecomsaas/domain';
 import type { OrderResponse, OrderSummary } from '@ecomsaas/contracts';
 import type { AuthUser } from '../auth/types/auth-user';
 import { ORDER_REPOSITORY } from './order.tokens';
 import { STORE_REPOSITORY } from '../stores/store.tokens';
+import { VENDOR_PROFILE_REPOSITORY } from '../vendors/vendor.tokens';
 import { toOrderResponse, toOrderSummary } from './dto/order.mapper';
 import { clampOffset, clampPageSize } from '../common/database';
 
@@ -24,7 +29,9 @@ export class OrdersService {
     @Inject(ListOrders) private readonly listOrders: ListOrders,
     @Inject(UpdateOrderStatus) private readonly updateOrderStatus: UpdateOrderStatus,
     @Inject(ORDER_REPOSITORY) private readonly orderRepository: OrderRepository,
-    @Inject(STORE_REPOSITORY) private readonly storeRepository: StoreRepository
+    @Inject(STORE_REPOSITORY) private readonly storeRepository: StoreRepository,
+    @Inject(VENDOR_PROFILE_REPOSITORY)
+    private readonly vendorProfileRepository: VendorProfileRepository
   ) {}
 
   async create(
@@ -125,20 +132,30 @@ export class OrdersService {
     if (order.userId === user.id) return;
     // Vendors can view orders for stores they own
     if (user.role === 'Vendor') {
+      const vendorProfileId = await this.resolveVendorProfileId(user);
       const storeResult = await this.storeRepository.findById(order.storeId);
-      if (storeResult.isOk() && storeResult.value.vendorProfileId === user.id) return;
+      if (storeResult.isOk() && storeResult.value.vendorProfileId === vendorProfileId) return;
     }
     throw new ForbiddenException('You do not have access to this order');
   }
 
   private async verifyStoreOwnership(storeId: string, user: AuthUser): Promise<void> {
     if (user.role === 'Admin') return;
+    const vendorProfileId = await this.resolveVendorProfileId(user);
     const storeResult = await this.storeRepository.findById(storeId);
     if (storeResult.isErr()) throw storeResult.error;
     const store = storeResult.value;
-    if (store.vendorProfileId !== user.id) {
+    if (store.vendorProfileId !== vendorProfileId) {
       throw new ForbiddenException('You do not own this store');
     }
+  }
+
+  private async resolveVendorProfileId(user: AuthUser): Promise<string> {
+    const result = await this.vendorProfileRepository.findByUserId(user.id);
+    if (result.isErr()) {
+      throw new NotFoundException('Vendor profile not found for this user');
+    }
+    return result.value.id;
   }
 
   private async enrichOrder(order: OrderModel): Promise<OrderResponse> {

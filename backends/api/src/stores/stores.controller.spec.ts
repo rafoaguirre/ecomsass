@@ -7,7 +7,7 @@ describe('StoresController', () => {
     getBySlugPublic: vi.fn(),
     getBySlugForVendor: vi.fn(),
     getById: vi.fn(),
-    create: vi.fn(),
+    createForUser: vi.fn(),
     update: vi.fn(),
     remove: vi.fn(),
     listForMarketplace: vi.fn(),
@@ -53,9 +53,9 @@ describe('StoresController', () => {
     expect(storesService.getBySlugForVendor).toHaveBeenCalledWith('demo-store', user);
   });
 
-  it('delegates create to service with vendor id from user', async () => {
+  it('delegates create to service with user', async () => {
     const storeResponse = { id: 'store-1', name: 'New Store' } as any;
-    vi.mocked(storesService.create).mockResolvedValue(storeResponse);
+    vi.mocked(storesService.createForUser).mockResolvedValue(storeResponse);
 
     const user = { id: 'vendor-1', email: 'v@test.com', role: 'Vendor' };
     const body = {
@@ -68,10 +68,7 @@ describe('StoresController', () => {
     const result = await controller.create(body, user);
 
     expect(result.id).toBe('store-1');
-    expect(storesService.create).toHaveBeenCalledWith({
-      vendorProfileId: 'vendor-1',
-      ...body,
-    });
+    expect(storesService.createForUser).toHaveBeenCalledWith(body, user);
   });
 
   it('delegates update to service', async () => {

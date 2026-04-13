@@ -1,11 +1,15 @@
-import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   GetProduct,
   CreateProduct,
   UpdateProduct,
   type UpdateProductInput,
 } from '@ecomsaas/application/use-cases';
-import type { ProductRepository, StoreRepository } from '@ecomsaas/application/ports';
+import type {
+  ProductRepository,
+  StoreRepository,
+  VendorProfileRepository,
+} from '@ecomsaas/application/ports';
 import type { Storage } from '@ecomsaas/infrastructure/storage';
 import type {
   CreateProductRequest,
@@ -19,6 +23,7 @@ import type { ProductModel, CurrencyCode } from '@ecomsaas/domain';
 import type { AuthUser } from '../auth/types/auth-user';
 import { PRODUCT_REPOSITORY, PRODUCT_STORAGE } from './product.tokens';
 import { STORE_REPOSITORY } from '../stores/store.tokens';
+import { VENDOR_PROFILE_REPOSITORY } from '../vendors/vendor.tokens';
 import {
   toProductResponse,
   toProductListResponse,
@@ -48,6 +53,8 @@ export class ProductsService {
     @Inject(UpdateProduct) private readonly updateProductUC: UpdateProduct,
     @Inject(PRODUCT_REPOSITORY) private readonly productRepository: ProductRepository,
     @Inject(STORE_REPOSITORY) private readonly storeRepository: StoreRepository,
+    @Inject(VENDOR_PROFILE_REPOSITORY)
+    private readonly vendorProfileRepository: VendorProfileRepository,
     @Inject(PRODUCT_STORAGE) private readonly storage: Storage
   ) {}
 
@@ -190,7 +197,12 @@ export class ProductsService {
       throw result.error;
     }
 
-    if (result.value.vendorProfileId !== user.id) {
+    const vpResult = await this.vendorProfileRepository.findByUserId(user.id);
+    if (vpResult.isErr()) {
+      throw new NotFoundException('Vendor profile not found for this user');
+    }
+
+    if (result.value.vendorProfileId !== vpResult.value.id) {
       throw new ForbiddenException('You do not own this store');
     }
   }

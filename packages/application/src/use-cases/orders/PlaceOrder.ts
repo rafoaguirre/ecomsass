@@ -121,6 +121,16 @@ export class PlaceOrder {
         );
       }
 
+      // Verify sufficient stock (when inventory tracking is enabled)
+      if (product.inventory?.trackQuantity && product.inventory.quantity < item.quantity) {
+        return err(
+          new ValidationError(
+            `Insufficient stock for ${product.name}: requested ${item.quantity}, available ${product.inventory.quantity}`,
+            { field: 'items' }
+          )
+        );
+      }
+
       // Ensure all items use the same currency
       if (!currency) {
         currency = product.price.currency;

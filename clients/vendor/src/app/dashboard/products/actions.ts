@@ -1,19 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
 import { getStoreIdForAction } from '@/lib/auth';
+import { serverApi } from '@/lib/server-api-client';
 import { parsePriceToCents, parseTags } from '@/lib/product-utils';
 
 export type ProductState = { error?: string; success?: string } | null;
-
-function slugify(text: string) {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 80);
-}
 
 export async function createProduct(
   _prev: ProductState,
@@ -22,7 +14,6 @@ export async function createProduct(
   const result = await getStoreIdForAction();
   if ('error' in result) return { error: result.error };
 
-  const supabase = await createClient();
   const name = formData.get('name') as string;
   const description = formData.get('description') as string;
   const priceStr = formData.get('price') as string;
@@ -35,24 +26,17 @@ export async function createProduct(
     return { error: 'Price must be greater than 0.' };
   }
 
-  const slug = slugify(name);
-
-  const { error } = await supabase.from('products').insert({
-    store_id: result.storeId,
-    name,
-    slug,
-    description: description || null,
-    price_amount: priceAmount,
-    price_currency: currency,
-    availability,
-    tags: parseTags(tagsRaw),
-  });
-
-  if (error) {
-    if (error.code === '23505') {
-      return { error: 'A product with that name already exists in your store.' };
-    }
-    return { error: error.message };
+  try {
+    await serverApi.post('/api/v1/products', {
+      storeId: result.storeId,
+      name,
+      description: description || undefined,
+      price: { amount: priceAmount, currency },
+      availability,
+      tags: parseTags(tagsRaw),
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Failed to create product.' };
   }
 
   revalidatePath('/dashboard/products');
@@ -66,7 +50,6 @@ export async function updateProduct(
   const result = await getStoreIdForAction();
   if ('error' in result) return { error: result.error };
 
-  const supabase = await createClient();
   const productId = formData.get('productId') as string;
   const name = formData.get('name') as string;
   const description = formData.get('description') as string;
@@ -81,21 +64,17 @@ export async function updateProduct(
     return { error: 'Price must be greater than 0.' };
   }
 
-  const { error } = await supabase
-    .from('products')
-    .update({
+  try {
+    await serverApi.put(`/api/v1/products/${productId}`, {
       name,
-      description: description || null,
-      price_amount: priceAmount,
-      price_currency: currency,
+      description: description || undefined,
+      price: { amount: priceAmount, currency },
       availability,
-      is_active: isActive,
       tags: parseTags(tagsRaw),
-    })
-    .eq('id', productId);
-
-  if (error) {
-    return { error: error.message };
+      metadata: { isActive },
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Failed to update product.' };
   }
 
   revalidatePath('/dashboard/products');
@@ -106,11 +85,10 @@ export async function deleteProduct(productId: string): Promise<ProductState> {
   const result = await getStoreIdForAction();
   if ('error' in result) return { error: result.error };
 
-  const supabase = await createClient();
-  const { error } = await supabase.from('products').delete().eq('id', productId);
-
-  if (error) {
-    return { error: error.message };
+  try {
+    await serverApi.delete(`/api/v1/products/${productId}`);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Failed to delete product.' };
   }
 
   revalidatePath('/dashboard/products');

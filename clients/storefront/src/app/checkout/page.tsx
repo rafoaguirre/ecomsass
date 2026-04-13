@@ -330,7 +330,10 @@ export default function CheckoutPage() {
                 })}
               </span>
             </div>
-            <StripeProvider clientSecret={currentSession.clientSecret}>
+            <StripeProvider
+              key={currentSession.clientSecret}
+              clientSecret={currentSession.clientSecret}
+            >
               <PaymentForm onSuccess={handlePaymentSuccess} onError={handlePaymentError} />
             </StripeProvider>
           </div>

@@ -1,4 +1,8 @@
-import type { ProductRepository, StoreRepository } from '@ecomsaas/application/ports';
+import type {
+  ProductRepository,
+  StoreRepository,
+  VendorProfileRepository,
+} from '@ecomsaas/application/ports';
 import type { CreateProduct, GetProduct, UpdateProduct } from '@ecomsaas/application/use-cases';
 import type { Storage } from '@ecomsaas/infrastructure/storage';
 import { ForbiddenException } from '@nestjs/common';
@@ -56,6 +60,7 @@ describe('ProductsService', () => {
   let updateProductUC: UpdateProduct;
   let productRepository: ProductRepository;
   let storeRepository: StoreRepository;
+  let vendorProfileRepository: VendorProfileRepository;
   let storage: Storage;
 
   beforeEach(() => {
@@ -82,6 +87,13 @@ describe('ProductsService', () => {
       delete: vi.fn(),
       slugExists: vi.fn(),
     } as unknown as StoreRepository;
+    vendorProfileRepository = {
+      findById: vi.fn(),
+      findByUserId: vi
+        .fn()
+        .mockImplementation((userId: string) => Promise.resolve(ok({ id: userId }))),
+      save: vi.fn(),
+    } as unknown as VendorProfileRepository;
     storage = {
       put: vi.fn(),
       get: vi.fn(),
@@ -96,6 +108,7 @@ describe('ProductsService', () => {
       updateProductUC,
       productRepository,
       storeRepository,
+      vendorProfileRepository,
       storage
     );
   });
