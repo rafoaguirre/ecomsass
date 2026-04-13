@@ -20,10 +20,11 @@ Implemented workspaces:
 - `packages/application`
 - `packages/validation`
 - `packages/infrastructure`
+- `packages/api-client`
 - `packages/ui`
-- `backends/api` (scaffold)
-- `clients/storefront` (scaffold)
-- `clients/vendor` (scaffold)
+- `backends/api`
+- `clients/storefront`
+- `clients/vendor`
 - `blockchain/contracts` (Foundry scaffold)
 
 Planned but not yet created:

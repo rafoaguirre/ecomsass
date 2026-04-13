@@ -100,12 +100,10 @@
 
 ### API JWT Validation Strategy (Supabase)
 
-- **Current baseline**: API validates `Authorization: Bearer <token>` by calling
-  Supabase Auth (`auth.getUser(token)`) in `SupabaseAuthGuard`.
-- **Why now**: Minimizes implementation complexity while establishing end-to-end
-  client auth + API transaction validation flow.
-- **Future improvements (post-baseline)**:
-  - Local JWT verification using Supabase JWKS (`jose`) to reduce per-request latency.
+- **Current**: Local JWT verification using `jose` library with Supabase JWKS.
+  Eliminates per-request network round-trip to Supabase Auth.
+- **Guard**: `SupabaseAuthGuard` extracts role from `app_metadata.role` in JWT payload.
+- **Future improvements**:
   - Gateway/edge-level JWT validation for centralized auth enforcement.
   - Request-scoped auth context propagation to support strict RLS flows relying on `auth.uid()`.
 
@@ -180,19 +178,20 @@ services:
 packages/
 ├── domain/              # Core entities, value objects, enums (zero deps)
 ├── contracts/           # DTOs, API protocol types (depends on domain)
-├── application/         # Use cases (planned)
-├── ui/                  # React components (planned)
+├── application/         # Use cases and port interfaces
+├── api-client/          # Shared HTTP client factory (createApiClient)
+├── ui/                  # React components (shadcn + Tailwind)
 ├── utils/               # Pure utilities (planned)
 ├── config/              # Configurations (planned)
-├── validation/          # Zod schemas (planned)
-└── infrastructure/      # Infra utilities (planned)
-    ├── logger/          # Logging
+├── validation/          # Zod schemas
+└── infrastructure/      # Infra utilities
+    ├── logger/          # Logging (Pino adapter)
     ├── secrets/         # Secret management
     ├── http/            # HTTP client
-    ├── cache/           # Redis wrapper
-    ├── queue/           # BullMQ wrapper
-    ├── database/        # Migration wrapper
-    ├── storage/         # File storage wrapper
+    ├── cache/           # Cache interface (in-memory; Redis planned)
+    ├── queue/           # JobQueue interface (in-memory; BullMQ planned)
+    ├── database/        # Database interface
+    ├── storage/         # File storage (S3/MinIO adapter)
     └── tracing/         # Observability
 ```
 
