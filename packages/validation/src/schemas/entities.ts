@@ -109,7 +109,8 @@ export const PaymentInfoSchema = z.object({
   status: z.nativeEnum(PaymentStatus),
   amount: MoneySchema,
   transactionId: z.string().optional(),
-  stripePaymentIntentId: z.string().optional(),
+  provider: z.string().optional(),
+  providerPaymentId: z.string().optional(),
   metadata: MetadataSchema.optional(),
 });
 

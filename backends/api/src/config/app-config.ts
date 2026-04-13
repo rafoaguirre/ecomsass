@@ -14,8 +14,17 @@ export interface AppConfig {
   /** Supabase service-role key — bypasses RLS, used for admin/server operations. */
   readonly SUPABASE_SERVICE_ROLE_KEY: string;
 
+  /** Supabase JWT secret — used for local JWT verification in auth guard. */
+  readonly SUPABASE_JWT_SECRET: string;
+
   /** HTTP port for the API server. */
   readonly PORT: string;
+
+  /** Stripe secret key — used for server-side Stripe API calls. */
+  readonly STRIPE_SECRET_KEY: string;
+
+  /** Stripe webhook signing secret — used to verify webhook signatures. */
+  readonly STRIPE_WEBHOOK_SECRET: string;
 }
 
 /**
@@ -26,4 +35,7 @@ export const REQUIRED_SECRET_KEYS = [
   'SUPABASE_URL',
   'SUPABASE_ANON_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
+  'SUPABASE_JWT_SECRET',
+  'STRIPE_SECRET_KEY',
+  'STRIPE_WEBHOOK_SECRET',
 ] as const;

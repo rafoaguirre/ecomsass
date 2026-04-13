@@ -96,6 +96,9 @@ importers:
       helmet:
         specifier: ^8.1.0
         version: 8.1.0
+      jose:
+        specifier: ^6.2.2
+        version: 6.2.2
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -141,6 +144,9 @@ importers:
 
   clients/storefront:
     dependencies:
+      '@ecomsaas/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
       '@ecomsaas/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -214,6 +220,9 @@ importers:
 
   clients/vendor:
     dependencies:
+      '@ecomsaas/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
       '@ecomsaas/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -269,6 +278,15 @@ importers:
       tailwindcss:
         specifier: ^4.2.2
         version: 4.2.2
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/api-client:
+    devDependencies:
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(@swc/core@1.15.24)(jiti@2.6.1)(postcss@8.5.9)(typescript@5.9.3)(yaml@2.8.3)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -4624,6 +4642,9 @@ packages:
   jiti@2.6.1:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
     hasBin: true
+
+  jose@6.2.2:
+    resolution: {integrity: sha512-d7kPDd34KO/YnzaDOlikGpOurfF0ByC2sEV4cANCtdqLlTfBlw2p14O/5d/zv40gJPbIQxfES3nSx1/oYNyuZQ==}
 
   joycon@3.1.1:
     resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
@@ -11163,6 +11184,8 @@ snapshots:
       supports-color: 8.1.1
 
   jiti@2.6.1: {}
+
+  jose@6.2.2: {}
 
   joycon@3.1.1: {}
 

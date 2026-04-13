@@ -22,10 +22,11 @@ import {
   ApiUnauthorizedResponse,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type {
   CreateOrderRequest,
   OrderResponse,
-  OrderSummary,
+  OrderListResponse,
   UpdateOrderStatusRequest,
 } from '@ecomsaas/contracts';
 import { OrderStatus } from '@ecomsaas/domain';
@@ -39,6 +40,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { SupabaseAuthGuard } from '../auth/guards/supabase-auth.guard';
 import type { AuthUser } from '../auth/types/auth-user';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { ParseOptionalEnumPipe } from '../common/pipes/parse-optional-enum.pipe';
 import { OrdersService } from './orders.service';
 
 @ApiTags('orders')
@@ -53,6 +55,7 @@ export class OrdersController {
 
   @Post('stores/:storeId/orders')
   @Roles('Customer', 'Buyer', 'Admin')
+  @Throttle({ strict: { ttl: 60_000, limit: 10 } })
   @ApiOperation({ summary: 'Place a new order in a store' })
   @ApiCreatedResponse({ description: 'Order placed successfully' })
   @ApiBadRequestResponse({ description: 'Validation failed' })
@@ -90,12 +93,12 @@ export class OrdersController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async listMyOrders(
     @CurrentUser() user: AuthUser,
-    @Query('status') status?: string,
+    @Query('status', new ParseOptionalEnumPipe(OrderStatus, 'status')) status?: OrderStatus,
     @Query('offset') offset?: string,
     @Query('limit') limit?: string
-  ): Promise<OrderSummary[]> {
+  ): Promise<OrderListResponse> {
     return this.ordersService.listForCustomer(user, {
-      status: status as OrderStatus | undefined,
+      status,
       offset: offset ? parseInt(offset, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
     });
@@ -127,12 +130,12 @@ export class OrdersController {
   async listStoreOrders(
     @Param('storeId', ParseUUIDPipe) storeId: string,
     @CurrentUser() user: AuthUser,
-    @Query('status') status?: string,
+    @Query('status', new ParseOptionalEnumPipe(OrderStatus, 'status')) status?: OrderStatus,
     @Query('offset') offset?: string,
     @Query('limit') limit?: string
-  ): Promise<OrderSummary[]> {
+  ): Promise<OrderListResponse> {
     return this.ordersService.listForStore(storeId, user, {
-      status: status as OrderStatus | undefined,
+      status,
       offset: offset ? parseInt(offset, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
     });

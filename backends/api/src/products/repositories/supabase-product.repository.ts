@@ -32,13 +32,17 @@ type ProductRow = {
 export class SupabaseProductRepository implements ProductRepository {
   constructor(@Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient) {}
 
-  async findById(id: string): Promise<Result<ProductModel, NotFoundError>> {
-    const { data, error } = await this.supabase
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .limit(1)
-      .maybeSingle<ProductRow>();
+  async findById(
+    id: string,
+    options?: { activeOnly?: boolean }
+  ): Promise<Result<ProductModel, NotFoundError>> {
+    let query = this.supabase.from('products').select('*').eq('id', id).limit(1);
+
+    if (options?.activeOnly) {
+      query = query.eq('is_active', true);
+    }
+
+    const { data, error } = await query.maybeSingle<ProductRow>();
 
     if (error) {
       throw new Error(`Failed to query product by id: ${error.message}`);
@@ -73,13 +77,17 @@ export class SupabaseProductRepository implements ProductRepository {
 
   async findByStoreId(
     storeId: string,
-    options?: PaginationOptions & { categoryId?: string }
-  ): Promise<ProductModel[]> {
+    options?: PaginationOptions & { categoryId?: string; activeOnly?: boolean }
+  ): Promise<{ data: ProductModel[]; total: number }> {
     let query = this.supabase
       .from('products')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('store_id', storeId)
       .order('created_at', { ascending: false });
+
+    if (options?.activeOnly) {
+      query = query.eq('is_active', true);
+    }
 
     if (options?.categoryId) {
       query = query.eq('category_id', options.categoryId);
@@ -89,13 +97,16 @@ export class SupabaseProductRepository implements ProductRepository {
       ({ query } = applyPagination(query, options));
     }
 
-    const { data, error } = await query.returns<ProductRow[]>();
+    const { data, error, count } = await query.returns<ProductRow[]>();
 
     if (error) {
       throw new Error(`Failed to list products by store: ${error.message}`);
     }
 
-    return (data ?? []).map((row) => this.toProductModel(row));
+    return {
+      data: (data ?? []).map((row) => this.toProductModel(row)),
+      total: count ?? 0,
+    };
   }
 
   async findByCategoryId(categoryId: string, options?: PaginationOptions): Promise<ProductModel[]> {
@@ -136,7 +147,8 @@ export class SupabaseProductRepository implements ProductRepository {
       .eq('is_active', true);
 
     if (options.q) {
-      query = query.ilike('name', `%${options.q}%`);
+      const escaped = options.q.replace(/[%_\\]/g, '\\$&');
+      query = query.ilike('name', `%${escaped}%`);
     }
 
     if (options.storeId) {
@@ -253,6 +265,25 @@ export class SupabaseProductRepository implements ProductRepository {
     }
 
     return (data ?? []).length > 0;
+  }
+
+  async reserveStock(
+    items: Array<{ productId: string; quantity: number }>
+  ): Promise<Result<void, Error>> {
+    const payload = items.map((i) => ({
+      product_id: i.productId,
+      quantity: i.quantity,
+    }));
+
+    const { error } = await this.supabase.rpc('reserve_stock_batch', {
+      p_items: payload,
+    });
+
+    if (error) {
+      return err(new Error(`Stock reservation failed: ${error.message}`));
+    }
+
+    return ok(undefined);
   }
 
   private toProductModel(row: ProductRow): ProductModel {

@@ -43,6 +43,7 @@ describe('CreateProduct Use Case', () => {
       delete: vi.fn(),
       slugExists: vi.fn(),
       searchActive: vi.fn(),
+      reserveStock: vi.fn(),
     };
 
     mockStoreRepository = {

@@ -1,17 +1,10 @@
-import type { ProductRepository, StoreRepository } from '@ecomsaas/application/ports';
+import type { ProductRepository } from '@ecomsaas/application/ports';
 import type { CreateProduct, GetProduct, UpdateProduct } from '@ecomsaas/application/use-cases';
 import type { Storage } from '@ecomsaas/infrastructure/storage';
 import { ForbiddenException } from '@nestjs/common';
-import {
-  NotFoundError,
-  ProductAvailability,
-  ProductModel,
-  StoreModel,
-  StoreType,
-  ok,
-  err,
-} from '@ecomsaas/domain';
+import { NotFoundError, ProductAvailability, ProductModel, ok, err } from '@ecomsaas/domain';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { OwnershipVerifier } from '../common/authorization/ownership-verifier';
 import { ProductsService } from './products.service';
 
 const baseProductInput = {
@@ -26,25 +19,6 @@ const baseProductInput = {
   metadata: {},
 };
 
-const baseStoreData = {
-  id: 'store-0001',
-  vendorProfileId: 'vendor-1',
-  name: 'Test Store',
-  slug: 'test-store',
-  storeType: StoreType.General,
-  address: {
-    street: '123 Main St',
-    city: 'Halifax',
-    province: 'NS',
-    country: 'CA',
-    postalCode: 'B3H1A1',
-  },
-  metadata: { vendorName: 'Test Vendor' },
-  isActive: true,
-  createdAt: new Date('2026-01-01T00:00:00.000Z'),
-  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
-};
-
 describe('ProductsService', () => {
   const vendorUser = { id: 'vendor-1', email: 'v@test.com', role: 'Vendor' as const };
   const adminUser = { id: 'admin-1', email: 'a@test.com', role: 'Admin' as const };
@@ -55,7 +29,7 @@ describe('ProductsService', () => {
   let createProductUC: CreateProduct;
   let updateProductUC: UpdateProduct;
   let productRepository: ProductRepository;
-  let storeRepository: StoreRepository;
+  let ownership: OwnershipVerifier;
   let storage: Storage;
 
   beforeEach(() => {
@@ -72,16 +46,13 @@ describe('ProductsService', () => {
       delete: vi.fn(),
       slugExists: vi.fn(),
     } as unknown as ProductRepository;
-    storeRepository = {
-      findById: vi.fn(),
-      findBySlug: vi.fn(),
-      findByVendorId: vi.fn(),
-      findActive: vi.fn(),
-      searchActive: vi.fn(),
-      save: vi.fn(),
-      delete: vi.fn(),
-      slugExists: vi.fn(),
-    } as unknown as StoreRepository;
+    ownership = {
+      resolveVendorProfileId: vi.fn().mockResolvedValue('vendor-1'),
+      verifyStoreOwnership: vi.fn().mockResolvedValue(undefined),
+      assertStoreOwnership: vi.fn().mockResolvedValue(undefined),
+      verifyProductOwnership: vi.fn().mockResolvedValue(undefined),
+      assertOrderAccess: vi.fn().mockResolvedValue(undefined),
+    } as unknown as OwnershipVerifier;
     storage = {
       put: vi.fn(),
       get: vi.fn(),
@@ -95,7 +66,7 @@ describe('ProductsService', () => {
       createProductUC,
       updateProductUC,
       productRepository,
-      storeRepository,
+      ownership,
       storage
     );
   });
@@ -109,19 +80,18 @@ describe('ProductsService', () => {
         id: 'prod-uuid-0001',
         name: 'Widget',
       });
-      vi.mocked(getProductUC.execute).mockResolvedValue(ok(product));
+      vi.mocked(productRepository.findById).mockResolvedValue(ok(product));
 
       const result = await service.getById('prod-uuid-0001');
 
       expect(result.name).toBe('Widget');
-      expect(getProductUC.execute).toHaveBeenCalledWith({
-        identifier: 'prod-uuid-0001',
-        identifierType: 'id',
+      expect(productRepository.findById).toHaveBeenCalledWith('prod-uuid-0001', {
+        activeOnly: true,
       });
     });
 
     it('throws when product not found', async () => {
-      vi.mocked(getProductUC.execute).mockResolvedValue(
+      vi.mocked(productRepository.findById).mockResolvedValue(
         err(new NotFoundError('Product', 'missing-id'))
       );
 
@@ -132,11 +102,6 @@ describe('ProductsService', () => {
   // ── create ─────────────────────────────────────────────────────────────────
 
   describe('create', () => {
-    const store = StoreModel.fromData({
-      ...baseStoreData,
-      id: 'store-uuid-0001',
-      vendorProfileId: 'vendor-1',
-    });
     const createRequest = {
       storeId: 'store-uuid-0001',
       name: 'New Widget',
@@ -150,17 +115,19 @@ describe('ProductsService', () => {
         name: 'New Widget',
         storeId: 'store-uuid-0001',
       });
-      vi.mocked(storeRepository.findById).mockResolvedValue(ok(store));
       vi.mocked(createProductUC.execute).mockResolvedValue(ok(product));
 
       const result = await service.create(createRequest as any, vendorUser);
 
       expect(result.name).toBe('New Widget');
+      expect(ownership.verifyStoreOwnership).toHaveBeenCalledWith('store-uuid-0001', vendorUser);
       expect(createProductUC.execute).toHaveBeenCalled();
     });
 
     it('throws Forbidden when vendor does not own the store', async () => {
-      vi.mocked(storeRepository.findById).mockResolvedValue(ok(store));
+      vi.mocked(ownership.verifyStoreOwnership).mockRejectedValueOnce(
+        new ForbiddenException('You do not own this store')
+      );
 
       await expect(service.create(createRequest as any, otherVendor)).rejects.toBeInstanceOf(
         ForbiddenException
@@ -174,8 +141,7 @@ describe('ProductsService', () => {
       const result = await service.create(createRequest as any, adminUser);
 
       expect(result.name).toBe('Admin Widget');
-      // Admin bypasses store ownership check — storeRepository never called
-      expect(storeRepository.findById).not.toHaveBeenCalled();
+      expect(ownership.verifyStoreOwnership).toHaveBeenCalledWith('store-uuid-0001', adminUser);
     });
   });
 
@@ -183,41 +149,24 @@ describe('ProductsService', () => {
 
   describe('update', () => {
     it('updates product when vendor owns it', async () => {
-      const store = StoreModel.fromData({
-        ...baseStoreData,
-        id: 'store-1',
-        vendorProfileId: 'vendor-1',
-      });
-      const product = ProductModel.create({
-        ...baseProductInput,
-        id: 'prod-1',
-        storeId: 'store-1',
-      });
       const updated = ProductModel.create({ ...baseProductInput, id: 'prod-1', name: 'Updated' });
 
-      vi.mocked(productRepository.findById).mockResolvedValue(ok(product));
-      vi.mocked(storeRepository.findById).mockResolvedValue(ok(store));
       vi.mocked(updateProductUC.execute).mockResolvedValue(ok(updated));
 
       const result = await service.update('prod-1', { name: 'Updated' } as any, vendorUser);
 
       expect(result.name).toBe('Updated');
+      expect(ownership.verifyProductOwnership).toHaveBeenCalledWith(
+        'prod-1',
+        vendorUser,
+        productRepository
+      );
     });
 
     it('throws Forbidden when vendor does not own the product', async () => {
-      const store = StoreModel.fromData({
-        ...baseStoreData,
-        id: 'store-1',
-        vendorProfileId: 'vendor-1',
-      });
-      const product = ProductModel.create({
-        ...baseProductInput,
-        id: 'prod-1',
-        storeId: 'store-1',
-      });
-
-      vi.mocked(productRepository.findById).mockResolvedValue(ok(product));
-      vi.mocked(storeRepository.findById).mockResolvedValue(ok(store));
+      vi.mocked(ownership.verifyProductOwnership).mockRejectedValueOnce(
+        new ForbiddenException('You do not own this product')
+      );
 
       await expect(service.update('prod-1', {} as any, otherVendor)).rejects.toBeInstanceOf(
         ForbiddenException
@@ -235,7 +184,11 @@ describe('ProductsService', () => {
       const result = await service.update('prod-1', { name: 'Admin Update' } as any, adminUser);
 
       expect(result.name).toBe('Admin Update');
-      expect(productRepository.findById).not.toHaveBeenCalled();
+      expect(ownership.verifyProductOwnership).toHaveBeenCalledWith(
+        'prod-1',
+        adminUser,
+        productRepository
+      );
     });
   });
 
@@ -243,38 +196,20 @@ describe('ProductsService', () => {
 
   describe('remove', () => {
     it('deletes product when vendor owns it', async () => {
-      const store = StoreModel.fromData({
-        ...baseStoreData,
-        id: 'store-1',
-        vendorProfileId: 'vendor-1',
-      });
-      const product = ProductModel.create({
-        ...baseProductInput,
-        id: 'prod-1',
-        storeId: 'store-1',
-      });
-
-      vi.mocked(productRepository.findById).mockResolvedValue(ok(product));
-      vi.mocked(storeRepository.findById).mockResolvedValue(ok(store));
       vi.mocked(productRepository.delete).mockResolvedValue(ok(undefined));
 
       await expect(service.remove('prod-1', vendorUser)).resolves.toBeUndefined();
+      expect(ownership.verifyProductOwnership).toHaveBeenCalledWith(
+        'prod-1',
+        vendorUser,
+        productRepository
+      );
     });
 
     it('throws Forbidden when removing product of another vendor', async () => {
-      const store = StoreModel.fromData({
-        ...baseStoreData,
-        id: 'store-1',
-        vendorProfileId: 'vendor-1',
-      });
-      const product = ProductModel.create({
-        ...baseProductInput,
-        id: 'prod-1',
-        storeId: 'store-1',
-      });
-
-      vi.mocked(productRepository.findById).mockResolvedValue(ok(product));
-      vi.mocked(storeRepository.findById).mockResolvedValue(ok(store));
+      vi.mocked(ownership.verifyProductOwnership).mockRejectedValueOnce(
+        new ForbiddenException('You do not own this product')
+      );
 
       await expect(service.remove('prod-1', otherVendor)).rejects.toBeInstanceOf(
         ForbiddenException
@@ -282,8 +217,8 @@ describe('ProductsService', () => {
     });
 
     it('propagates not-found error', async () => {
-      vi.mocked(productRepository.findById).mockResolvedValue(
-        err(new NotFoundError('Product', 'missing'))
+      vi.mocked(ownership.verifyProductOwnership).mockRejectedValueOnce(
+        new NotFoundError('Product', 'missing')
       );
 
       await expect(service.remove('missing', vendorUser)).rejects.toBeInstanceOf(NotFoundError);
@@ -298,7 +233,7 @@ describe('ProductsService', () => {
         ProductModel.create({ ...baseProductInput, id: 'prod-A', slug: 'product-a', name: 'A' }),
         ProductModel.create({ ...baseProductInput, id: 'prod-B', slug: 'product-b', name: 'B' }),
       ];
-      vi.mocked(productRepository.findByStoreId).mockResolvedValue(products);
+      vi.mocked(productRepository.findByStoreId).mockResolvedValue({ data: products, total: 2 });
 
       const result = await service.listByStore('store-1', { limit: 10, offset: 0 });
 

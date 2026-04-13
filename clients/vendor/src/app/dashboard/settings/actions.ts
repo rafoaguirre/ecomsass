@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
+import { serverApi } from '@/lib/server-api-client';
 
 export type SettingsState = { error?: string; success?: string } | null;
 
@@ -9,14 +9,9 @@ export async function updateStore(
   _prev: SettingsState,
   formData: FormData
 ): Promise<SettingsState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: 'Not authenticated.' };
-
   const storeId = formData.get('storeId') as string;
+
+  if (!storeId) return { error: 'Store ID is required.' };
 
   const updates: Record<string, unknown> = {};
 
@@ -24,19 +19,19 @@ export async function updateStore(
   if (name) updates.name = name;
 
   const description = formData.get('description') as string;
-  updates.description = description || null;
+  updates.description = description || undefined;
 
   const email = formData.get('email') as string;
-  updates.email = email || null;
+  updates.email = email || undefined;
 
   const phone = formData.get('phone') as string;
-  updates.phone_number = phone || null;
+  updates.phoneNumber = phone || undefined;
 
   const storeType = formData.get('storeType') as string;
-  if (storeType) updates.store_type = storeType;
+  if (storeType) updates.storeType = storeType;
 
   const isActive = formData.get('isActive');
-  updates.is_active = isActive === 'on';
+  updates.isActive = isActive === 'on';
 
   updates.address = {
     street: (formData.get('street') as string) || '',
@@ -46,10 +41,10 @@ export async function updateStore(
     postalCode: (formData.get('postalCode') as string) || '',
   };
 
-  const { error } = await supabase.from('stores').update(updates).eq('id', storeId);
-
-  if (error) {
-    return { error: error.message };
+  try {
+    await serverApi.put(`/api/v1/stores/${storeId}`, updates);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Failed to update store.' };
   }
 
   revalidatePath('/dashboard/settings');

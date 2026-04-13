@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { ShadcnButton, ShadcnSeparator } from '@ecomsaas/ui/shadcn';
@@ -196,12 +197,14 @@ export default function CheckoutPage() {
                 <div className="space-y-4">
                   {group.items.map((item) => (
                     <div key={item.productId} className="flex gap-4">
-                      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-md border border-border bg-neutral-50">
+                      <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-md border border-border bg-neutral-50">
                         {item.image ? (
-                          <img
+                          <Image
                             src={item.image}
                             alt={item.productName}
-                            className="h-full w-full rounded-md object-cover"
+                            fill
+                            sizes="80px"
+                            className="rounded-md object-cover"
                           />
                         ) : (
                           <svg
@@ -330,7 +333,10 @@ export default function CheckoutPage() {
                 })}
               </span>
             </div>
-            <StripeProvider clientSecret={currentSession.clientSecret}>
+            <StripeProvider
+              key={currentSession.clientSecret}
+              clientSecret={currentSession.clientSecret}
+            >
               <PaymentForm onSuccess={handlePaymentSuccess} onError={handlePaymentError} />
             </StripeProvider>
           </div>

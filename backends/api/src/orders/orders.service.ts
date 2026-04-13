@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   PlaceOrder,
   GetOrder,
@@ -7,12 +7,14 @@ import {
   type PlaceOrderInput,
   type UpdateOrderStatusInput,
 } from '@ecomsaas/application/use-cases';
-import type { OrderRepository, StoreRepository } from '@ecomsaas/application/ports';
+import type { OrderRepository, StoreRepository, UserRepository } from '@ecomsaas/application/ports';
 import type { OrderModel, OrderStatus } from '@ecomsaas/domain';
-import type { OrderResponse, OrderSummary } from '@ecomsaas/contracts';
+import type { OrderResponse, OrderListResponse } from '@ecomsaas/contracts';
 import type { AuthUser } from '../auth/types/auth-user';
 import { ORDER_REPOSITORY } from './order.tokens';
 import { STORE_REPOSITORY } from '../stores/store.tokens';
+import { USER_REPOSITORY } from '../users/user.tokens';
+import { OwnershipVerifier } from '../common/authorization/ownership-verifier';
 import { toOrderResponse, toOrderSummary } from './dto/order.mapper';
 import { clampOffset, clampPageSize } from '../common/database';
 
@@ -24,7 +26,9 @@ export class OrdersService {
     @Inject(ListOrders) private readonly listOrders: ListOrders,
     @Inject(UpdateOrderStatus) private readonly updateOrderStatus: UpdateOrderStatus,
     @Inject(ORDER_REPOSITORY) private readonly orderRepository: OrderRepository,
-    @Inject(STORE_REPOSITORY) private readonly storeRepository: StoreRepository
+    @Inject(STORE_REPOSITORY) private readonly storeRepository: StoreRepository,
+    @Inject(USER_REPOSITORY) private readonly userRepository: UserRepository,
+    private readonly ownership: OwnershipVerifier
   ) {}
 
   async create(
@@ -53,39 +57,51 @@ export class OrdersService {
     }
 
     const order = result.value;
-    await this.assertAccess(order, user);
+    await this.ownership.assertOrderAccess(order, user);
     return this.enrichOrder(order);
   }
 
   async listForCustomer(
     user: AuthUser,
     options?: { status?: OrderStatus; offset?: number; limit?: number }
-  ): Promise<OrderSummary[]> {
-    const orders = await this.listOrders.execute({
+  ): Promise<OrderListResponse> {
+    const offset = clampOffset(options?.offset);
+    const limit = clampPageSize(options?.limit);
+    const { data: orders, total } = await this.listOrders.execute({
       userId: user.id,
       status: options?.status,
-      offset: clampOffset(options?.offset),
-      limit: clampPageSize(options?.limit),
+      offset,
+      limit,
     });
 
-    return orders.map(toOrderSummary);
+    return {
+      orders: orders.map(toOrderSummary),
+      totalCount: total,
+      hasMore: offset + limit < total,
+    };
   }
 
   async listForStore(
     storeId: string,
     user: AuthUser,
     options?: { status?: OrderStatus; offset?: number; limit?: number }
-  ): Promise<OrderSummary[]> {
-    await this.verifyStoreOwnership(storeId, user);
+  ): Promise<OrderListResponse> {
+    await this.ownership.verifyStoreOwnership(storeId, user);
 
-    const orders = await this.listOrders.execute({
+    const offset = clampOffset(options?.offset);
+    const limit = clampPageSize(options?.limit);
+    const { data: orders, total } = await this.listOrders.execute({
       storeId,
       status: options?.status,
-      offset: clampOffset(options?.offset),
-      limit: clampPageSize(options?.limit),
+      offset,
+      limit,
     });
 
-    return orders.map(toOrderSummary);
+    return {
+      orders: orders.map(toOrderSummary),
+      totalCount: total,
+      hasMore: offset + limit < total,
+    };
   }
 
   async updateStatus(
@@ -100,7 +116,14 @@ export class OrdersService {
     }
 
     const order = findResult.value;
-    await this.verifyStoreOwnership(order.storeId, user);
+    await this.ownership.verifyStoreOwnership(order.storeId, user);
+
+    // Fetch store name now (before mutation) so enrichOrder doesn't re-fetch
+    let storeName: string | undefined;
+    const storeResult = await this.storeRepository.findById(order.storeId);
+    if (storeResult.isOk()) {
+      storeName = storeResult.value.name;
+    }
 
     const result = await this.updateOrderStatus.execute({
       orderId,
@@ -111,47 +134,32 @@ export class OrdersService {
       throw result.error;
     }
 
-    return this.enrichOrder(result.value);
+    return this.enrichOrder(result.value, storeName);
   }
 
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
 
-  private async assertAccess(order: OrderModel, user: AuthUser): Promise<void> {
-    // Admin can view all orders
-    if (user.role === 'Admin') return;
-    // Customers can view their own orders
-    if (order.userId === user.id) return;
-    // Vendors can view orders for stores they own
-    if (user.role === 'Vendor') {
+  private async enrichOrder(
+    order: OrderModel,
+    preloadedStoreName?: string
+  ): Promise<OrderResponse> {
+    // Use preloaded store name if available, otherwise fetch
+    let storeName = preloadedStoreName ?? 'Unknown Store';
+    if (!preloadedStoreName) {
       const storeResult = await this.storeRepository.findById(order.storeId);
-      if (storeResult.isOk() && storeResult.value.vendorProfileId === user.id) return;
-    }
-    throw new ForbiddenException('You do not have access to this order');
-  }
-
-  private async verifyStoreOwnership(storeId: string, user: AuthUser): Promise<void> {
-    if (user.role === 'Admin') return;
-    const storeResult = await this.storeRepository.findById(storeId);
-    if (storeResult.isErr()) throw storeResult.error;
-    const store = storeResult.value;
-    if (store.vendorProfileId !== user.id) {
-      throw new ForbiddenException('You do not own this store');
-    }
-  }
-
-  private async enrichOrder(order: OrderModel): Promise<OrderResponse> {
-    // Fetch store name for the response
-    let storeName = 'Unknown Store';
-    const storeResult = await this.storeRepository.findById(order.storeId);
-    if (storeResult.isOk()) {
-      storeName = storeResult.value.name;
+      if (storeResult.isOk()) {
+        storeName = storeResult.value.name;
+      }
     }
 
-    // Customer name would come from user profile — for now use a placeholder
-    // This avoids coupling to UserRepository until the user module is more mature
-    const customerName = 'Customer';
+    // Lookup customer name from profile
+    let customerName = 'Customer';
+    const userResult = await this.userRepository.findById(order.userId);
+    if (userResult.isOk() && userResult.value.fullName) {
+      customerName = userResult.value.fullName;
+    }
 
     return toOrderResponse(order, storeName, customerName);
   }

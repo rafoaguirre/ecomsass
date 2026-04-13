@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { GetStore, CreateStore, UpdateStore } from '@ecomsaas/application/use-cases';
 import { StoreModel, StoreType, ok } from '@ecomsaas/domain';
 import { STORE_REPOSITORY } from './store.tokens';
+import { OwnershipVerifier } from '../common/authorization/ownership-verifier';
 import { StoresService } from './stores.service';
 
 describe('Stores integration', () => {
@@ -47,6 +48,16 @@ describe('Stores integration', () => {
         { provide: CreateStore, useValue: { execute: vi.fn() } },
         { provide: UpdateStore, useValue: { execute: vi.fn() } },
         { provide: STORE_REPOSITORY, useValue: mockRepo },
+        {
+          provide: OwnershipVerifier,
+          useValue: {
+            resolveVendorProfileId: vi.fn(),
+            verifyStoreOwnership: vi.fn(),
+            assertStoreOwnership: vi.fn(),
+            verifyProductOwnership: vi.fn(),
+            assertOrderAccess: vi.fn(),
+          },
+        },
       ],
     }).compile();
 

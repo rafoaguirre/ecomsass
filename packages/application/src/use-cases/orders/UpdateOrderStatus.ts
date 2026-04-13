@@ -19,6 +19,7 @@ export class UpdateOrderStatus {
     }
 
     let order = findResult.value;
+    const previousStatus = order.status;
 
     try {
       order = this.applyTransition(order, input);
@@ -29,7 +30,7 @@ export class UpdateOrderStatus {
       return err(new InvariantError('Failed to update order status'));
     }
 
-    return this.orderRepository.save(order);
+    return this.orderRepository.save(order, previousStatus);
   }
 
   private applyTransition(order: OrderModel, input: UpdateOrderStatusInput): OrderModel {

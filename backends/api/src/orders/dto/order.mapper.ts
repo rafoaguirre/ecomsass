@@ -44,7 +44,8 @@ export function toOrderResponse(
       status: order.payment.status,
       amount: toMoneyResponse(order.payment.amount),
       transactionId: order.payment.transactionId,
-      stripePaymentIntentId: order.payment.stripePaymentIntentId,
+      provider: order.payment.provider,
+      providerPaymentId: order.payment.providerPaymentId,
       metadata: order.payment.metadata,
     },
     fulfillment: {

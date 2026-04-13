@@ -20,7 +20,10 @@ export interface PaymentInfo {
   status: PaymentStatus;
   amount: Money;
   transactionId?: string;
-  stripePaymentIntentId?: string;
+  /** Payment provider identifier (e.g. 'stripe', 'crypto'). */
+  provider?: string;
+  /** Provider-specific payment ID (e.g. Stripe PaymentIntent ID). */
+  providerPaymentId?: string;
   metadata?: Record<string, unknown>;
 }
 

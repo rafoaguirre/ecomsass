@@ -7,6 +7,7 @@ import { CheckoutModule } from './checkout';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { DatabaseModule } from './database';
 import { HealthModule } from './health/health.module';
+import { OnboardingModule } from './onboarding';
 import { StoresModule } from './stores';
 import { ProductsModule } from './products';
 import { OrdersModule } from './orders';
@@ -19,11 +20,15 @@ import { VendorsModule } from './vendors';
       isGlobal: true,
     }),
     ThrottlerModule.forRoot({
-      throttlers: [{ ttl: 60_000, limit: 60 }],
+      throttlers: [
+        { name: 'default', ttl: 60_000, limit: 60 },
+        { name: 'strict', ttl: 60_000, limit: 10 },
+      ],
     }),
     AuthModule,
     DatabaseModule,
     HealthModule,
+    OnboardingModule,
     StoresModule,
     ProductsModule,
     OrdersModule,

@@ -85,7 +85,8 @@ function asPaymentInfo(raw: unknown): PaymentInfo {
       currency: (obj.amount_currency ?? obj.currency ?? 'CAD') as CurrencyCode,
     },
     transactionId: obj.transactionId as string | undefined,
-    stripePaymentIntentId: obj.stripePaymentIntentId as string | undefined,
+    provider: obj.provider as string | undefined,
+    providerPaymentId: obj.providerPaymentId as string | undefined,
     metadata: obj.metadata as Record<string, unknown> | undefined,
   };
 }
@@ -120,7 +121,8 @@ function serializePaymentInfo(payment: PaymentInfo): Record<string, unknown> {
     amount_value: payment.amount.amount.toString(),
     amount_currency: payment.amount.currency,
     transactionId: payment.transactionId,
-    stripePaymentIntentId: payment.stripePaymentIntentId,
+    provider: payment.provider,
+    providerPaymentId: payment.providerPaymentId,
     metadata: payment.metadata,
   };
 }
@@ -195,10 +197,10 @@ export class SupabaseOrderRepository implements OrderRepository {
   async findByStoreId(
     storeId: string,
     options?: { offset?: number; limit?: number; status?: OrderStatus }
-  ): Promise<OrderModel[]> {
+  ): Promise<{ data: OrderModel[]; total: number }> {
     let query = this.supabase
       .from('orders')
-      .select('*, order_items(*)')
+      .select('*, order_items(*)', { count: 'exact' })
       .eq('store_id', storeId)
       .order('created_at', { ascending: false });
 
@@ -211,22 +213,25 @@ export class SupabaseOrderRepository implements OrderRepository {
       limit: options?.limit,
     }));
 
-    const { data, error } = await query.returns<OrderRow[]>();
+    const { data, error, count } = await query.returns<OrderRow[]>();
 
     if (error) {
       throw new Error(`Failed to query orders by store id: ${error.message}`);
     }
 
-    return (data ?? []).map((row) => this.toOrderModel(row));
+    return {
+      data: (data ?? []).map((row) => this.toOrderModel(row)),
+      total: count ?? 0,
+    };
   }
 
   async findByUserId(
     userId: string,
     options?: { offset?: number; limit?: number; status?: OrderStatus }
-  ): Promise<OrderModel[]> {
+  ): Promise<{ data: OrderModel[]; total: number }> {
     let query = this.supabase
       .from('orders')
-      .select('*, order_items(*)')
+      .select('*, order_items(*)', { count: 'exact' })
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -239,16 +244,19 @@ export class SupabaseOrderRepository implements OrderRepository {
       limit: options?.limit,
     }));
 
-    const { data, error } = await query.returns<OrderRow[]>();
+    const { data, error, count } = await query.returns<OrderRow[]>();
 
     if (error) {
       throw new Error(`Failed to query orders by user id: ${error.message}`);
     }
 
-    return (data ?? []).map((row) => this.toOrderModel(row));
+    return {
+      data: (data ?? []).map((row) => this.toOrderModel(row)),
+      total: count ?? 0,
+    };
   }
 
-  async save(order: OrderModel): Promise<Result<OrderModel, Error>> {
+  async save(order: OrderModel, expectedStatus?: OrderStatus): Promise<Result<OrderModel, Error>> {
     // Build JSON payloads for the atomic RPC function
     const orderPayload = {
       id: order.id,
@@ -296,6 +304,7 @@ export class SupabaseOrderRepository implements OrderRepository {
     const { error } = await this.supabase.rpc('save_order_atomic', {
       p_order: orderPayload,
       p_items: itemPayloads,
+      p_expected_status: expectedStatus ?? null,
     });
 
     if (error) {

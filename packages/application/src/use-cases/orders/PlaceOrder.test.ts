@@ -67,6 +67,7 @@ describe('PlaceOrder Use Case', () => {
       delete: vi.fn(),
       slugExists: vi.fn(),
       searchActive: vi.fn(),
+      reserveStock: vi.fn().mockResolvedValue(ok(undefined)),
     };
 
     mockStoreRepository = {
@@ -130,6 +131,9 @@ describe('PlaceOrder Use Case', () => {
       expect(result.isOk()).toBe(true);
       expect(mockStoreRepository.findById).toHaveBeenCalledWith('store-123');
       expect(mockProductRepository.findById).toHaveBeenCalledWith('prod-123');
+      expect(mockProductRepository.reserveStock).toHaveBeenCalledWith([
+        { productId: 'prod-123', quantity: 2 },
+      ]);
       expect(mockOrderRepository.generateReferenceId).toHaveBeenCalledWith('store-123');
       expect(mockOrderRepository.save).toHaveBeenCalled();
     });
@@ -212,6 +216,25 @@ describe('PlaceOrder Use Case', () => {
         expect(result.error).toBeInstanceOf(ValidationError);
         expect(result.error.message).toContain('not available');
       }
+    });
+
+    it('should fail when stock reservation fails', async () => {
+      const mockStore = StoreModel.create(mockStoreData).activate();
+      const mockProduct = ProductModel.create(mockProductData);
+
+      vi.mocked(mockStoreRepository.findById).mockResolvedValue(ok(mockStore));
+      vi.mocked(mockProductRepository.findById).mockResolvedValue(ok(mockProduct));
+      vi.mocked(mockProductRepository.reserveStock).mockResolvedValue(
+        err(new Error('Insufficient stock for product prod-123'))
+      );
+
+      const result = await placeOrder.execute(mockOrderInput);
+
+      expect(result.isErr()).toBe(true);
+      if (result.isErr()) {
+        expect(result.error.message).toContain('Insufficient stock');
+      }
+      expect(mockOrderRepository.save).not.toHaveBeenCalled();
     });
 
     it('should fail when no items in the order', async () => {

@@ -1,13 +1,12 @@
 import {
-  Inject,
   Injectable,
   UnauthorizedException,
   type CanActivate,
   type ExecutionContext,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { jwtVerify, errors as joseErrors } from 'jose';
 import { UserRole } from '@ecomsaas/domain';
-import type { SupabaseClient } from '@ecomsaas/infrastructure/database';
-import { SUPABASE_ANON_CLIENT } from '../../database';
 import { extractBearerToken } from '../../common/auth/extract-bearer-token';
 import type { AuthUser } from '../types/auth-user';
 
@@ -18,12 +17,17 @@ interface RequestLike {
   user?: AuthUser;
 }
 
+interface SupabaseJwtPayload {
+  sub?: string;
+  email?: string;
+  app_metadata?: Record<string, unknown>;
+}
+
 @Injectable()
 export class SupabaseAuthGuard implements CanActivate {
-  constructor(
-    @Inject(SUPABASE_ANON_CLIENT)
-    private readonly supabase: SupabaseClient
-  ) {}
+  private jwtSecret: Uint8Array | undefined;
+
+  constructor(private readonly config: ConfigService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<RequestLike>();
@@ -33,19 +37,38 @@ export class SupabaseAuthGuard implements CanActivate {
       throw new UnauthorizedException('Missing bearer token');
     }
 
-    const { data, error } = await this.supabase.auth.getUser(token);
+    try {
+      const secret = this.getJwtSecret();
+      const { payload } = await jwtVerify<SupabaseJwtPayload>(token, secret);
 
-    if (error || !data.user) {
+      if (!payload.sub) {
+        throw new UnauthorizedException('Invalid token: missing subject');
+      }
+
+      request.user = {
+        id: payload.sub,
+        email: payload.email ?? null,
+        role: this.extractRole(payload.app_metadata) ?? UserRole.Customer,
+      };
+
+      return true;
+    } catch (err) {
+      if (err instanceof joseErrors.JWTExpired) {
+        throw new UnauthorizedException('Token has expired');
+      }
+      if (err instanceof UnauthorizedException) {
+        throw err;
+      }
       throw new UnauthorizedException('Invalid or expired token');
     }
+  }
 
-    request.user = {
-      id: data.user.id,
-      email: data.user.email ?? null,
-      role: this.extractRole(data.user.app_metadata) ?? UserRole.Customer,
-    };
-
-    return true;
+  private getJwtSecret(): Uint8Array {
+    if (!this.jwtSecret) {
+      const secret = this.config.getOrThrow<string>('SUPABASE_JWT_SECRET');
+      this.jwtSecret = new TextEncoder().encode(secret);
+    }
+    return this.jwtSecret;
   }
 
   private extractRole(metadata: Record<string, unknown> | undefined): string | null {

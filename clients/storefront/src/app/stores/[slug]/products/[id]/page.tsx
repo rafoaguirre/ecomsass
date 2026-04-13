@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ShadcnBadge } from '@ecomsaas/ui/shadcn';
 import { fetchProduct, fetchStoreBySlug } from '@/lib/api';
@@ -78,12 +79,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <div className="grid gap-10 lg:grid-cols-2">
           {/* Image */}
-          <div className="flex items-center justify-center rounded-[--radius-lg] border border-border bg-neutral-50">
+          <div className="relative flex items-center justify-center rounded-[--radius-lg] border border-border bg-neutral-50 min-h-[300px]">
             {mainImage ? (
-              <img
+              <Image
                 src={mainImage.src}
                 alt={mainImage.alt ?? product.name}
-                className="max-h-[500px] w-full rounded-[--radius-lg] object-contain p-4"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="rounded-[--radius-lg] object-contain p-4"
               />
             ) : (
               <div className="flex h-80 w-full items-center justify-center">

@@ -1,7 +1,9 @@
 import type { StoreRepository } from '@ecomsaas/application/ports';
 import type { CreateStore, GetStore, UpdateStore } from '@ecomsaas/application/use-cases';
 import { NotFoundError, StoreModel, StoreType, ValidationError, err, ok } from '@ecomsaas/domain';
+import { ForbiddenException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { OwnershipVerifier } from '../common/authorization/ownership-verifier';
 import { StoresService } from './stores.service';
 
 describe('StoresService', () => {
@@ -29,6 +31,7 @@ describe('StoresService', () => {
   let createStore: CreateStore;
   let updateStore: UpdateStore;
   let storeRepository: StoreRepository;
+  let ownership: OwnershipVerifier;
   const vendorUser = { id: 'vendor-1', email: 'v@test.com', role: 'Vendor' };
   const adminUser = { id: 'admin-1', email: 'a@test.com', role: 'Admin' };
 
@@ -47,7 +50,15 @@ describe('StoresService', () => {
       slugExists: vi.fn(),
     } as unknown as StoreRepository;
 
-    service = new StoresService(getStore, createStore, updateStore, storeRepository);
+    ownership = {
+      resolveVendorProfileId: vi.fn().mockResolvedValue('vendor-1'),
+      verifyStoreOwnership: vi.fn().mockResolvedValue(undefined),
+      assertStoreOwnership: vi.fn().mockResolvedValue(undefined),
+      verifyProductOwnership: vi.fn().mockResolvedValue(undefined),
+      assertOrderAccess: vi.fn().mockResolvedValue(undefined),
+    } as unknown as OwnershipVerifier;
+
+    service = new StoresService(getStore, createStore, updateStore, storeRepository, ownership);
   });
 
   it('returns active store for public endpoint without sensitive fields', async () => {
@@ -91,12 +102,14 @@ describe('StoresService', () => {
     const store = StoreModel.fromData(baseStore);
     vi.mocked(createStore.execute).mockResolvedValue(ok(store));
 
-    const result = await service.create({
-      vendorProfileId: 'vendor-1',
-      name: 'Demo Store',
-      slug: 'demo-store',
-      storeType: StoreType.General,
-    });
+    const result = await service.createForUser(
+      {
+        name: 'Demo Store',
+        slug: 'demo-store',
+        storeType: StoreType.General,
+      },
+      vendorUser
+    );
 
     expect(result.name).toBe('Demo Store');
     expect(createStore.execute).toHaveBeenCalled();
@@ -108,38 +121,39 @@ describe('StoresService', () => {
     );
 
     await expect(
-      service.create({
-        vendorProfileId: 'vendor-1',
-        name: 'Test',
-        slug: 'taken-slug',
-        storeType: StoreType.General,
-      })
+      service.createForUser(
+        {
+          name: 'Test',
+          slug: 'taken-slug',
+          storeType: StoreType.General,
+        },
+        vendorUser
+      )
     ).rejects.toBeInstanceOf(ValidationError);
   });
 
   it('updates a store via use case', async () => {
-    const storeForOwnership = StoreModel.fromData(baseStore);
-    vi.mocked(storeRepository.findById).mockResolvedValue(ok(storeForOwnership));
     const updated = StoreModel.fromData({ ...baseStore, name: 'Updated' });
     vi.mocked(updateStore.execute).mockResolvedValue(ok(updated));
 
     const result = await service.update({ id: 'store-1', name: 'Updated' }, vendorUser);
 
     expect(result.name).toBe('Updated');
+    expect(ownership.verifyStoreOwnership).toHaveBeenCalledWith('store-1', vendorUser);
   });
 
   it('soft-deletes a store via repository', async () => {
-    const storeForOwnership = StoreModel.fromData(baseStore);
-    vi.mocked(storeRepository.findById).mockResolvedValue(ok(storeForOwnership));
     vi.mocked(storeRepository.delete).mockResolvedValue(ok(undefined));
 
     await expect(service.remove('store-1', vendorUser)).resolves.toBeUndefined();
+    expect(ownership.verifyStoreOwnership).toHaveBeenCalledWith('store-1', vendorUser);
     expect(storeRepository.delete).toHaveBeenCalledWith('store-1');
   });
 
   it('throws ForbiddenException when vendor does not own store on update', async () => {
-    const otherStore = StoreModel.fromData({ ...baseStore, vendorProfileId: 'vendor-2' });
-    vi.mocked(storeRepository.findById).mockResolvedValue(ok(otherStore));
+    vi.mocked(ownership.verifyStoreOwnership).mockRejectedValueOnce(
+      new ForbiddenException('You do not own this store')
+    );
 
     await expect(service.update({ id: 'store-1', name: 'Hacked' }, vendorUser)).rejects.toThrow(
       'You do not own this store'
@@ -153,7 +167,7 @@ describe('StoresService', () => {
     const result = await service.update({ id: 'store-1', name: 'Admin Updated' }, adminUser);
 
     expect(result.name).toBe('Admin Updated');
-    expect(storeRepository.findById).not.toHaveBeenCalled();
+    expect(ownership.verifyStoreOwnership).toHaveBeenCalledWith('store-1', adminUser);
   });
 
   it('gets store by id without sensitive fields', async () => {

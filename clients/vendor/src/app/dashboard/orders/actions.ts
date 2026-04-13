@@ -1,8 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
 import { getStoreIdForAction } from '@/lib/auth';
+import { serverApi } from '@/lib/server-api-client';
 
 export type OrderActionState = { error?: string; success?: string } | null;
 
@@ -22,45 +22,14 @@ export async function updateOrderStatus(
     return { error: 'Missing required fields.' };
   }
 
-  const supabase = await createClient();
-
-  // Verify the order belongs to the vendor's store
-  const { data: order } = await supabase
-    .from('orders')
-    .select('id, store_id, fulfillment')
-    .eq('id', orderId)
-    .eq('store_id', result.storeId)
-    .single();
-
-  if (!order) {
-    return { error: 'Order not found.' };
-  }
-
-  // Build update payload
-  const update: Record<string, unknown> = { status };
-
-  // For shipping transitions, merge tracking info into fulfillment JSONB
-  if (status === 'IN_TRANSIT' && (trackingNumber || carrier)) {
-    const fulfillment =
-      typeof order.fulfillment === 'object' && order.fulfillment !== null
-        ? (order.fulfillment as Record<string, unknown>)
-        : {};
-    update.fulfillment = {
-      ...fulfillment,
+  try {
+    await serverApi.put(`/api/v1/orders/${orderId}/status`, {
+      status,
       ...(trackingNumber ? { trackingNumber } : {}),
       ...(carrier ? { carrier } : {}),
-    };
-  }
-
-  const { error } = await supabase
-    .from('orders')
-    .update(update)
-    .eq('id', orderId)
-    .eq('store_id', result.storeId);
-
-  if (error) {
-    // The DB trigger will reject invalid transitions with a descriptive message
-    return { error: error.message };
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Failed to update order status.' };
   }
 
   revalidatePath(`/dashboard/orders/${orderId}`);
