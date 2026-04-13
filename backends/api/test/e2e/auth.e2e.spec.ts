@@ -17,7 +17,7 @@ describe('Auth (e2e)', () => {
 
       const res = await request(testApp.app.getHttpServer())
         .get('/auth/me')
-        .set('Authorization', authHeader('user-1'))
+        .set('Authorization', authHeader('user-1', { role: 'Vendor', email: 'user@example.com' }))
         .expect(200);
 
       expect(res.body).toMatchObject({
@@ -66,7 +66,7 @@ describe('Auth (e2e)', () => {
 
       await request(testApp.app.getHttpServer())
         .get('/auth/vendor-check')
-        .set('Authorization', authHeader('a1'))
+        .set('Authorization', authHeader('a1', { role: 'Admin' }))
         .expect(200);
     });
 
@@ -77,7 +77,7 @@ describe('Auth (e2e)', () => {
 
       await request(testApp.app.getHttpServer())
         .get('/auth/vendor-check')
-        .set('Authorization', authHeader('c1'))
+        .set('Authorization', authHeader('c1', { role: 'Customer' }))
         .expect(403);
     });
   });

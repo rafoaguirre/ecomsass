@@ -187,20 +187,9 @@ describe('Vendors (e2e)', () => {
     });
 
     it('returns 403 for non-vendor role', async () => {
-      testApp.supabaseAnonClient.auth.getUser.mockResolvedValueOnce({
-        data: {
-          user: {
-            id: 'regular-user',
-            email: 'user@example.com',
-            app_metadata: { role: 'Customer' },
-          },
-        },
-        error: null,
-      });
-
       await request(testApp.app.getHttpServer())
         .get('/api/v1/vendors/00000000-0000-4000-a000-000000000002')
-        .set('Authorization', authHeader('regular-user'))
+        .set('Authorization', authHeader('regular-user', { role: 'Customer' }))
         .expect(403);
     });
   });

@@ -20,6 +20,8 @@ process.env.SUPABASE_URL ??= 'http://localhost:54321';
 process.env.SUPABASE_ANON_KEY ??= 'test-anon-key';
 process.env.SUPABASE_SERVICE_ROLE_KEY ??= 'test-service-role-key';
 process.env.SUPABASE_JWT_SECRET ??= 'test-jwt-secret-at-least-32-chars-long';
+process.env.STRIPE_SECRET_KEY ??= 'sk_test_fake_key_for_e2e_tests';
+process.env.STRIPE_WEBHOOK_SECRET ??= 'whsec_test_fake_secret_for_e2e_tests';
 
 export interface TestApp {
   app: INestApplication;

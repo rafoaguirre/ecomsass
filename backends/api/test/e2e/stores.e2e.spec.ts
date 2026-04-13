@@ -148,21 +148,9 @@ describe('Stores (e2e)', () => {
     });
 
     it('returns 403 for non-vendor role', async () => {
-      // Override auth to return a non-vendor user for this request
-      testApp.supabaseAnonClient.auth.getUser.mockResolvedValueOnce({
-        data: {
-          user: {
-            id: 'regular-user',
-            email: 'user@example.com',
-            app_metadata: { role: 'Customer' },
-          },
-        },
-        error: null,
-      });
-
       await request(testApp.app.getHttpServer())
         .get('/api/v1/stores/vendor/any-store')
-        .set('Authorization', authHeader('regular-user'))
+        .set('Authorization', authHeader('regular-user', { role: 'Customer' }))
         .expect(403);
     });
   });
@@ -201,12 +189,15 @@ describe('Stores (e2e)', () => {
 
       await request(testApp.app.getHttpServer())
         .get(
-          '/api/v1/stores?q=coffee&storeType=RETAIL&sortBy=name&sortDirection=asc&offset=10&limit=5'
+          '/api/v1/stores?q=coffee&storeType=RESTAURANT&sortBy=name&sortDirection=asc&offset=10&limit=5'
         )
         .expect(200);
 
       expect(testApp.supabaseClient.__queryBuilder.ilike).toHaveBeenCalledWith('name', '%coffee%');
-      expect(testApp.supabaseClient.__queryBuilder.eq).toHaveBeenCalledWith('store_type', 'RETAIL');
+      expect(testApp.supabaseClient.__queryBuilder.eq).toHaveBeenCalledWith(
+        'store_type',
+        'RESTAURANT'
+      );
       expect(testApp.supabaseClient.__queryBuilder.order).toHaveBeenCalledWith('name', {
         ascending: true,
       });
