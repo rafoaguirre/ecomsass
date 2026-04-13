@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   PlaceOrder,
   GetOrder,
@@ -7,17 +7,13 @@ import {
   type PlaceOrderInput,
   type UpdateOrderStatusInput,
 } from '@ecomsaas/application/use-cases';
-import type {
-  OrderRepository,
-  StoreRepository,
-  VendorProfileRepository,
-} from '@ecomsaas/application/ports';
+import type { OrderRepository, StoreRepository } from '@ecomsaas/application/ports';
 import type { OrderModel, OrderStatus } from '@ecomsaas/domain';
 import type { OrderResponse, OrderSummary } from '@ecomsaas/contracts';
 import type { AuthUser } from '../auth/types/auth-user';
 import { ORDER_REPOSITORY } from './order.tokens';
 import { STORE_REPOSITORY } from '../stores/store.tokens';
-import { VENDOR_PROFILE_REPOSITORY } from '../vendors/vendor.tokens';
+import { OwnershipVerifier } from '../common/authorization/ownership-verifier';
 import { toOrderResponse, toOrderSummary } from './dto/order.mapper';
 import { clampOffset, clampPageSize } from '../common/database';
 
@@ -30,8 +26,7 @@ export class OrdersService {
     @Inject(UpdateOrderStatus) private readonly updateOrderStatus: UpdateOrderStatus,
     @Inject(ORDER_REPOSITORY) private readonly orderRepository: OrderRepository,
     @Inject(STORE_REPOSITORY) private readonly storeRepository: StoreRepository,
-    @Inject(VENDOR_PROFILE_REPOSITORY)
-    private readonly vendorProfileRepository: VendorProfileRepository
+    private readonly ownership: OwnershipVerifier
   ) {}
 
   async create(
@@ -60,7 +55,7 @@ export class OrdersService {
     }
 
     const order = result.value;
-    await this.assertAccess(order, user);
+    await this.ownership.assertOrderAccess(order, user);
     return this.enrichOrder(order);
   }
 
@@ -83,7 +78,7 @@ export class OrdersService {
     user: AuthUser,
     options?: { status?: OrderStatus; offset?: number; limit?: number }
   ): Promise<OrderSummary[]> {
-    await this.verifyStoreOwnership(storeId, user);
+    await this.ownership.verifyStoreOwnership(storeId, user);
 
     const orders = await this.listOrders.execute({
       storeId,
@@ -107,7 +102,7 @@ export class OrdersService {
     }
 
     const order = findResult.value;
-    await this.verifyStoreOwnership(order.storeId, user);
+    await this.ownership.verifyStoreOwnership(order.storeId, user);
 
     const result = await this.updateOrderStatus.execute({
       orderId,
@@ -124,39 +119,6 @@ export class OrdersService {
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
-
-  private async assertAccess(order: OrderModel, user: AuthUser): Promise<void> {
-    // Admin can view all orders
-    if (user.role === 'Admin') return;
-    // Customers can view their own orders
-    if (order.userId === user.id) return;
-    // Vendors can view orders for stores they own
-    if (user.role === 'Vendor') {
-      const vendorProfileId = await this.resolveVendorProfileId(user);
-      const storeResult = await this.storeRepository.findById(order.storeId);
-      if (storeResult.isOk() && storeResult.value.vendorProfileId === vendorProfileId) return;
-    }
-    throw new ForbiddenException('You do not have access to this order');
-  }
-
-  private async verifyStoreOwnership(storeId: string, user: AuthUser): Promise<void> {
-    if (user.role === 'Admin') return;
-    const vendorProfileId = await this.resolveVendorProfileId(user);
-    const storeResult = await this.storeRepository.findById(storeId);
-    if (storeResult.isErr()) throw storeResult.error;
-    const store = storeResult.value;
-    if (store.vendorProfileId !== vendorProfileId) {
-      throw new ForbiddenException('You do not own this store');
-    }
-  }
-
-  private async resolveVendorProfileId(user: AuthUser): Promise<string> {
-    const result = await this.vendorProfileRepository.findByUserId(user.id);
-    if (result.isErr()) {
-      throw new NotFoundException('Vendor profile not found for this user');
-    }
-    return result.value.id;
-  }
 
   private async enrichOrder(order: OrderModel): Promise<OrderResponse> {
     // Fetch store name for the response

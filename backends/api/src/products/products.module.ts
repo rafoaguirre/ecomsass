@@ -3,7 +3,7 @@ import { CreateProduct, GetProduct, UpdateProduct } from '@ecomsaas/application/
 import type { StoreRepository } from '@ecomsaas/application/ports';
 import { createStorage } from '@ecomsaas/infrastructure/storage';
 import { StoresModule } from '../stores';
-import { VendorsModule } from '../vendors';
+import { OwnershipModule } from '../common/authorization';
 import { STORE_REPOSITORY } from '../stores/store.tokens';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
@@ -11,7 +11,7 @@ import { PRODUCT_REPOSITORY, PRODUCT_STORAGE } from './product.tokens';
 import { SupabaseProductRepository } from './repositories/supabase-product.repository';
 
 @Module({
-  imports: [StoresModule, VendorsModule],
+  imports: [StoresModule, OwnershipModule],
   controllers: [ProductsController],
   providers: [
     ProductsService,

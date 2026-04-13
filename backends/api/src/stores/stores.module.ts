@@ -1,14 +1,14 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { GetStore, CreateStore, UpdateStore } from '@ecomsaas/application/use-cases';
 import { createIdGenerator } from '@ecomsaas/infrastructure/id-generator';
-import { VendorsModule } from '../vendors';
+import { OwnershipModule } from '../common/authorization';
 import { StoresController } from './stores.controller';
 import { StoresService } from './stores.service';
 import { STORE_REPOSITORY } from './store.tokens';
 import { SupabaseStoreRepository } from './repositories/supabase-store.repository';
 
 @Module({
-  imports: [VendorsModule],
+  imports: [forwardRef(() => OwnershipModule)],
   controllers: [StoresController],
   providers: [
     StoresService,

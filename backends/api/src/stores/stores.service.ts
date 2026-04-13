@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   GetStore,
   CreateStore,
@@ -7,7 +7,6 @@ import {
   type UpdateStoreInput,
 } from '@ecomsaas/application/use-cases';
 import { NotFoundError } from '@ecomsaas/domain';
-import type { StoreModel } from '@ecomsaas/domain';
 import type {
   PublicStoreResponse,
   StoreResponse,
@@ -15,10 +14,10 @@ import type {
   StoreListResponse,
   StoreSearchQuery,
 } from '@ecomsaas/contracts';
-import type { StoreRepository, VendorProfileRepository } from '@ecomsaas/application/ports';
+import type { StoreRepository } from '@ecomsaas/application/ports';
 import type { AuthUser } from '../auth/types/auth-user';
 import { STORE_REPOSITORY } from './store.tokens';
-import { VENDOR_PROFILE_REPOSITORY } from '../vendors/vendor.tokens';
+import { OwnershipVerifier } from '../common/authorization/ownership-verifier';
 import {
   toPublicStoreResponse,
   toStoreResponse,
@@ -34,15 +33,14 @@ export class StoresService {
     @Inject(CreateStore) private readonly createStore: CreateStore,
     @Inject(UpdateStore) private readonly updateStore: UpdateStore,
     @Inject(STORE_REPOSITORY) private readonly storeRepository: StoreRepository,
-    @Inject(VENDOR_PROFILE_REPOSITORY)
-    private readonly vendorProfileRepository: VendorProfileRepository
+    private readonly ownership: OwnershipVerifier
   ) {}
 
   async createForUser(
     input: Omit<CreateStoreInput, 'vendorProfileId'>,
     user: AuthUser
   ): Promise<StoreResponse> {
-    const vendorProfileId = await this.resolveVendorProfileId(user);
+    const vendorProfileId = await this.ownership.resolveVendorProfileId(user);
     const result = await this.createStore.execute({ ...input, vendorProfileId });
 
     if (result.isErr()) {
@@ -78,12 +76,12 @@ export class StoresService {
 
   async getBySlugForVendor(slug: string, user: AuthUser): Promise<StoreResponse> {
     const store = await this.getBySlug(slug);
-    await this.assertOwnership(store, user);
+    await this.ownership.assertStoreOwnership(store, user);
     return toStoreResponse(store);
   }
 
   async update(input: UpdateStoreInput, user: AuthUser): Promise<StoreResponse> {
-    await this.verifyStoreOwnership(input.id, user);
+    await this.ownership.verifyStoreOwnership(input.id, user);
     const result = await this.updateStore.execute(input);
 
     if (result.isErr()) {
@@ -94,7 +92,7 @@ export class StoresService {
   }
 
   async remove(id: string, user: AuthUser): Promise<void> {
-    await this.verifyStoreOwnership(id, user);
+    await this.ownership.verifyStoreOwnership(id, user);
     const result = await this.storeRepository.delete(id);
 
     if (result.isErr()) {
@@ -119,29 +117,6 @@ export class StoresService {
   async listByVendor(vendorProfileId: string): Promise<StoreSummary[]> {
     const stores = await this.storeRepository.findByVendorId(vendorProfileId);
     return stores.map(toStoreSummary);
-  }
-
-  private async assertOwnership(store: StoreModel, user: AuthUser): Promise<void> {
-    if (user.role === 'Admin') return;
-    const vendorProfileId = await this.resolveVendorProfileId(user);
-    if (store.vendorProfileId !== vendorProfileId) {
-      throw new ForbiddenException('You do not own this store');
-    }
-  }
-
-  private async verifyStoreOwnership(storeId: string, user: AuthUser): Promise<void> {
-    if (user.role === 'Admin') return;
-    const result = await this.storeRepository.findById(storeId);
-    if (result.isErr()) throw result.error;
-    await this.assertOwnership(result.value, user);
-  }
-
-  private async resolveVendorProfileId(user: AuthUser): Promise<string> {
-    const result = await this.vendorProfileRepository.findByUserId(user.id);
-    if (result.isErr()) {
-      throw new NotFoundException('Vendor profile not found for this user');
-    }
-    return result.value.id;
   }
 
   private async getBySlug(slug: string) {

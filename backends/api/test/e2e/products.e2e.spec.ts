@@ -171,9 +171,8 @@ describe('Products (e2e)', () => {
         vendorProfileId: 'some-other-vendor',
       });
 
-      // Store ownership lookup returns a store not owned by our vendor
+      // OwnershipVerifier resolves vendor profile first, then loads store
       testApp.supabaseClient.__queryBuilder.maybeSingle
-        .mockImplementationOnce(() => Promise.resolve({ data: toStoreRow(store), error: null }))
         // Vendor profile lookup returns a profile whose id differs from the store owner
         .mockImplementationOnce(() =>
           Promise.resolve({
@@ -194,7 +193,9 @@ describe('Products (e2e)', () => {
             },
             error: null,
           })
-        );
+        )
+        // Store ownership lookup returns a store not owned by our vendor
+        .mockImplementationOnce(() => Promise.resolve({ data: toStoreRow(store), error: null }));
 
       await request(testApp.app.getHttpServer())
         .post('/api/v1/products')

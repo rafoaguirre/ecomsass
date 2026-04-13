@@ -9,7 +9,7 @@ import type { ProductRepository, StoreRepository } from '@ecomsaas/application/p
 import { createIdGenerator } from '@ecomsaas/infrastructure/id-generator';
 import { StoresModule } from '../stores';
 import { ProductsModule } from '../products';
-import { VendorsModule } from '../vendors';
+import { OwnershipModule } from '../common/authorization';
 import { STORE_REPOSITORY } from '../stores/store.tokens';
 import { PRODUCT_REPOSITORY } from '../products/product.tokens';
 import { OrdersController } from './orders.controller';
@@ -18,7 +18,7 @@ import { ORDER_REPOSITORY } from './order.tokens';
 import { SupabaseOrderRepository } from './repositories/supabase-order.repository';
 
 @Module({
-  imports: [StoresModule, ProductsModule, VendorsModule],
+  imports: [StoresModule, ProductsModule, OwnershipModule],
   controllers: [OrdersController],
   providers: [
     OrdersService,

@@ -3,8 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { CreateProduct, GetProduct, UpdateProduct } from '@ecomsaas/application/use-cases';
 import { ProductAvailability, ProductModel, ok } from '@ecomsaas/domain';
 import { PRODUCT_REPOSITORY, PRODUCT_STORAGE } from './product.tokens';
-import { STORE_REPOSITORY } from '../stores/store.tokens';
-import { VENDOR_PROFILE_REPOSITORY } from '../vendors/vendor.tokens';
+import { OwnershipVerifier } from '../common/authorization/ownership-verifier';
 import { ProductsService } from './products.service';
 
 const baseProductInput = {
@@ -23,16 +22,6 @@ describe('Products integration', () => {
     findById: vi.fn(),
     findBySlug: vi.fn(),
     findByStoreId: vi.fn(),
-    save: vi.fn(),
-    delete: vi.fn(),
-    slugExists: vi.fn(),
-  };
-
-  const mockStoreRepo = {
-    findById: vi.fn(),
-    findBySlug: vi.fn(),
-    findByVendorId: vi.fn(),
-    findActive: vi.fn(),
     save: vi.fn(),
     delete: vi.fn(),
     slugExists: vi.fn(),
@@ -61,10 +50,15 @@ describe('Products integration', () => {
         { provide: CreateProduct, useValue: { execute: vi.fn() } },
         { provide: UpdateProduct, useValue: { execute: vi.fn() } },
         { provide: PRODUCT_REPOSITORY, useValue: mockProductRepo },
-        { provide: STORE_REPOSITORY, useValue: mockStoreRepo },
         {
-          provide: VENDOR_PROFILE_REPOSITORY,
-          useValue: { findById: vi.fn(), findByUserId: vi.fn(), save: vi.fn() },
+          provide: OwnershipVerifier,
+          useValue: {
+            resolveVendorProfileId: vi.fn(),
+            verifyStoreOwnership: vi.fn(),
+            assertStoreOwnership: vi.fn(),
+            verifyProductOwnership: vi.fn(),
+            assertOrderAccess: vi.fn(),
+          },
         },
         { provide: PRODUCT_STORAGE, useValue: mockStorage },
       ],
@@ -94,10 +88,15 @@ describe('Products integration', () => {
         { provide: CreateProduct, useValue: { execute: vi.fn() } },
         { provide: UpdateProduct, useValue: { execute: vi.fn() } },
         { provide: PRODUCT_REPOSITORY, useValue: mockProductRepo },
-        { provide: STORE_REPOSITORY, useValue: mockStoreRepo },
         {
-          provide: VENDOR_PROFILE_REPOSITORY,
-          useValue: { findById: vi.fn(), findByUserId: vi.fn(), save: vi.fn() },
+          provide: OwnershipVerifier,
+          useValue: {
+            resolveVendorProfileId: vi.fn(),
+            verifyStoreOwnership: vi.fn(),
+            assertStoreOwnership: vi.fn(),
+            verifyProductOwnership: vi.fn(),
+            assertOrderAccess: vi.fn(),
+          },
         },
         { provide: PRODUCT_STORAGE, useValue: mockStorage },
       ],

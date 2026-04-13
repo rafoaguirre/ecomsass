@@ -1,15 +1,11 @@
-import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   GetProduct,
   CreateProduct,
   UpdateProduct,
   type UpdateProductInput,
 } from '@ecomsaas/application/use-cases';
-import type {
-  ProductRepository,
-  StoreRepository,
-  VendorProfileRepository,
-} from '@ecomsaas/application/ports';
+import type { ProductRepository } from '@ecomsaas/application/ports';
 import type { Storage } from '@ecomsaas/infrastructure/storage';
 import type {
   CreateProductRequest,
@@ -22,8 +18,7 @@ import type {
 import type { ProductModel, CurrencyCode } from '@ecomsaas/domain';
 import type { AuthUser } from '../auth/types/auth-user';
 import { PRODUCT_REPOSITORY, PRODUCT_STORAGE } from './product.tokens';
-import { STORE_REPOSITORY } from '../stores/store.tokens';
-import { VENDOR_PROFILE_REPOSITORY } from '../vendors/vendor.tokens';
+import { OwnershipVerifier } from '../common/authorization/ownership-verifier';
 import {
   toProductResponse,
   toProductListResponse,
@@ -52,9 +47,7 @@ export class ProductsService {
     @Inject(CreateProduct) private readonly createProductUC: CreateProduct,
     @Inject(UpdateProduct) private readonly updateProductUC: UpdateProduct,
     @Inject(PRODUCT_REPOSITORY) private readonly productRepository: ProductRepository,
-    @Inject(STORE_REPOSITORY) private readonly storeRepository: StoreRepository,
-    @Inject(VENDOR_PROFILE_REPOSITORY)
-    private readonly vendorProfileRepository: VendorProfileRepository,
+    private readonly ownership: OwnershipVerifier,
     @Inject(PRODUCT_STORAGE) private readonly storage: Storage
   ) {}
 
@@ -69,7 +62,7 @@ export class ProductsService {
   }
 
   async create(request: CreateProductRequest, user: AuthUser): Promise<ProductResponse> {
-    await this.verifyStoreOwnership(request.storeId, user);
+    await this.ownership.verifyStoreOwnership(request.storeId, user);
 
     const result = await this.createProductUC.execute({
       id: idGenerator.generate('prod'),
@@ -114,7 +107,7 @@ export class ProductsService {
     request: UpdateProductRequest,
     user: AuthUser
   ): Promise<ProductResponse> {
-    await this.verifyProductOwnership(id, user);
+    await this.ownership.verifyProductOwnership(id, user, this.productRepository);
 
     const input: UpdateProductInput = {
       id,
@@ -141,7 +134,7 @@ export class ProductsService {
   }
 
   async remove(id: string, user: AuthUser): Promise<void> {
-    await this.verifyProductOwnership(id, user);
+    await this.ownership.verifyProductOwnership(id, user, this.productRepository);
 
     const result = await this.productRepository.delete(id);
 
@@ -184,38 +177,5 @@ export class ProductsService {
     const key = `products/${idGenerator.generate('img')}.${ext}`;
     const uploadUrl = await this.storage.getSignedUrl(key, 3600);
     return { key, uploadUrl };
-  }
-
-  // ── Ownership helpers ────────────────────────────────────────────────────
-
-  private async verifyStoreOwnership(storeId: string, user: AuthUser): Promise<void> {
-    if (user.role === 'Admin') return;
-
-    const result = await this.storeRepository.findById(storeId);
-
-    if (result.isErr()) {
-      throw result.error;
-    }
-
-    const vpResult = await this.vendorProfileRepository.findByUserId(user.id);
-    if (vpResult.isErr()) {
-      throw new NotFoundException('Vendor profile not found for this user');
-    }
-
-    if (result.value.vendorProfileId !== vpResult.value.id) {
-      throw new ForbiddenException('You do not own this store');
-    }
-  }
-
-  private async verifyProductOwnership(productId: string, user: AuthUser): Promise<void> {
-    if (user.role === 'Admin') return;
-
-    const result = await this.productRepository.findById(productId);
-
-    if (result.isErr()) {
-      throw result.error;
-    }
-
-    await this.verifyStoreOwnership(result.value.storeId, user);
   }
 }
