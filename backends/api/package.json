@@ -16,6 +16,8 @@
     "test:coverage": "vitest run --coverage --coverage.reportsDirectory=coverage/unit && vitest run --config vitest.config.e2e.mjs --coverage --coverage.reportsDirectory=coverage/e2e"
   },
   "dependencies": {
+    "@bull-board/api": "^6.21.2",
+    "@bull-board/express": "^6.21.2",
     "@ecomsaas/application": "workspace:^",
     "@ecomsaas/contracts": "workspace:^",
     "@ecomsaas/domain": "workspace:^",
@@ -27,6 +29,7 @@
     "@nestjs/platform-express": "^11.1.18",
     "@nestjs/swagger": "^11.2.7",
     "@nestjs/throttler": "^6.5.0",
+    "bullmq": "^5.73.5",
     "helmet": "^8.1.0",
     "jose": "^6.2.2",
     "reflect-metadata": "^0.2.2",
