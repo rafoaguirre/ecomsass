@@ -87,7 +87,7 @@ export class BullBoardModule implements OnModuleInit {
   }
 
   private getBullQueue(): ReturnType<BullMQQueue['getBullQueue']> | null {
-    if ('getBullQueue' in this.queue) {
+    if (typeof (this.queue as Partial<BullMQQueue>).getBullQueue === 'function') {
       return (this.queue as BullMQQueue).getBullQueue();
     }
     return null;

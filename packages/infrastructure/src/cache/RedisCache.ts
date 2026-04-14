@@ -50,8 +50,8 @@ export class RedisCache implements Cache {
 
   async set<T = unknown>(key: string, value: T, ttl?: number): Promise<void> {
     this.validateKey(key);
-    if (ttl !== undefined && ttl <= 0) {
-      throw new CacheError('TTL must be a positive number');
+    if (ttl !== undefined && ttl < 0) {
+      throw new CacheError('TTL must be zero or a positive number');
     }
 
     const serialized = JSON.stringify(value);
@@ -120,12 +120,12 @@ export class RedisCache implements Cache {
 
     pairs.forEach(([k]) => this.validateKey(k));
 
-    if (ttl !== undefined && ttl <= 0) {
-      throw new CacheError('TTL must be a positive number');
+    if (ttl !== undefined && ttl < 0) {
+      throw new CacheError('TTL must be a non-negative number');
     }
 
     if (ttl) {
-      // Use pipeline for atomic mset + expire
+      // Use pipeline to batch mset + expire (not atomic — use MULTI/EXEC if atomicity is needed)
       const pipeline = this.client.pipeline();
       for (const [key, value] of pairs) {
         const pk = this.prefixedKey(key);

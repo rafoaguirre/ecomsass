@@ -69,7 +69,11 @@ export class BullMQQueue implements Queue {
       this.queueName,
       async (bullJob) => {
         const handler = this.handlers.get(bullJob.name);
-        if (!handler) return;
+        if (!handler) {
+          throw new QueueError(
+            `No handler registered for job "${bullJob.name}" on queue "${this.queueName}"`
+          );
+        }
 
         const job: Job<unknown> = {
           id: bullJob.id ?? '',

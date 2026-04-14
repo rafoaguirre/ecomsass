@@ -29,20 +29,37 @@ function resolveRedisConfig(config: ConfigService): RedisConfig | null {
   if (!url && !host) return null;
 
   if (url) {
-    const parsed = new URL(url);
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      logger.error(`Invalid REDIS_URL "${url}" — cannot parse as URL`);
+      return null;
+    }
+
+    const port = Number(parsed.port) || 6379;
+    const dbSegment = parsed.pathname.length > 1 ? Number(parsed.pathname.slice(1)) : undefined;
+
     return {
       url,
       host: parsed.hostname,
-      port: Number(parsed.port) || 6379,
+      port,
       password: parsed.password || undefined,
-      db: parsed.pathname.length > 1 ? Number(parsed.pathname.slice(1)) : undefined,
+      db: dbSegment !== undefined && !Number.isNaN(dbSegment) ? dbSegment : undefined,
       username: parsed.username || undefined,
     };
   }
 
+  const portRaw = config.get<string>('REDIS_PORT') ?? '6379';
+  const port = Number(portRaw);
+  if (Number.isNaN(port) || port <= 0 || port > 65535) {
+    logger.error(`Invalid REDIS_PORT "${portRaw}" — must be a number between 1 and 65535`);
+    return null;
+  }
+
   return {
     host: host!,
-    port: Number(config.get<string>('REDIS_PORT') ?? '6379'),
+    port,
   };
 }
 
@@ -72,7 +89,10 @@ const logger = new Logger('RedisModule');
           logger.log('Redis cache connected');
           return cache;
         } catch (error) {
-          logger.error('Redis cache connection failed — falling back to in-memory', error);
+          logger.error(
+            'Redis cache connection failed — falling back to in-memory',
+            (error as Error).stack ?? String(error)
+          );
           return null;
         }
       },

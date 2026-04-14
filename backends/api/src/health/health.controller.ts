@@ -10,7 +10,9 @@ import { REDIS_CACHE_INSTANCE } from '../redis';
 export class HealthController {
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
-    @Inject(REDIS_CACHE_INSTANCE) @Optional() private readonly redisCache: RedisCache | null
+    @Inject(REDIS_CACHE_INSTANCE)
+    @Optional()
+    private readonly redisCache: RedisCache | null | undefined
   ) {}
 
   @Get()
