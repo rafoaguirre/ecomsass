@@ -25,6 +25,21 @@ export interface AppConfig {
 
   /** Stripe webhook signing secret — used to verify webhook signatures. */
   readonly STRIPE_WEBHOOK_SECRET: string;
+
+  /** Redis connection URL (e.g. redis://localhost:6379). Optional — falls back to in-memory. */
+  readonly REDIS_URL?: string;
+
+  /** Redis host when not using REDIS_URL. @default 'localhost' */
+  readonly REDIS_HOST?: string;
+
+  /** Redis port when not using REDIS_URL. @default '6379' */
+  readonly REDIS_PORT?: string;
+
+  /** Bull Board admin username. @default 'admin' */
+  readonly BULL_BOARD_USER?: string;
+
+  /** Bull Board admin password. Required in production to enable Bull Board. */
+  readonly BULL_BOARD_PASSWORD?: string;
 }
 
 /**

@@ -3,11 +3,13 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth';
+import { BullBoardModule } from './bull-board';
 import { CheckoutModule } from './checkout';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { DatabaseModule } from './database';
 import { HealthModule } from './health/health.module';
 import { OnboardingModule } from './onboarding';
+import { RedisModule } from './redis';
 import { StoresModule } from './stores';
 import { ProductsModule } from './products';
 import { OrdersModule } from './orders';
@@ -27,6 +29,7 @@ import { VendorsModule } from './vendors';
     }),
     AuthModule,
     DatabaseModule,
+    RedisModule,
     HealthModule,
     OnboardingModule,
     StoresModule,
@@ -35,6 +38,7 @@ import { VendorsModule } from './vendors';
     CheckoutModule,
     UsersModule,
     VendorsModule,
+    BullBoardModule,
   ],
   providers: [
     {

@@ -9,7 +9,10 @@
 - ✅ Priority-based queuing
 - ✅ Cloud-agnostic (works on GCP, AWS, any Redis)
 - ✅ Easy to dockerize
-- Architecture: Worker submits jobs → API processes them
+- Architecture: API enqueues jobs → Worker processes them
+- **Implemented:** `BullMQQueue` adapter in `packages/infrastructure/queue` with single-worker dispatch map, retry/backoff
+- **Admin:** Bull Board dashboard at `/admin/queues` (HTTP Basic Auth in production)
+- **Fallback:** Graceful degradation to `InMemoryQueue` when Redis is not configured
 
 ### Payment Processing: **Stripe Connect**
 
@@ -79,7 +82,8 @@
 
 - Product catalogues
 - Frequently accessed endpoints
-- Wrapper utility in `packages/infrastructure/cache`
+- **Implemented:** `RedisCache` adapter in `packages/infrastructure/cache` (ioredis, key namespacing, TTL, mget/mset)
+- **Fallback:** Graceful degradation to `InMemoryCache` when Redis is not configured
 
 ### ID Generation Boundary
 
@@ -188,8 +192,8 @@ packages/
     ├── logger/          # Logging (Pino adapter)
     ├── secrets/         # Secret management
     ├── http/            # HTTP client
-    ├── cache/           # Cache interface (in-memory; Redis planned)
-    ├── queue/           # JobQueue interface (in-memory; BullMQ planned)
+    ├── cache/           # Cache interface + Redis adapter (in-memory fallback)
+    ├── queue/           # JobQueue interface + BullMQ adapter (in-memory fallback)
     ├── database/        # Database interface
     ├── storage/         # File storage (S3/MinIO adapter)
     └── tracing/         # Observability
