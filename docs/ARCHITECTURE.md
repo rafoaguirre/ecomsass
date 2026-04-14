@@ -425,9 +425,11 @@ src/
 
 **Architecture Pattern:**
 
-- Background worker submits job to queue
-- API server processes jobs with registered handlers
+- API enqueues jobs to Redis via `BullMQQueue` adapter
+- Worker processes jobs with registered handlers via single-worker dispatch map
+- `InMemoryQueue` fallback when Redis is not configured (local dev without Docker)
 - Shared queue configuration in `packages/infrastructure/queue`
+- Bull Board admin dashboard at `/admin/queues` (HTTP Basic Auth required in production)
 
 ### 7. Monorepo with Turborepo
 

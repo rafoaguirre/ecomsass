@@ -45,12 +45,12 @@ A modern, scalable multi-tenant e-commerce platform enabling vendors to create a
 | **6 — Orders & Payments** | Checkout flow with Stripe                           | Multi-step checkout (review → shipping → payment), Stripe PaymentIntent integration, order placement & confirmation via webhooks, order management API, atomic order persistence                                               |
 | **7.0 — Package Audit**   | Dependency and build health                         | Audit all workspace packages, fix version mismatches, ensure clean builds                                                                                                                                                      |
 | **7.1 — Code Quality**    | Standards compliance and hardening                  | OwnershipVerifier extraction, payment provider abstraction (web3 prep), durable webhook idempotency, atomic stock reservation, shared `@ecomsaas/api-client`, onboarding API routing, security hardening, config hygiene       |
+| **7.2 — Redis + BullMQ**  | Production queue/cache infrastructure               | RedisCache (ioredis) + BullMQQueue adapters, Docker Compose with Redis, Bull Board admin UI with Basic Auth, health check with Redis status, graceful in-memory fallback                                                       |
 
 ### 🔜 Up Next
 
 | Phase                         | Description                                                      |
 | ----------------------------- | ---------------------------------------------------------------- |
-| **7.2 — Redis + BullMQ**      | Production queue/cache adapters, Docker Compose for local dev    |
 | **7.3 — Email Notifications** | Email port, adapter, templates, order event wiring               |
 | **7.4 — Background Worker**   | Worker process, cron jobs (reconciliation, alerts, cleanup)      |
 | **8 — Blockchain**            | Smart contracts, crypto payments, fundraising, rewards (Polygon) |
@@ -88,6 +88,7 @@ ecomsaas/
 - **Supabase CLI**: For local database or migration management — [install guide](https://supabase.com/docs/guides/cli/getting-started)
 - **Stripe CLI** _(optional)_: For testing webhooks locally — `brew install stripe/stripe-cli/stripe`
 - **Foundry** _(optional)_: For smart contract development — [install guide](https://book.getfoundry.sh/getting-started/installation)
+- **Docker** _(optional)_: For running Redis locally — [install guide](https://docs.docker.com/get-docker/)
 
 ### Installation
 
@@ -103,6 +104,14 @@ cd blockchain/contracts && forge install && cd ../..
 
 # Build all packages
 pnpm build
+```
+
+### Local Infrastructure (Optional)
+
+Start Redis for production-grade cache and queue (falls back to in-memory without it):
+
+```bash
+docker compose up -d
 ```
 
 ### Environment Setup

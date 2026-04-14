@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** In Progress — Phase 7.1 complete; Phase 7.2 up next  
+> **Status:** In Progress — Phase 7.2 complete; Phase 7.3 up next  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -827,21 +827,22 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 **Dependencies:** Phase 7.0
 
-### 7.2 Redis + BullMQ Infrastructure + Docker Compose
+### 7.2 Redis + BullMQ Infrastructure + Docker Compose ✅
 
 **Goal:** Replace in-memory queue/cache with production Redis/BullMQ adapters. Add Docker Compose for local development.
 
-**Status:** Not started
+**Status:** Complete — RedisCache (ioredis), BullMQQueue adapters, Docker Compose with Redis, Bull Board admin UI with Basic Auth, health check with Redis status.
 
 **Deliverables:**
 
-- [ ] Design new `JobQueue` port interface (enqueue, processor registration, typed job names, lifecycle hooks)
-- [ ] Implement BullMQ adapter for `JobQueue` port (retry/backoff, delayed jobs, priorities, DLQ)
-- [ ] Implement Redis cache adapter for existing `Cache` interface (ioredis, key namespacing, safe `clear`)
-- [ ] `docker-compose.yml` with Redis service (DB 0 cache, DB 1 BullMQ)
-- [ ] Mount Bull Board at `/admin/queues` behind admin auth guard
-- [ ] Redis connection config via secrets/env
-- [ ] Health check endpoints for Redis connectivity
+- [x] Design new `JobQueue` port interface (enqueue, processor registration, typed job names, lifecycle hooks)
+- [x] Implement BullMQ adapter for `JobQueue` port (retry/backoff, delayed jobs, single-worker dispatch map)
+- [x] Implement Redis cache adapter for existing `Cache` interface (ioredis, key namespacing, safe `clear`)
+- [x] `docker-compose.yml` with Redis service
+- [x] Mount Bull Board at `/admin/queues` behind HTTP Basic Auth (disabled in production without credentials)
+- [x] Redis connection config via secrets/env (REDIS_URL or REDIS_HOST/PORT, graceful in-memory fallback)
+- [x] Health check endpoints for Redis connectivity
+- [x] Fix `follow-redirects` vulnerability via pnpm override (>=1.16.0)
 
 **Dependencies:** Phase 7.1 (queue port redesign)
 
