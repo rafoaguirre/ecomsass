@@ -408,7 +408,7 @@ src/
 **Use Cases:**
 
 - Order processing
-- Email notifications
+- Email notifications (`EmailSender` port → Resend/Console adapters, BullMQ job handlers with idempotency)
 - Payment reconciliation
 - Blockchain transaction monitoring
 - Inventory sync

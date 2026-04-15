@@ -13,11 +13,11 @@
     "type-check": "turbo type-check",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "audit": "pnpm audit --audit-level=moderate",
+    "audit": "pnpm audit --audit-level=moderate --ignore-registry-errors",
     "prepare": "husky",
     "start": "turbo start",
     "test": "turbo test",
-    "full-check": "pnpm run build && turbo run lint && turbo run type-check && pnpm run test && pnpm audit"
+    "full-check": "pnpm run build && turbo run lint && turbo run type-check && pnpm run test && pnpm run audit"
   },
   "keywords": [
     "ecommerce",

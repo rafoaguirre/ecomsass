@@ -5,6 +5,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth';
 import { BullBoardModule } from './bull-board';
 import { CheckoutModule } from './checkout';
+import { EmailModule } from './email';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { DatabaseModule } from './database';
 import { HealthModule } from './health/health.module';
@@ -30,6 +31,7 @@ import { VendorsModule } from './vendors';
     AuthModule,
     DatabaseModule,
     RedisModule,
+    EmailModule,
     HealthModule,
     OnboardingModule,
     StoresModule,

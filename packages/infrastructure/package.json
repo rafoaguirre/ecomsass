@@ -55,6 +55,11 @@
       "types": "./dist/tracing/index.d.ts",
       "import": "./dist/tracing/index.js",
       "require": "./dist/tracing/index.cjs"
+    },
+    "./email": {
+      "types": "./dist/email/index.d.ts",
+      "import": "./dist/email/index.js",
+      "require": "./dist/email/index.cjs"
     }
   },
   "typesVersions": {
@@ -85,6 +90,9 @@
       ],
       "tracing": [
         "./dist/tracing/index.d.ts"
+      ],
+      "email": [
+        "./dist/email/index.d.ts"
       ]
     }
   },
