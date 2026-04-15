@@ -6,6 +6,7 @@
   "scripts": {
     "prebuild": "node -e \"if(!require('fs').existsSync('lib/forge-std'))require('child_process').execSync('forge install foundry-rs/forge-std --no-git',{stdio:'inherit'})\"",
     "build": "forge build",
+    "pretest": "node -e \"if(!require('fs').existsSync('lib/forge-std'))require('child_process').execSync('forge install foundry-rs/forge-std --no-git',{stdio:'inherit'})\"",
     "test": "forge test",
     "lint": "forge fmt --check",
     "fmt": "forge fmt"

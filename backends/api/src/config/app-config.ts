@@ -40,6 +40,15 @@ export interface AppConfig {
 
   /** Bull Board admin password. Required in production to enable Bull Board. */
   readonly BULL_BOARD_PASSWORD?: string;
+
+  /** Resend API key. Optional — falls back to console email sender. */
+  readonly RESEND_API_KEY?: string;
+
+  /** Default sender email address. @default 'noreply@ecomsaas.dev' */
+  readonly EMAIL_FROM?: string;
+
+  /** Default sender display name. @default 'EcomSaaS' */
+  readonly EMAIL_FROM_NAME?: string;
 }
 
 /**

@@ -14,6 +14,15 @@
 - **Admin:** Bull Board dashboard at `/admin/queues` (HTTP Basic Auth in production)
 - **Fallback:** Graceful degradation to `InMemoryQueue` when Redis is not configured
 
+### Email: **Resend**
+
+- Clean REST API with batch support
+- `EmailSender` port in application layer, adapters in infrastructure
+- **Implemented:** `ResendEmailSender` (production) + `ConsoleEmailSender` (dev fallback)
+- **Templates:** Order confirmation, status update — pure functions with HTML escaping
+- **Async:** Email jobs enqueued via BullMQ, processed with idempotency keys
+- **Fallback:** Console sender when `RESEND_API_KEY` is not configured
+
 ### Payment Processing: **Stripe Connect**
 
 - Handles multi-vendor payment splitting

@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** In Progress — Phase 7.2 complete; Phase 7.3 up next  
+> **Status:** In Progress — Phase 7.3 complete; Phase 7.4 up next  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -850,15 +850,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 **Goal:** Add email sending capability. Define port, implement adapter, create templates, wire to order events.
 
-**Status:** Not started
+**Status:** Complete ✅
 
 **Deliverables:**
 
-- [ ] `EmailSender` interface in `packages/application/src/ports/`
-- [ ] Production adapter (Resend, SES, or SMTP) + dev adapter (console/Ethereal)
-- [ ] HTML email templates: order confirmation, status update, base layout
-- [ ] Enqueue email jobs from API use cases (order placed, status changed)
-- [ ] Idempotent job handlers (skip if already sent)
+- [x] `EmailSender` interface in `packages/application/src/ports/`
+- [x] Production adapter (Resend) + dev adapter (ConsoleEmailSender)
+- [x] HTML email templates: order confirmation, status update, base layout
+- [x] Enqueue email jobs from API use cases (order placed, status changed)
+- [x] Idempotent job handlers (skip if already sent)
 
 **Dependencies:** Phase 7.2
 

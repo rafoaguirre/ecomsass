@@ -12,6 +12,7 @@ export default defineConfig({
     'database/index': 'src/database/index.ts',
     'storage/index': 'src/storage/index.ts',
     'tracing/index': 'src/tracing/index.ts',
+    'email/index': 'src/email/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

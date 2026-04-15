@@ -13,3 +13,4 @@ export type {
   PaymentEvent,
 } from './PaymentGateway';
 export type { WebhookEventLog } from './WebhookEventLog';
+export type { EmailSender, EmailMessage, EmailAddress, EmailResult } from './EmailSender';

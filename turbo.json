@@ -35,9 +35,7 @@
       "cache": false
     },
     "test": {
-      "dependsOn": ["^build"],
-      "outputs": ["coverage/**"],
-      "cache": true
+      "dependsOn": ["^build"]
     },
     "test:watch": {
       "dependsOn": ["^build"],
