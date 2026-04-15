@@ -5,6 +5,11 @@ import type {
   EmailAddress,
 } from '@ecomsaas/application/ports';
 
+/** Strip CR/LF to prevent email header injection. */
+function stripCRLF(value: string): string {
+  return value.replace(/[\r\n]/g, '');
+}
+
 /**
  * Configuration for the Resend email adapter.
  */
@@ -109,7 +114,9 @@ export class ResendEmailSender implements EmailSender {
   }
 
   private formatAddress(addr: EmailAddress): string {
-    return addr.name ? `${addr.name} <${addr.email}>` : addr.email;
+    const email = stripCRLF(addr.email);
+    const name = addr.name ? stripCRLF(addr.name) : undefined;
+    return name ? `${name} <${email}>` : email;
   }
 
   private formatRecipients(to: EmailAddress | EmailAddress[]): string[] {

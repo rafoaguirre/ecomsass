@@ -176,4 +176,46 @@ describe('EmailModule', () => {
     await handler(job);
     expect(emailSender.send).toHaveBeenCalledTimes(1);
   });
+
+  it('should evict oldest key when processedKeys cap is reached', async () => {
+    // Access private static for test override
+    const cap = (EmailModule as any).MAX_PROCESSED_KEYS as number;
+    expect(cap).toBe(10_000);
+
+    await emailModule.onModuleInit();
+    const handler = queue._handlers.get(EMAIL_JOBS.ORDER_CONFIRMATION)!;
+
+    const makeJob = (key: string) => ({
+      id: `j-${key}`,
+      name: EMAIL_JOBS.ORDER_CONFIRMATION,
+      data: {
+        customerEmail: 'buyer@example.com',
+        customerName: 'Jane',
+        orderRef: 'ORD-CAP',
+        totalFormatted: '$1.00',
+        items: [{ name: 'Item', quantity: 1, priceFormatted: '$1.00' }],
+        idempotencyKey: key,
+      },
+      attempts: 1,
+      timestamp: Date.now(),
+    });
+
+    // Fill up to cap
+    for (let i = 0; i < cap; i++) {
+      await handler(makeJob(`key-${i}`));
+    }
+    expect(emailSender.send).toHaveBeenCalledTimes(cap);
+
+    // Duplicate of first key should still be skipped (still in set)
+    await handler(makeJob('key-0'));
+    expect(emailSender.send).toHaveBeenCalledTimes(cap);
+
+    // Add one more beyond cap — should evict key-0
+    await handler(makeJob('key-overflow'));
+    expect(emailSender.send).toHaveBeenCalledTimes(cap + 1);
+
+    // Now key-0 was evicted, so it should be processed again
+    await handler(makeJob('key-0'));
+    expect(emailSender.send).toHaveBeenCalledTimes(cap + 2);
+  });
 });

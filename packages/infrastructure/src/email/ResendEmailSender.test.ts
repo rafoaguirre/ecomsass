@@ -64,6 +64,21 @@ describe('ResendEmailSender', () => {
     expect(body.from).toBe('Custom Sender <custom@example.com>');
   });
 
+  it('should strip CR/LF from address fields to prevent header injection', async () => {
+    fetchSpy.mockResolvedValue(new Response(JSON.stringify({ id: 'msg_safe' }), { status: 200 }));
+
+    await sender.send({
+      to: { email: 'user@example.com', name: 'Mal\r\nBcc: evil@attacker.com' },
+      subject: 'Injection test',
+      html: '',
+    });
+
+    const body = JSON.parse(fetchSpy.mock.calls[0][1]!.body as string);
+    expect(body.to[0]).not.toContain('\r');
+    expect(body.to[0]).not.toContain('\n');
+    expect(body.to[0]).toBe('MalBcc: evil@attacker.com <user@example.com>');
+  });
+
   it('should throw EmailError on API failure', async () => {
     fetchSpy.mockResolvedValue(
       new Response(JSON.stringify({ message: 'Invalid API key' }), { status: 401 })

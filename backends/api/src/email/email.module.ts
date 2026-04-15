@@ -73,7 +73,11 @@ const logger = new Logger('EmailModule');
   exports: [EMAIL_SENDER],
 })
 export class EmailModule implements OnModuleInit {
-  /** Track sent idempotency keys per instance (in-memory; replace with Redis SET for durable cross-instance dedup). */
+  /**
+   * Track sent idempotency keys per instance (in-memory; replace with Redis SET for durable cross-instance dedup).
+   * Capped to prevent unbounded memory growth — oldest entries evicted when limit is reached.
+   */
+  private static readonly MAX_PROCESSED_KEYS = 10_000;
   private readonly processedKeys = new Set<string>();
 
   constructor(
@@ -83,6 +87,16 @@ export class EmailModule implements OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     this.registerJobHandlers();
+  }
+
+  /** Add a key, evicting the oldest entry if the cap is reached. */
+  private trackKey(key: string): void {
+    if (this.processedKeys.size >= EmailModule.MAX_PROCESSED_KEYS) {
+      // Set iterates in insertion order — delete the oldest entry
+      const oldest = this.processedKeys.values().next().value as string;
+      this.processedKeys.delete(oldest);
+    }
+    this.processedKeys.add(key);
   }
 
   private registerJobHandlers(): void {
@@ -114,7 +128,7 @@ export class EmailModule implements OnModuleInit {
         tags: ['order-confirmation', 'transactional'],
       });
 
-      this.processedKeys.add(job.data.idempotencyKey);
+      this.trackKey(job.data.idempotencyKey);
       logger.log(`Order confirmation sent: ${job.data.orderRef} → ${job.data.customerEmail}`);
     });
 
@@ -141,7 +155,7 @@ export class EmailModule implements OnModuleInit {
         tags: ['order-status-update', 'transactional'],
       });
 
-      this.processedKeys.add(job.data.idempotencyKey);
+      this.trackKey(job.data.idempotencyKey);
       logger.log(
         `Order status email sent: ${job.data.orderRef} (${job.data.newStatus}) → ${job.data.customerEmail}`
       );

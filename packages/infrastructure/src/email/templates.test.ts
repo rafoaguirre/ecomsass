@@ -48,6 +48,31 @@ describe('emailTemplates', () => {
       expect(html).not.toContain('View Order');
     });
 
+    it('should reject javascript: URL scheme', () => {
+      const html = emailTemplates.orderConfirmation({
+        customerName: 'Jane',
+        orderRef: 'ORD-JS',
+        totalFormatted: '$10.00',
+        items: [{ name: 'Item', quantity: 1, priceFormatted: '$10.00' }],
+        orderUrl: 'javascript:alert(1)',
+      });
+
+      expect(html).not.toContain('View Order');
+      expect(html).not.toContain('javascript:');
+    });
+
+    it('should reject data: URL scheme', () => {
+      const html = emailTemplates.orderConfirmation({
+        customerName: 'Jane',
+        orderRef: 'ORD-DATA',
+        totalFormatted: '$10.00',
+        items: [{ name: 'Item', quantity: 1, priceFormatted: '$10.00' }],
+        orderUrl: 'data:text/html,<script>alert(1)</script>',
+      });
+
+      expect(html).not.toContain('View Order');
+    });
+
     it('should escape HTML in user-provided data', () => {
       const html = emailTemplates.orderConfirmation({
         customerName: '<script>alert("xss")</script>',

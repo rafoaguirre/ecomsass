@@ -57,6 +57,16 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;');
 }
 
+/** Allow only http(s) absolute URLs to prevent javascript:/data: injection. */
+function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 // ──────────────────────────────────────────────────
 // Order Confirmation
 // ──────────────────────────────────────────────────
@@ -107,7 +117,7 @@ function orderConfirmation(data: OrderConfirmationData): string {
       </tr>
     </table>
     ${
-      data.orderUrl
+      data.orderUrl && isSafeUrl(data.orderUrl)
         ? `<p style="text-align:center;"><a href="${escapeHtml(data.orderUrl)}" style="display:inline-block;padding:12px 32px;background-color:#18181b;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Order</a></p>`
         : ''
     }`;
@@ -150,7 +160,7 @@ function orderStatusUpdate(data: OrderStatusUpdateData): string {
     </table>
     ${data.message ? `<p style="margin:0 0 24px;color:#3f3f46;line-height:1.6;">${escapeHtml(data.message)}</p>` : ''}
     ${
-      data.orderUrl
+      data.orderUrl && isSafeUrl(data.orderUrl)
         ? `<p style="text-align:center;"><a href="${escapeHtml(data.orderUrl)}" style="display:inline-block;padding:12px 32px;background-color:#18181b;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Order</a></p>`
         : ''
     }`;
