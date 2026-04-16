@@ -491,7 +491,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 - [x] Login page (both apps)
 - [x] Registration page (both apps — vendor includes `businessName` field)
-- [ ] Password reset flow _(deferred to Phase 3.3)_
+- [x] Password reset flow (forgot-password + reset-password pages, both apps)
 - [x] Protected route wrapper (Next.js middleware + server-side session check)
 - [x] Auth state management (Supabase SSR — server/browser clients, no Zustand needed)
 - [x] Redirect logic after auth (vendor → dashboard, storefront → home)

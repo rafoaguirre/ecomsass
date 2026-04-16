@@ -52,3 +52,47 @@ export async function logout() {
   revalidatePath('/', 'layout');
   redirect('/login');
 }
+
+export async function forgotPassword(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const supabase = await createClient();
+
+    const { error } = await supabase.auth.resetPasswordForEmail(formData.get('email') as string, {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3002'}/auth/confirm?next=/reset-password`,
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return { error: '' }; // empty string signals success
+  } catch {
+    return { error: 'Something went wrong. Please try again.' };
+  }
+}
+
+export async function resetPassword(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const password = formData.get('password') as string;
+  const confirm = formData.get('confirmPassword') as string;
+
+  if (password !== confirm) {
+    return { error: 'Passwords do not match' };
+  }
+
+  try {
+    const supabase = await createClient();
+
+    const { error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath('/', 'layout');
+    redirect('/');
+  } catch (e) {
+    // redirect() throws a special error — re-throw it
+    if (e instanceof Error && e.message === 'NEXT_REDIRECT') throw e;
+    return { error: 'Something went wrong. Please try again.' };
+  }
+}
