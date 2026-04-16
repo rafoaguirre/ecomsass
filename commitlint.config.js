@@ -19,6 +19,7 @@ export default {
 
         // Backend services
         'api',
+        'worker',
         'backend',
         'auth',
         'payments',

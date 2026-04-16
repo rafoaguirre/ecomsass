@@ -25,13 +25,13 @@ Implemented workspaces:
 - `backends/api`
 - `clients/storefront`
 - `clients/vendor`
+- `backends/worker` (standalone Node.js background worker)
 - `blockchain/contracts` (Foundry scaffold)
 
 Planned but not yet created:
 
 - `packages/utils`
 - `packages/config`
-- `backends/worker`
 - `backends/mcp`
 - Terraform modules under `infra/terraform`
 

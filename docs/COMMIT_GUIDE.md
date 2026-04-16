@@ -49,6 +49,7 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 ### Backend Services
 
 - `api` - Main API service
+- `worker` - Background worker and scheduled jobs
 - `backend` - Backend services (general)
 - `auth` - Authentication service
 - `payments` - Payment processing

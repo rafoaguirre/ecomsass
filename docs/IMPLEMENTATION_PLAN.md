@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** In Progress — Phase 7.3 complete; Phase 7.4 up next  
+> **Status:** In Progress — Phase 7.4 complete; Phase 8 up next  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -862,19 +862,19 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 **Dependencies:** Phase 7.2
 
-### 7.4 Background Worker & Scheduled Jobs
+### 7.4 Background Worker & Scheduled Jobs ✅
 
 **Goal:** Create worker application, implement cron jobs for reconciliation, alerts, and cleanup.
 
-**Status:** Not started
+**Status:** Complete — standalone Node.js worker with BullMQ consumers, cron scheduler, and graceful shutdown.
 
 **Deliverables:**
 
-- [ ] Create `backends/worker/` — lightweight Node.js process
-- [ ] Connect to same Redis, share `@ecomsaas/infrastructure` and `@ecomsaas/application`
-- [ ] Cron: payment reconciliation (hourly), low-stock alerts (daily), stale order cleanup (daily)
-- [ ] BullMQ Worker processors with structured logging, retry/backoff, graceful shutdown
-- [ ] Add to Turborepo pipeline and Docker Compose
+- [x] Create `backends/worker/` — lightweight Node.js process (no NestJS, standalone)
+- [x] Connect to same Redis and share `@ecomsaas/infrastructure` (application-layer sharing deferred to Phase 8+)
+- [x] Cron: payment reconciliation (hourly), low-stock alerts (daily), stale order cleanup (daily)
+- [x] BullMQ Worker processors with structured logging, retry/backoff, graceful shutdown
+- [x] Add to Turborepo pipeline and Docker Compose
 
 **Architecture:**
 
