@@ -80,7 +80,7 @@ jobs:
 
       - name: Audit dependencies
         if: steps.deps-changed.outputs.deps == 'true'
-        run: pnpm audit --audit-level=moderate
+        run: pnpm run audit
 
       - name: Build
         run: pnpm build
