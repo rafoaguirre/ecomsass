@@ -23,6 +23,16 @@
 - **Async:** Email jobs enqueued via BullMQ, processed with idempotency keys
 - **Fallback:** Console sender when `RESEND_API_KEY` is not configured
 
+### Background Worker: **Standalone Node.js + croner**
+
+- Lightweight standalone process (no NestJS overhead) in `backends/worker/`
+- Connects to the same Redis/BullMQ queue as the API
+- **Cron scheduler:** croner library drives periodic job enqueuing
+- **Schedules:** Payment reconciliation (hourly), low-stock alerts (daily @ 06:00 UTC), stale order cleanup (daily @ 03:00 UTC)
+- **Processors:** Stub implementations — real business logic plugs in as domain services become available
+- **Shutdown:** Graceful SIGTERM/SIGINT handling — stops crons, drains worker, closes queue
+- **Docker:** Dedicated Compose service with Redis health dependency
+
 ### Payment Processing: **Stripe Connect**
 
 - Handles multi-vendor payment splitting

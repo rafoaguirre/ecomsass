@@ -426,10 +426,12 @@ src/
 **Architecture Pattern:**
 
 - API enqueues jobs to Redis via `BullMQQueue` adapter
-- Worker processes jobs with registered handlers via single-worker dispatch map
+- Standalone `backends/worker/` process consumes jobs via BullMQ Worker
+- Worker runs cron scheduler (croner) → enqueues periodic jobs (payment reconciliation hourly, low-stock alerts daily, stale order cleanup daily)
 - `InMemoryQueue` fallback when Redis is not configured (local dev without Docker)
 - Shared queue configuration in `packages/infrastructure/queue`
 - Bull Board admin dashboard at `/admin/queues` (HTTP Basic Auth required in production)
+- Worker has graceful shutdown on SIGTERM/SIGINT, Docker Compose service with Redis health dependency
 
 ### 7. Monorepo with Turborepo
 

@@ -1,0 +1,29 @@
+{
+  "name": "@ecomsaas/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ecomsaas/infrastructure": "workspace:^",
+    "bullmq": "^5.73.5",
+    "croner": "^9.1.0"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.11.22",
+    "@types/node": "^22.16.0",
+    "eslint": "^9.24.0",
+    "prettier": "^3.6.2",
+    "tsup": "^8.5.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.1"
+  }
+}

@@ -1,8 +1,8 @@
 import { Global, Module, Logger, Inject, type OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { RedisCache } from '@ecomsaas/infrastructure/cache';
+import { RedisCache, parseRedisUrl, parseRedisPort } from '@ecomsaas/infrastructure/cache';
 import { BullMQQueue } from '@ecomsaas/infrastructure/queue';
-import type { Cache } from '@ecomsaas/infrastructure/cache';
+import type { Cache, RedisConnectionConfig } from '@ecomsaas/infrastructure/cache';
 import type { Queue } from '@ecomsaas/infrastructure/queue';
 import { InMemoryCache } from '@ecomsaas/infrastructure/cache';
 import { InMemoryQueue } from '@ecomsaas/infrastructure/queue';
@@ -11,14 +11,9 @@ export const CACHE = Symbol('CACHE');
 export const JOB_QUEUE = Symbol('JOB_QUEUE');
 export const REDIS_CACHE_INSTANCE = Symbol('REDIS_CACHE_INSTANCE');
 
-interface RedisConfig {
+interface RedisConfig extends RedisConnectionConfig {
   /** Original URL (if provided). Used by ioredis constructor in RedisCache. */
   url?: string;
-  host: string;
-  port: number;
-  password?: string;
-  db?: number;
-  username?: string;
 }
 
 /** Parse Redis config from environment. Returns null when unconfigured. */
@@ -29,38 +24,22 @@ function resolveRedisConfig(config: ConfigService): RedisConfig | null {
   if (!url && !host) return null;
 
   if (url) {
-    let parsed: URL;
     try {
-      parsed = new URL(url);
-    } catch {
-      logger.error(`Invalid REDIS_URL "${url}" — cannot parse as URL`);
+      return parseRedisUrl(url);
+    } catch (error) {
+      logger.error((error as Error).message);
       return null;
     }
-
-    const port = Number(parsed.port) || 6379;
-    const dbSegment = parsed.pathname.length > 1 ? Number(parsed.pathname.slice(1)) : undefined;
-
-    return {
-      url,
-      host: parsed.hostname,
-      port,
-      password: parsed.password || undefined,
-      db: dbSegment !== undefined && !Number.isNaN(dbSegment) ? dbSegment : undefined,
-      username: parsed.username || undefined,
-    };
   }
 
   const portRaw = config.get<string>('REDIS_PORT') ?? '6379';
-  const port = Number(portRaw);
-  if (Number.isNaN(port) || port <= 0 || port > 65535) {
-    logger.error(`Invalid REDIS_PORT "${portRaw}" — must be a number between 1 and 65535`);
+  try {
+    const port = parseRedisPort(portRaw);
+    return { host: host!, port };
+  } catch (error) {
+    logger.error((error as Error).message);
     return null;
   }
-
-  return {
-    host: host!,
-    port,
-  };
 }
 
 const logger = new Logger('RedisModule');

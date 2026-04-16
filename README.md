@@ -47,13 +47,13 @@ A modern, scalable multi-tenant e-commerce platform enabling vendors to create a
 | **7.1 — Code Quality**        | Standards compliance and hardening                  | OwnershipVerifier extraction, payment provider abstraction (web3 prep), durable webhook idempotency, atomic stock reservation, shared `@ecomsaas/api-client`, onboarding API routing, security hardening, config hygiene       |
 | **7.2 — Redis + BullMQ**      | Production queue/cache infrastructure               | RedisCache (ioredis) + BullMQQueue adapters, Docker Compose with Redis, Bull Board admin UI with Basic Auth, health check with Redis status, graceful in-memory fallback                                                       |
 | **7.3 — Email Notifications** | Email infrastructure & notifications                | EmailSender port, Resend + Console adapters, HTML templates (order confirmation, status update), BullMQ job handlers with idempotency, EmailModule with graceful fallback                                                      |
+| **7.4 — Background Worker**   | Worker process with cron jobs                       | Standalone Node.js worker, BullMQ consumers, croner-based scheduler (payment reconciliation, low-stock alerts, stale order cleanup), graceful shutdown, Docker Compose service                                                 |
 
 ### 🔜 Up Next
 
-| Phase                       | Description                                                      |
-| --------------------------- | ---------------------------------------------------------------- |
-| **7.4 — Background Worker** | Worker process, cron jobs (reconciliation, alerts, cleanup)      |
-| **8 — Blockchain**          | Smart contracts, crypto payments, fundraising, rewards (Polygon) |
+| Phase              | Description                                                      |
+| ------------------ | ---------------------------------------------------------------- |
+| **8 — Blockchain** | Smart contracts, crypto payments, fundraising, rewards (Polygon) |
 
 ## 🏗️ Architecture
 
