@@ -871,7 +871,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 **Deliverables:**
 
 - [x] Create `backends/worker/` — lightweight Node.js process (no NestJS, standalone)
-- [x] Connect to same Redis, share `@ecomsaas/infrastructure` and `@ecomsaas/application`
+- [x] Connect to same Redis and share `@ecomsaas/infrastructure` (application-layer sharing deferred to Phase 8+)
 - [x] Cron: payment reconciliation (hourly), low-stock alerts (daily), stale order cleanup (daily)
 - [x] BullMQ Worker processors with structured logging, retry/backoff, graceful shutdown
 - [x] Add to Turborepo pipeline and Docker Compose

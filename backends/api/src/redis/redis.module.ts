@@ -102,6 +102,7 @@ const logger = new Logger('RedisModule');
             password: rc.password,
             db: rc.db,
             username: rc.username,
+            ...(rc.tls ? { tls: {} } : {}),
           },
         });
       },

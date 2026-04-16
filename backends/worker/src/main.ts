@@ -37,6 +37,7 @@ async function main(): Promise<void> {
       password: config.redis.password,
       db: config.redis.db,
       username: config.redis.username,
+      ...(config.redis.tls ? { tls: {} } : {}),
     },
   });
 

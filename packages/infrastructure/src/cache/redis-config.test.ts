@@ -35,6 +35,27 @@ describe('parseRedisUrl', () => {
   it('should throw on invalid URL', () => {
     expect(() => parseRedisUrl('not-a-url')).toThrow('cannot parse as URL');
   });
+
+  it('should throw on unsupported protocol', () => {
+    expect(() => parseRedisUrl('http://localhost:6379')).toThrow('protocol must be');
+  });
+
+  it('should set tls to true for rediss:// scheme', () => {
+    const config = parseRedisUrl('rediss://host:6380');
+    expect(config.tls).toBe(true);
+    expect(config.host).toBe('host');
+    expect(config.port).toBe(6380);
+  });
+
+  it('should set tls to false for redis:// scheme', () => {
+    const config = parseRedisUrl('redis://localhost');
+    expect(config.tls).toBe(false);
+  });
+
+  it('should reject invalid port in URL', () => {
+    // Node's URL parser rejects ports > 65535 at parse time
+    expect(() => parseRedisUrl('redis://localhost:99999')).toThrow('cannot parse as URL');
+  });
 });
 
 describe('parseRedisPort', () => {

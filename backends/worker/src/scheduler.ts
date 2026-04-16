@@ -11,7 +11,7 @@ import { WORKER_JOBS } from './processors.js';
 const SCHEDULES = [
   {
     name: WORKER_JOBS.PAYMENT_RECONCILIATION,
-    /** Every hour at minute 0 */
+    /** Every hour at minute 0 (UTC) */
     cron: '0 * * * *',
     data: () => ({ triggeredAt: new Date().toISOString() }),
   },
@@ -36,7 +36,7 @@ export function startScheduler({ queue, logger }: WorkerDeps): () => void {
   const jobs: Cron[] = [];
 
   for (const schedule of SCHEDULES) {
-    const cronJob = new Cron(schedule.cron, async () => {
+    const cronJob = new Cron(schedule.cron, { timezone: 'UTC' }, async () => {
       try {
         const jobId = await queue.add(schedule.name, schedule.data());
         logger.info(`Scheduled job enqueued: ${schedule.name}`, { jobId });

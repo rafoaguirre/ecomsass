@@ -9,6 +9,8 @@ export interface RedisConnectionConfig {
   username?: string;
   /** Original URL if provided. */
   url?: string;
+  /** True when the URL scheme is `rediss://` (TLS required). */
+  tls?: boolean;
 }
 
 /**
@@ -24,10 +26,16 @@ export function parseRedisUrl(url: string): RedisConnectionConfig {
   try {
     parsed = new URL(url);
   } catch {
-    throw new Error(`Invalid Redis URL "${url}" — cannot parse as URL`);
+    throw new Error('Invalid Redis URL — cannot parse as URL');
   }
 
-  const port = Number(parsed.port) || 6379;
+  if (parsed.protocol !== 'redis:' && parsed.protocol !== 'rediss:') {
+    throw new Error(
+      `Invalid Redis URL — protocol must be "redis://" or "rediss://", got "${parsed.protocol}"`
+    );
+  }
+
+  const port = parsed.port ? parseRedisPort(parsed.port) : 6379;
   const dbSegment = parsed.pathname.length > 1 ? Number(parsed.pathname.slice(1)) : undefined;
 
   return {
@@ -37,6 +45,7 @@ export function parseRedisUrl(url: string): RedisConnectionConfig {
     password: parsed.password || undefined,
     db: dbSegment !== undefined && !Number.isNaN(dbSegment) ? dbSegment : undefined,
     username: parsed.username || undefined,
+    tls: parsed.protocol === 'rediss:',
   };
 }
 

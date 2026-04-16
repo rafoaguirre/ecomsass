@@ -64,22 +64,20 @@ describe('startScheduler', () => {
   });
 
   it('should log error when queue.add fails', async () => {
-    const { deps, queue } = createMockDeps();
+    const { deps, queue, logger } = createMockDeps();
     queue.add.mockRejectedValue(new Error('Redis down'));
+
+    // Set time before creating cron so the next hour tick is deterministic
+    vi.setSystemTime(new Date('2026-04-15T00:59:59.000Z'));
 
     const stop = startScheduler(deps);
 
-    // Trigger the first cron by advancing to the next hour mark
-    // Set time to just before the hour, then advance past it
-    vi.setSystemTime(new Date('2026-04-15T00:59:59.999Z'));
-    vi.advanceTimersByTime(2000);
+    // Cross the hour boundary and let the async cron handler settle
+    await vi.advanceTimersByTimeAsync(2000);
 
-    // Give the async handler time to execute
-    await vi.advanceTimersByTimeAsync(100);
+    expect(queue.add).toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalled();
 
-    // The error should be logged when the cron fires and add fails
-    // Note: Cron timing is platform-dependent in tests, so we just verify
-    // the stop function works cleanly
     stop();
   });
 });
