@@ -1,6 +1,6 @@
 # Implementation Plan
 
-> **Status:** In Progress — Phase 7.4 complete; Phase 8 up next  
+> **Status:** In Progress — Phase 7.4 underway; worker infrastructure is complete, scheduled job business logic is still pending  
 > **Start Date:** January 22, 2026  
 > **Estimated Duration:** 12-16 weeks (part-time)
 
@@ -858,23 +858,27 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 - [x] Production adapter (Resend) + dev adapter (ConsoleEmailSender)
 - [x] HTML email templates: order confirmation, status update, base layout
 - [x] Enqueue email jobs from API use cases (order placed, status changed)
-- [x] Idempotent job handlers (skip if already sent)
+- [x] Best-effort per-process deduplication in job handlers (skip if already sent within the same API instance)
+- [ ] Durable cross-instance idempotency store (for example Redis-backed deduplication)
 
 **Dependencies:** Phase 7.2
 
-### 7.4 Background Worker & Scheduled Jobs ✅
+### 7.4 Background Worker & Scheduled Jobs
 
-**Goal:** Create worker application, implement cron jobs for reconciliation, alerts, and cleanup.
+**Goal:** Create the worker application and scheduled job infrastructure, then implement the reconciliation, alerting, and cleanup job logic.
 
-**Status:** Complete — standalone Node.js worker with BullMQ consumers, cron scheduler, and graceful shutdown.
+**Status:** In Progress — standalone Node.js worker, BullMQ consumers, cron registration, and graceful shutdown are implemented. The three scheduled processors are still stubs and need real business logic before this phase can be considered complete.
 
 **Deliverables:**
 
 - [x] Create `backends/worker/` — lightweight Node.js process (no NestJS, standalone)
 - [x] Connect to same Redis and share `@ecomsaas/infrastructure` (application-layer sharing deferred to Phase 8+)
-- [x] Cron: payment reconciliation (hourly), low-stock alerts (daily), stale order cleanup (daily)
-- [x] BullMQ Worker processors with structured logging, retry/backoff, graceful shutdown
-- [x] Add to Turborepo pipeline and Docker Compose
+- [x] Register cron schedules for payment reconciliation (hourly), low-stock alerts (daily), and stale order cleanup (daily)
+- [x] Implement BullMQ worker wiring with structured logging, retry/backoff, and graceful shutdown
+- [x] Add the worker to Turborepo and the current Redis-focused Docker Compose stack
+- [ ] Implement payment reconciliation processor logic
+- [ ] Implement low-stock alert processor logic
+- [ ] Implement stale order cleanup processor logic
 
 **Architecture:**
 
@@ -891,7 +895,7 @@ Worker (scheduler) → Redis/BullMQ → Worker (consumer)
 - Clean Architecture drift resolved; all mutations through API (7.1)
 - Redis + BullMQ operational, Bull Board accessible (7.2)
 - Order emails sending end-to-end (7.3)
-- Worker running cron jobs reliably (7.4)
+- Worker running scheduled jobs with real business behavior rather than stub handlers (7.4)
 
 ---
 

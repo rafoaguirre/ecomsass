@@ -46,14 +46,20 @@ A modern, scalable multi-tenant e-commerce platform enabling vendors to create a
 | **7.0 — Package Audit**       | Dependency and build health                         | Audit all workspace packages, fix version mismatches, ensure clean builds                                                                                                                                                      |
 | **7.1 — Code Quality**        | Standards compliance and hardening                  | OwnershipVerifier extraction, payment provider abstraction (web3 prep), durable webhook idempotency, atomic stock reservation, shared `@ecomsaas/api-client`, onboarding API routing, security hardening, config hygiene       |
 | **7.2 — Redis + BullMQ**      | Production queue/cache infrastructure               | RedisCache (ioredis) + BullMQQueue adapters, Docker Compose with Redis, Bull Board admin UI with Basic Auth, health check with Redis status, graceful in-memory fallback                                                       |
-| **7.3 — Email Notifications** | Email infrastructure & notifications                | EmailSender port, Resend + Console adapters, HTML templates (order confirmation, status update), BullMQ job handlers with idempotency, EmailModule with graceful fallback                                                      |
-| **7.4 — Background Worker**   | Worker process with cron jobs                       | Standalone Node.js worker, BullMQ consumers, croner-based scheduler (payment reconciliation, low-stock alerts, stale order cleanup), graceful shutdown, Docker Compose service                                                 |
+| **7.3 — Email Notifications** | Email infrastructure & notifications                | EmailSender port, Resend + Console adapters, HTML templates (order confirmation, status update), BullMQ job handlers with per-process dedup safeguards, EmailModule with graceful fallback                                     |
+
+### 🚧 In Progress
+
+| Phase                       | Description                               | Current state                                                                                                                                                                             |
+| --------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **7.4 — Background Worker** | Worker process and scheduled job plumbing | Standalone Node.js worker, BullMQ consumers, croner-based scheduler, graceful shutdown, and Docker Compose service are implemented; reconciliation/alert/cleanup handlers are still stubs |
 
 ### 🔜 Up Next
 
-| Phase              | Description                                                      |
-| ------------------ | ---------------------------------------------------------------- |
-| **8 — Blockchain** | Smart contracts, crypto payments, fundraising, rewards (Polygon) |
+| Phase                         | Description                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------ |
+| **7.4 — Finish Worker Logic** | Replace scheduled job stubs with real reconciliation, alerting, and cleanup behavior |
+| **8 — Blockchain**            | Smart contracts, crypto payments, fundraising, rewards (Polygon)                     |
 
 ## 🏗️ Architecture
 
@@ -63,20 +69,27 @@ This monorepo contains multiple applications and shared packages following clean
 
 ```
 ecomsaas/
-├── backends/          # Backend services (APIs, microservices)
-├── clients/           # Frontend applications (web, mobile, admin)
-├── packages/          # Shared TypeScript packages
-│   ├── domain/        # Core entities, value objects, enums
-│   ├── contracts/     # DTOs, API protocol types
-│   ├── application/   # Use cases and port interfaces
-│   ├── infrastructure/# Shared infra adapters (cache, queue, storage, logger)
-│   ├── validation/    # Shared Zod schemas
+├── backends/
+│   ├── api/           # Main NestJS API
+│   └── worker/        # Background scheduler and queue consumer
+├── clients/
+│   ├── storefront/    # Customer storefront and marketplace
+│   └── vendor/        # Vendor dashboard
+├── packages/
 │   ├── api-client/    # Shared HTTP client factory
-│   └── ui/            # Shared UI components (shadcn + Tailwind)
-├── blockchain/        # Smart contracts and blockchain integrations
-├── infra/            # Infrastructure as Code (Terraform, K8s manifests)
-├── docs/             # Documentation
-└── scripts/          # Build and deployment scripts
+│   ├── application/   # Use cases and port interfaces
+│   ├── contracts/     # DTOs and API protocol types
+│   ├── domain/        # Core entities, value objects, enums
+│   ├── infrastructure/# Shared infra adapters
+│   ├── ui/            # Shared UI components and design tokens
+│   └── validation/    # Shared Zod schemas
+├── blockchain/
+│   └── contracts/     # Solidity smart contracts
+├── supabase/          # Local Supabase config and SQL migrations
+├── docs/              # Architecture, planning, and setup docs
+├── scripts/           # Build and utility scripts
+├── test/              # Shared test assets/helpers
+└── infra/             # Reserved for future IaC work; currently empty
 ```
 
 ## 🚀 Getting Started
@@ -108,7 +121,7 @@ pnpm build
 
 ### Local Infrastructure (Optional)
 
-Start Redis for production-grade cache and queue (falls back to in-memory without it):
+Start the current local infrastructure stack, which provisions Redis and the standalone worker. The API and frontends still run via `pnpm dev`:
 
 ```bash
 docker compose up -d
