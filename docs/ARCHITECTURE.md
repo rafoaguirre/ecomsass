@@ -1,8 +1,8 @@
 # EcomSaaS Architecture
 
 > **Version:** 1.0.0  
-> **Last Updated:** April 13, 2026  
-> **Status:** Active Development — Phase 7.1 complete
+> **Last Updated:** May 4, 2026  
+> **Status:** Active Development — Phase 7.3 complete; Phase 7.4 worker infrastructure is in place, but scheduled job business logic is still pending
 
 ## Overview
 
@@ -56,7 +56,7 @@ EcomSaaS is a multi-tenant e-commerce platform that enables vendors to create an
 - Store fundraising through token issuance
 - Rewards system (token accumulation)
 
-### 5. AI-Powered Management
+### 5. AI-Powered Management (Planned)
 
 - MCP server for vendor-AI chat interaction
 - Natural language store configuration
@@ -87,7 +87,7 @@ EcomSaaS is a multi-tenant e-commerce platform that enables vendors to create an
 ┌─────────▼─────┐  ┌──────▼──────┐  ┌────▼────────┐
 │               │  │             │  │             │
 │   Main API    │  │  MCP Server │  │  Background │
-│  (NestJS)     │  │  (AI Chat)  │  │   Worker    │
+│  (NestJS)     │  │  (Planned)  │  │   Worker    │
 │               │  │             │  │  (Jobs)     │
 └───────┬───────┘  └──────┬──────┘  └────┬────────┘
         │                 │              │
@@ -125,7 +125,7 @@ EcomSaaS is a multi-tenant e-commerce platform that enables vendors to create an
 #### **Backend Services**
 
 - **Main API:** NestJS (TypeScript)
-- **MCP Server:** Node.js / TypeScript
+- **MCP Server:** Planned, not yet present in the repository
 - **Background Worker:** Node.js / TypeScript
 - **API Documentation:** Swagger / OpenAPI
 - **Testing:** Vitest / Jest
@@ -230,11 +230,10 @@ This project follows Clean Architecture principles with clear separation between
 ecomsaas/
 ├── backends/
 │   ├── api/                    # Main NestJS API
-│   ├── worker/                 # Background job processor
-│   └── mcp/                    # MCP server for AI chat
+│   └── worker/                 # Background job processor
 ├── clients/
 │   ├── vendor/                 # Vendor management app (Next.js)
-│   └── storefront/             # Customer storefront + stores (Next.js)
+│   └── storefront/             # Customer storefront + marketplace (Next.js)
 ├── blockchain/
 │   └── contracts/              # Solidity smart contracts
 ├── packages/
@@ -243,30 +242,19 @@ ecomsaas/
 │   ├── application/            # Shared use cases
 │   ├── api-client/             # Shared HTTP client factory
 │   ├── ui/                     # Shared UI tokens and adapters (web/native)
-│   ├── utils/                  # Shared utilities (planned)
-│   ├── config/                 # Shared configurations (planned)
 │   ├── validation/             # Shared validation schemas — Zod
 │   └── infrastructure/         # Shared infra utilities
-│       ├── logger/             # Logging utility
-│       ├── secrets/            # Secrets manager wrapper
-│       ├── http/               # HTTP client wrapper
-│       ├── cache/              # Redis caching wrapper
-│       ├── queue/              # BullMQ queue wrapper
-│       ├── database/           # Database migration wrapper (Supabase)
-│       ├── storage/            # File storage wrapper (MinIO/S3/Supabase)
-│       └── tracing/            # Observability/tracing
-├── infra/
-│   ├── terraform/              # IaC configurations
-│   ├── kubernetes/             # K8s manifests
-│   └── docker/                 # Dockerfiles
-├── docs/
-│   ├── architecture/           # Architecture docs
-│   ├── api/                    # API documentation
-│   └── guides/                 # Development guides
-└── scripts/
-    ├── setup/                  # Setup scripts
-    └── deploy/                 # Deployment scripts
+├── supabase/                   # Migrations and local Supabase config
+├── infra/                      # Reserved for IaC; Terraform/Kubernetes are still planned
+├── docs/                       # Architecture, decisions, setup, and planning docs
+└── scripts/                    # Build and deployment scripts
 ```
+
+Planned but not yet created in the workspace:
+
+- `backends/mcp/` for the vendor AI chat server
+- `infra/terraform/` for infrastructure as code
+- `packages/utils/` and `packages/config/` for additional shared helpers/config
 
 ## Key Architectural Decisions
 

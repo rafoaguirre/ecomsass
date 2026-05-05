@@ -20,7 +20,7 @@
 - `EmailSender` port in application layer, adapters in infrastructure
 - **Implemented:** `ResendEmailSender` (production) + `ConsoleEmailSender` (dev fallback)
 - **Templates:** Order confirmation, status update — pure functions with HTML escaping
-- **Async:** Email jobs enqueued via BullMQ, processed with idempotency keys
+- **Async:** Email jobs enqueued via BullMQ, with best-effort per-process deduplication today and durable cross-instance idempotency still pending
 - **Fallback:** Console sender when `RESEND_API_KEY` is not configured
 
 ### Background Worker: **Standalone Node.js + croner**
@@ -47,6 +47,7 @@
 
 ### MCP Server: **AI Chat Interface**
 
+- **Status:** Planned, not yet implemented in this repository
 - Vendors query API data via natural language
 - Set subscriptions, schedules, configurations easily
 - Connects to API internally
@@ -54,10 +55,10 @@
 ### File Storage
 
 **Production**: Supabase Storage / GCP Cloud Storage / AWS S3
-**Local Development**: **MinIO** (S3-compatible Docker container)
+**Local Development (planned)**: **MinIO** (S3-compatible Docker container)
 
 - Perfect for local S3/GCS simulation
-- Included in docker-compose.yml
+- Not yet included in the current root `docker-compose.yml`
 
 ### Real-Time Features: **Supabase Realtime**
 
@@ -178,22 +179,13 @@
 
 ```yaml
 services:
-  - api (NestJS)
-  - vendor (Next.js)
-  - marketplace (Next.js)
   - redis (caching + queue)
-  - minio (S3-compatible storage)
-  # postgres (optional - using Supabase cloud)
+  - worker (background scheduler/consumer)
 ```
 
 ### Ports
 
-- API: `localhost:3000`
-- Vendor App: `localhost:3001`
-- Marketplace: `localhost:3002`
 - Redis: `localhost:6379`
-- MinIO API: `localhost:9000`
-- MinIO Console: `localhost:9001`
 
 ## Shared Packages Structure
 
@@ -237,5 +229,5 @@ packages/
 
 ---
 
-**Last Updated**: February 24, 2026  
-**Status**: Phase 0 In Progress — domain + contracts implemented
+**Last Updated**: May 4, 2026  
+**Status**: Phase 7.4 In Progress — worker infrastructure landed; scheduled job business logic, MCP server, and Terraform remain pending
