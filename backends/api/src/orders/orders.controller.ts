@@ -43,6 +43,8 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ParseOptionalEnumPipe } from '../common/pipes/parse-optional-enum.pipe';
 import { OrdersService } from './orders.service';
 
+const OrderStatusValues = Object.values(OrderStatus);
+
 @ApiTags('orders')
 @Controller('api/v1')
 @UseGuards(SupabaseAuthGuard, RolesGuard)
@@ -88,7 +90,12 @@ export class OrdersController {
   @Roles('Customer', 'Buyer', 'Admin')
   @ApiOperation({ summary: 'List orders for the current customer' })
   @ApiOkResponse({ description: 'List of customer orders' })
-  @ApiQuery({ name: 'status', required: false, enum: OrderStatus })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    type: String,
+    schema: { type: 'string', enum: OrderStatusValues },
+  })
   @ApiQuery({ name: 'offset', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async listMyOrders(
@@ -124,7 +131,12 @@ export class OrdersController {
   @ApiOperation({ summary: 'List orders for a store (vendor)' })
   @ApiOkResponse({ description: 'List of store orders' })
   @ApiForbiddenResponse({ description: 'You do not own this store' })
-  @ApiQuery({ name: 'status', required: false, enum: OrderStatus })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    type: String,
+    schema: { type: 'string', enum: OrderStatusValues },
+  })
   @ApiQuery({ name: 'offset', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async listStoreOrders(

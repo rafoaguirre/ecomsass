@@ -51,6 +51,7 @@ import { ProductsService } from './products.service';
 
 const ProductSortBy = { name: 'name', price: 'price', createdAt: 'createdAt' } as const;
 const SortDirectionEnum = { asc: 'asc', desc: 'desc' } as const;
+const ProductAvailabilityValues = Object.values(ProductAvailability);
 
 @ApiTags('products')
 @Controller('api/v1')
@@ -65,7 +66,12 @@ export class ProductsController {
   @ApiQuery({ name: 'q', required: false, description: 'Search by product name' })
   @ApiQuery({ name: 'storeId', required: false, type: String })
   @ApiQuery({ name: 'categoryId', required: false, type: String })
-  @ApiQuery({ name: 'availability', required: false, enum: ProductAvailability })
+  @ApiQuery({
+    name: 'availability',
+    required: false,
+    type: String,
+    schema: { type: 'string', enum: ProductAvailabilityValues },
+  })
   @ApiQuery({ name: 'minPrice', required: false, type: Number })
   @ApiQuery({ name: 'maxPrice', required: false, type: Number })
   @ApiQuery({ name: 'sortBy', required: false, enum: ['name', 'price', 'createdAt'] })

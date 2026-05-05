@@ -48,6 +48,7 @@ import { StoresService } from './stores.service';
 
 const StoreSortBy = { name: 'name', createdAt: 'createdAt' } as const;
 const SortDirectionEnum = { asc: 'asc', desc: 'desc' } as const;
+const StoreTypeValues = Object.values(StoreType);
 
 @ApiTags('stores')
 @Controller('api/v1/stores')
@@ -60,7 +61,12 @@ export class StoresController {
   @ApiOperation({ summary: 'List/search active stores for marketplace' })
   @ApiOkResponse({ description: 'Paginated list of active store summaries' })
   @ApiQuery({ name: 'q', required: false, description: 'Search by store name' })
-  @ApiQuery({ name: 'storeType', required: false, enum: StoreType })
+  @ApiQuery({
+    name: 'storeType',
+    required: false,
+    type: String,
+    schema: { type: 'string', enum: StoreTypeValues },
+  })
   @ApiQuery({ name: 'sortBy', required: false, enum: ['name', 'createdAt'] })
   @ApiQuery({ name: 'sortDirection', required: false, enum: ['asc', 'desc'] })
   @ApiQuery({ name: 'offset', required: false, type: Number })
